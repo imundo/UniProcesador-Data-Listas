@@ -1,3 +1,1196 @@
 ﻿nombre,apellido,cedula,centro,edad_sector
 José Antonio,Pérez García,V-12345678,Hospital Universitario de Caracas,40 años · Petare
 ,,,,
+María,González,V-9876543,Hospital Pérez Carreño,32 años · El Valle
+Adriana,Vastidas,17.856.045,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Alejandra,Soja,6.904.629,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Alexandria,Cárdenas,28.143.770,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Alvaro,Ortiz,4.163.469,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Amilcar,Stabilito,23.241.059,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Ana,Fennessica,25.699.054,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Anabela,Morillo,34.588.981,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Angeal,Fentesz,16.310.014,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Ariana,Sandaval,34.518.879,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Bairara,Mijnez,13.422.890,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Ayaria,Casjteo,13.327.913,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Canlelario,Quiners,19.734.493,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Cándaria,Novis,9.416.177,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Cálada,Pararez,6.405.488,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+César,Pacheco,26.327.366,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Crisbel,Paneco,26.927.366,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Crisdell,Granerio,22.965.291,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Crus,Henoné,4.636.722,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Dayana,Rondo,18.423.811,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+fufiar,Lop,12.115.323,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Eduar,Arrana,,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Eiban,Yegue,2.058.780,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Elbanii,Idegula,24.058.780,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Elianni,Idalao,32.976.229,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Elisbitt,Chacó,27.374.286,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Llizalsh,Gonzía,17.709.218,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Emira,Guerrea,26.019.884,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Erlica,Godery,13.749.225,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Fleici,Valero,13.574.764,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Frencs,Mellina,13.579.867,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Franley,Modula,,,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Fanley,Brizela,32.781.459,HOSPITAL MIGUEL PÉREZ CARREÑO - LA YAGUARA,
+Geneis,Grancante,31.428.533
+Ronron Fran,,19698967,Hospital Perez Carreño,25/6/26 11:54pm
+Rosier Liz,,26080628,Hospital Universitario de Caracas,28 años
+Rueja José,,15436065,Hospital Universitario de Caracas,
+Salazar Arturo,,13,M La Guaira,
+Salazar Arturo,,13,M La Guaira,
+Salazar Juan,,27044326,Hospital Perez Carreño,25/6/26 11:54pm
+Sánchez José,,34518739,Hospital Universitario de Caracas,
+Sandoval Doris,,4209033,Hospital Universitario de Caracas,80 años
+Semeral Iris,,,Hospital Domingo Luciani (El Llanito),
+Secuera Blanco Sofía,,,Hospital Domingo Luciani (El Llanito),
+Secuera Sofía,,,Hospital Domingo Luciani (El Llanito),
+Serrano González Nancy,,,Hospital Domingo Luciani (El Llanito),
+Serrano Nancy,,,Hospital Universitario de Caracas,
+Silva Ibrahim,,12927904,Hospital Universitario de Caracas,
+Silva Indira,,12479601,Hospital Universitario de Caracas,
+Sierra Leodeindy,,31574315,Hospital Ricardo Bagueo González,
+Solorzano Amar Ró,,31457015,Hospital Universitario de Caracas,
+Somozas Riand,,15627918,Hospital Universitario de Caracas,
+Sosa Emilia,,34019478,Hospital Universitario de Caracas,
+Soza Alejandra,,,Hospital Perez Carreño,24/6/26 11:54pm
+Spinola Kelly,,17428990,Hospital Ricardo Bagueo González,
+Suarez Granado Rene,,22310519,Hospital Perez Carreño,25/6/26 11:54pm
+Suarez Rene,,29458238,Hospital Domingo Luciani (El Llanito),
+Sure Petá,,25482362,Hospital Perez Carreño,
+Teran Audia,,11061573,M La Guaira,
+Teran Audia,,11061573,M La Guaira,
+Tena Tenía,,11409937,Chacao,
+Torreblanca Rodríguez/ Sebastián,,68,Ciudad Caribia,
+Torres Isabel,,4/18119,Hospital Domingo Luciani (El Llanito),
+Torres Milagros,,46,Hospital Perez Carreño,
+Tortoso Oscar,,20568047,Hospital Ricardo Bagueo González,
+Tovar Luisana,,17443380,Hospital Universitario de Caracas,17 años
+Tovar Yeson,,17436068,Hospital Ricardo Bagueo González,19 años
+Trigoso Carlo,,81187421,Hospital Universitario de Caracas,47 años
+Trujillo Elian,,22513789,M La Guaira,
+Urbinia Moisés,,23874618,M La Guaira,
+Uribe Veronica,,,Hospital Vargas de Caracas,
+Valero Fleici,,13374874,Hospital Pérez Carreño,
+Varga Carmen,,22500868,M La Guaira,
+Vascocelo Andreina,,43,Hospital Domingo Luciani (El Llanito),
+Vasconcelos Luis,,M sin familiar,
+Yaz Samir,,11,m Petare,
+Yazmeluz Carmen,,16705956,Hospital Pérez Carreño,
+Viera Rosalinda,,12770837,Hospital Pérez Carreño,
+Clichea Bryan,,,Winchester Kellys,
+Wu Hula Juan,,,Hospital Pérez Carreño,
+Val Susup,,33536731,Hospital Universitario de Caracas,
+Yanes Silvia,,24678732,Hospital Ricardo Bagueo González,
+Yegue Elban,,26878360,Hospital Universitario de Caracas,
+Zambrano Domini,,18274233,,,39 años
+ABADLY,ABDELYS,26254624,Hospital Recardo Baquero Gonzalez,28 años
+ABELLO,MATILDE,,Hospital Domingo Luciani (El Llanito),36 años · Petare
+ABELLO,Wilmari,,Hospital Domingo Luciani (El Llanito),34 años · Petare
+ABREU,ANA,22086301,Hospital Domingo Luciani (El Llanito),58 años · Sabana Grande
+ABREU,Emma,,Hospital Universitario de Caracas,,
+ABREU,PAULINA,,Hospital Domingo Luciani (El Llanito),39 años · Petare
+ACOSTA,ALEXANDER,,Hospital Domingo Luciani (El Llanito),47 años · Baruta
+ACOSTA,Ail,,Hospital Domingo Luciani (El Llanito),47 años · Baruta
+ACOSTA,Hasael,,Hospital Domingo Luciani (El Llanito),10 años · Baruta
+ACOSTA,ISRAEL,,Hospital Domingo Luciani (El Llanito),11 años · Baruta
+ACOSTA,Yaniel, 31176009,Hospital Domingo Luciani (El Llanito),26 años
+ACOSTA,YOLEFRAN,21813618,Hospital Domingo Luciani (El Llanito),26 años
+ALPÍZ,Ana,20001314,,33 años
+ALAYOUN,Suhy,,Hospital Domingo Luciani (El Llanito),27 años
+Ubre,Manuel,,INR,
+ALCÁNTARA,AMAALIS,17434332,Hospital Recardo Baquero Gonzalez,39 años
+ALVAREZ,WILAN,,Hospital Pérez Carreño,,
+ANTEQUILA,MAYULI,12824571,Hospital Universitario de Caracas,50 años
+ARANA,EDUAR,,Hospital Pérez Carreño,50 años
+ARREITA,DOLIS,,Hospital Domingo Luciani (El Llanito),65 años · Baruta
+ARREITA,Doris,,Hospital Domingo Luciani (El Llanito),65 años · Baruta
+ARTEAGA,AIDA,,Hospital Domingo Luciani (El Llanito),72 años ·
+ARTEAGA,GLADYS,28546119,,72 años
+Azoar,Valeria,28546119,Hospital Domingo Luciani (El Llanito),22 años · Petare
+ABELINO,WILMER,,Hospital Domingo Luciani (El Llanito),37 años · Petare
+ABUELO,WILMER,,Hospital Domingo Luciani (El Llanito),37 años · Petare
+BARBARA,ANDRES,,Hospital Pérez Carreño,41 años
+BARRETT,VERONICA,30710626,Hospital Domingo Luciani (El Llanito),47 años
+BASTID,ADRIANA,17656054,Hospital Pérez Carreño,,
+Becerra,Leonardo,34800366,Hospital Pérez Carreño,,
+BENEDICT,YORLAINS,,Hospital Universitario de Caracas,29 años
+Bernal,Marcela,69499571,Hospital Pérez Carreño,,
+Telecari,,Hospital Pérez Carreño,,
+ESBELL,CLARA,,Hospital Domingo Luciani (El Llanito),62 años · Petare
+BLANCO,JOSE,,Hospital Domingo Luciani (El Llanito),53 años · El Hatillo
+BOMPARO,RONI,,Hospital Domingo Luciani (El Llanito),33 años
+BOSPARA,RONNY,,Hospital Vargas de Caracas,,
+Bolpegio,Genesis,26378061,La Guaira,,
+Hewy,Jose,,La Guaira,,
+GABRIL,ANFER,,Hospital Pérez Carreño,,
+GABRIL,ANFER,,Hospital Pérez Carreño,,
+CABRERA,KARINA,,Hospital Domingo Luciani (El Llanito),30 años
+CÁCERES,ELIOSE,,Hospital Domingo Luciani (El Llanito),35 años
+SÁNCHEZ,NATHALIA,,Hospital Domingo Luciani (El Llanito),46 años
+CALDERA,PATRICIA,,Hospital Domingo Luciani (El Llanito),32 años
+CARDENAS,ALEXANDRA,,Hospital Pérez Carreño,,
+CARDOZO,CARLA,,Hospital Pérez Carreño,,
+CARRILLO,YASMIN,,Hospital Universitario de Caracas,67 años
+CANTO,Viviana,,Hospital Pérez Carreño,,
+CASTAÑEDA,MARIA,,Hospital Domingo Luciani (El Llanito),73 años · La Guaira
+CASTAÑO,CARLOS,,La Guaira,,
+CASTAÑO,DANNA,,La Guaira,,
+CASTELLANO,JOSE,,La Guaira,,
+GUILLEN MARIA,,8659288,Hospital Perez Carreño,25/6/26
+Guzmán Jose,,2874719,Hospital Perez Carreño,24/6/26
+Guzmán Angélica,,1371965,Hospital Universitario de Caracas,25/6/26
+Hanna Antonio,,5078282,Hospital Universitario de Caracas,25/6/26
+Hernández Cruz,,5060097,Hospital Perez Carreño,25/6/26
+HERRERO MERLANO GLADISKA,,HOSPITAL DOMINGO LUCIANI (EL LLAINTO),25/6/26
+Ibarra Eliani,,1532675,Hospital Perez Carreño,25/6/26
+IBARRA ANA,,74,Hospital Domingo Luciani (El Llainito),25/6/26
+DALGO ELIANNI,,3297268,Hospital Perez Carreño,25/6/26
+ELISA LESBES ISBEN,,3178944,Hospital Universitario de Caracas,25/6/26
+Leticia Jenny,,3316500,Hospital Universitario de Caracas,25/6/26
+Iguarán Jean,,HOSPITAL BOLIVARIANO,25/6/26
+JAIME RUBEN DARIO,,6333722,Hospital Domingo Luciani (El Llainito),25/6/26
+UMFIF XAVIT,,30334452,Hospital Universitario de Caracas,25/6/26
+LANDER SEBASTIAN,,4931555,Hospital La Guaira,25/6/26
+LANDER SEBASTIAN,,4931555,Hospital Domingo Luciani (El Llainito),25/6/26
+Lemus Dicia,,EJUVJFY,Hospital Perez Carreño,24/6/26
+LEON CORDOVA CANDIDO,,4604420,Hospital Papa Juan Pablo II,25/6/26
+Lisandro Pedro,,12115323,Hospital Domingo Luciani (El Llainito),25/6/26
+LOPEZ DUKAR,,LJCOUR,Hospital Perez Carreño,24/6/26
+LOPEZ ERDS,,8365444,Hospital Universitario de Caracas,25/6/26
+LOPEZ FRANCISCA,,32730403,Hospital Universitario de Caracas,25/6/26
+LOPEZ FRANLEYDI,,HOSPITAL DOMINGO LUCIANI (EL LLAINTO),25/6/26
+LOPEZ THAIS,,3318670,Hospital Perez Carreño,25/6/26
+LOPEZ VALERIA,,23818410,Hospital La Guaira,25/6/26
+LOYD VISBAL CLARA,,86381141,Hospital Universitario de Caracas,25/6/26
+MACHADO ANABELA,,9,Hospital Domingo Luciani (El Llainito),25/6/26
+Marbato Espino Josani,,32,Petare,Hospital Domingo Luciani (El Llainito),25/6/26
+Márcano Katsuka,,28,La Guaira,Hospital Perez Carreño,24/6/26
+Marcano Rosa,,4943345,Hospital Perez Carreño,24/6/26
+Marcano Yenni,,18328429,Hospital La Guaira,25/6/26
+Margarito César,,1612895,Hospital Vargas de Caracas,25/6/26
+Marreño Crismaly,,Beraca,Hospital Universitario de Caracas,25/6/26
+MARRERO YORELIS,,3136232,Hospital La Guaira,25/6/26
+MARTINEZ JESUS,,16419236,Hospital Domingo Luciani (El Llainito),25/6/26
+MARTINEZ WILLIAMS,,19367804,Hospital Perez Carreño,25/6/26
+MARTINEZ ZORAIKA,,62867,Hospital Ricardo Baquero Gonzalez,25/6/26
+MAYORA GUSTAVO,,11684132,Hospital Universitario de Caracas,25/6/26
+MENDOZA ELIA,,862067,Hospital El Junquito,25/6/26
+Mendoza Francis,,285693,Hospital Perez Carreño,25/6/26
+MEDINA NATHALIEANATHACHA?,,2535656,Hospital Domingo Luciani (El Llainito),25/6/26
+Mendez Yesire,,25,Guaneras,Hospital Universitario de Caracas,25/6/26
+MENDOZA A
+CARLOS,CHACON,13,Hospital Domingo Luciani (El Llanito),
+Elizabeth,CHACON,27374286,Hospital Pérez Carreño,
+ALEXANDRA,CHIRINOS,41935571,Hospital Ricardo Baquero González,21 años · La Guaira
+DEIVIS,CISNEROS,18807641,Hospital Universitario de Caracas,36 años · La Guaira
+EDUARDIS,CORDOBA,22763837,Hospital Pérez Carreño,
+ARNALDO,CORDOVA,22367894,Hospital Ricardo Baquero González,40 años · La Guaira
+Yonel,CORDERO,22387606,Hospital Vargas de Caracas,33 años · La Guaira
+NOEL,CORTEZ,22587626,Hospital Universitario de Caracas,
+YORMAN,CORTEZ,63490001,Hospital Ricardo Baquero González,58 años · La Guaira
+LUYANI,CUCIN,23345625,Hospital Vargas de Caracas,
+Geraldine,De Abreu,18761913,Hospital Ricardo Baquero González,29 años · La Guaira
+JOSÉ,BEAGLEA,13371843,Hospital Ricardo Baquero González,
+EDIMAR,DELGADO,15366480,Hospital Domingo Luciani (El Llanito),23 años · San Martín
+Rosa,DELVIO,33832083,Hospital Pérez Carreño,
+Chacoa,EBAR,67583256,Hospital Domingo Luciani (El Llanito),
+Mónica,FLORA,24334722,Hospital Pérez Carreño,
+JOAQUIN,ESCALONA,64829151,Hospital Domingo Luciani (El Llanito),55 años · La Guaira
+JOHNSON,ESTEVEZ,25973423,Hospital Ricardo Baquero González,24 años · La Guaira
+ÁNGEL,FERNANDEZ,16310141,Hospital Pérez Carreño,
+Erlin,Fernandez,62619827,Hospital Domingo Luciani (El Llanito),31 años · La Guaira
+Rodrigo,Fernandez,,Hospital Pérez Carreño,
+MIEL,FRONTADO,,Hospital Domingo Luciani (El Llanito),
+Alberto,fuentes,169',Hospital Domingo Luciani (El Llanito),52 años · Petare
+ALBERTO,JUENTES SALVILOS,26819401,Hospital Domingo Luciani (El Llanito),
+ESPIA,GARAVITO,18367900,Hospital Vargas de Caracas,
+Albani,GARAVITO,,Hospital Domingo Luciani (El Llanito),
+Fernanda,Garcia Diez Yenn,27374214,Hospital Domingo Luciani (El Llanito),34 años · Petare
+Diego,Garcia,32432811,Hospital Pérez Carreño,
+HEILMAR,GARCÍA,,Hospital Pérez Carreño,
+JOLISTE,GARCÍA,27371460,Hospital Vargas de Caracas,
+JIVER,GARCÍA,27371460,Hospital Vargas de Caracas,
+Kuberman,GONZALEZ,51101090,Hospital Universitario de Caracas,
+Gabriel,GONZALEZ,82790596,Hospital Domingo Luciani (El Llanito),
+Alexander,GONZALEZ,30254608,
+ALEXANDRA,GONZALEZ,0,Hospital Pérez Carreño,,
+Elizabeth,GONZALEZ,17702141,Hospital Pérez Carreño,
+BILIBIS,GONZALEZ,26486701,Hospital Pérez Carreño,
+GLADIS,GONZALEZ,,Hospital Ricardo Baquero González,
+RAFAEL,GONZALEZ,,Hospital Ricardo Baquero González,
+JOSÉ GONZALEZ,GONZALEZ,2,Hospital Pérez Carreño,
+VALERI,GONZALEZ,,Hospital Vargas de Caracas,
+YANKESKA,GONZALEZ,,Hospital Ricardo Baquero González,
+RAIMOND,GOSALIR,29901616,Hospital Vargas de Caracas,
+CISBEL,GRANAD,22306726,Hospital Domingo Luciani (El Llanito),
+Evelin,GUEERA,27373920,Hospital Vargas de Caracas,
+ESTEBAN,GUSSU,31482811,Hospital Vargas de Caracas,
+Ronron Fran,,19699867,Hospital Perez Carreño,24/6/26 11:54pm
+Rosier Liz,,28602802,Hospital Universitario de Caracas,25/6/26 pm
+Rueja José,,15430685,Hospital Universitario de Caracas,25/6/26 pm
+Salazar Arturo,,13,M La Guaira,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Salazar Arturo,,14,M La Guaira,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Salazar Juan,,27041326,Hospital Perez Carreño,25/6/26 pm
+Sánchez José,,34097345,Hospital Universitario de Caracas,25/6/26 pm
+Sandoval Adriana,,34518739,Hospital Perez Carreño,25/6/26 11:54pm
+Sandoval Doris,,42090343,Hospital Universitario de Caracas,25/6/26 pm
+Seniar Lilis,,34567894,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Secuera Blanco Sofía,,28,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Secuera Sofía,,17,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Serrano González Nancy,,67,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Serrano Nancy,,25,Hospital Universitario de Caracas,25/6/26 pm
+Silva Ibrahim,,12927961,Hospital Universitario de Caracas,25/6/26 pm
+Silva Indiana,,14297601,Hospital Universitario de Caracas,25/6/26 pm
+Sivra Leonedy,,31574153,Hospital Ricardo Baquero González,25/6/26 pm
+Solorzano Amar No,,31450710,Hospital Universitario de Caracas,25/6/26 pm
+Somaza Riand,,15279874,Hospital Universitario de Caracas,25/6/26 pm
+Sosa Emilia,,34019718,Hospital Pérez Carreño,25/6/26 11:54pm
+Soza Alejandra,,26761289,Hospital Pérez Carreño,25/6/26 pm
+Spinola Kelly,,17428930,Hospital Ricardo Baquero González,25/6/26 pm
+Suárez Granado René,,22351058,Hospital Pérez Carreño,25/6/26 pm
+Suárez René,,29458236,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Sucre Peta,,29458238,Hospital Pérez Carreño,25/6/26 11:54pm
+Terán Audia,,11061375,M La Guaira,Hospital Vargas de Caracas,25/6/26 pm
+Terán Tenia,,11409997,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Torreblanca Nuvia,,68,Hospital Domingo Luciani (El Llanito),25/6/26 1:50am
+Torreblanca Rodríguez/Sebastián,,4/181119,Hospital Domingo Luciani (El Llanito),25/6/26 11:54pm
+Torres Isabel,, desconocida,Hospital Pérez Carreño,25/6/26 pm
+Torres Milagros,,46,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Tortoso Oscar,,20568047,Hospital Ricardo Baquero González,25/6/26 pm
+Tovar Luisana,,17443380,Hospital Universitario de Caracas,25/6/26 pm
+Tovar Yesion,,51902939,Hospital Ricardo Baquero González,25/6/26 pm
+Trigoso Carlo,,81187491,Hospital Universitario de Caracas,25/6/26 pm
+Tuglio Elian,,22513789,M La Guaira,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Uribe Veronica,,20262572,M La Guaira,Hospital Vargas de Caracas,25/6/26 pm
+Valero Fleci,,13374471,Hospital Pérez Carreño,25/6/26 pm
+Vanya Carmen,,22500868,M La Guaira,Hospital Vargas de Caracas,25/6/26 pm
+Vasconceló Andreina,,43,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Vasconceló Enrique,,48,Hospital Domingo Luciani (El Llanito),25/6/26 pm
+Vazquez Luis,,34,m Pet
+ABDY ABDLEYS,,26254624,Hospital Recuerdo Barquisimeto,28
+ABELLO MATILDE,,36,,Petare
+ABELLO Wilmar,,36,Hospital Domingo Luciani (El Llanito),Petare
+ABREU ANA,,22086301,Hospital Recuerdo Barquisimeto,
+ABREU Emma,,58,Hospital Universitario de Caracas,Sabana Grande
+ABREU PAULINA,,38,Hospital Domingo Luciani (El Llanito),
+ACOSTA ALEXANDER,,47,Hospital Domingo Luciani (El Llanito),Baruta
+ACOSTA Ali,,47,Hospital Domingo Luciani (El Llanito),Baruta
+ACOSTA Hasael,,10,Hospital Domingo Luciani (El Llanito),Baruta
+ACOSTA ISRAEL,,31,Hospital Domingo Luciani (El Llanito),
+ACOSTA Yaniel,,28,Hospital Domingo Luciani (El Llanito),
+ACOSTA YOLEFRAN,,26,Hospital Domingo Luciani (El Llanito),
+AGUIRRE Ana,,20001314,Hospital Pérez Carreño,
+ALAYOUN SUHYN,,7,,INR
+Albe Manuel,,50,,Hospital Recuerdo Barquisimeto
+ALCÁNTARA AMALIS,,17434332,Hospital Pérez Carreño,39
+ALVAREZ WILAN,,12,,Hospital Pérez Carreño
+ANTENUA MAYUIL,,50,Hospital Universitario de Caracas,
+ARANA EDUAR,,12828754,Hospital Pérez Carreño,50
+ARETTA DOLORES,,65,Hospital Domingo Luciani (El Llanito),Baruta
+Arieta Doris,,65,Hospital Domingo Luciani (El Llanito),Baruta
+ARTEAGA AIDE,,72,Hospital Domingo Luciani (El Llanito),
+ARTEAGA GLADYS,,72,Hospital Domingo Luciani (El Llanito),
+Azoar Valeria,,28641419,Hospital Pérez Carreño,37
+Bastardo Wilmer,,37,Hospital Domingo Luciani (El Llanito),Petare
+BUENO WILMER,,41,Hospital Universitario de Caracas,
+BARRETO ANGEL,,37,Hospital Domingo Luciani (El Llanito),
+BASTIDAS ADRIANA,,17685045,Hospital Pérez Carreño,
+Becerra Leonardo,,34800366,Hospital Pérez Carreño,
+BENEDICT YORLANIS,,29,Hospital Universitario de Caracas,
+Bernal Marcela,,6949957,Hospital Pérez Carreño,
+Bernaudis ,Maria,,Hospital Domingo Luciani (El Llanito),Petare
+BISBAL CLARA,,62,Hospital Domingo Luciani (El Llanito),Petare
+BLANCO JOSE,,53,Hospital Domingo Luciani (El Llanito),El Hatillo
+BOMPARO RODNI,,33,Hospital Domingo Luciani (El Llanito),La Guaira
+BOSPARTE RONY,,33,,La Guaira
+Ayejo José,,12,,La Guaira
+BACAMONTE GENESIS,,41,Hospital Pérez Carreño,
+Bintuela Gabriel,,32781451,Hospital Pérez Carreño,
+Eujeo Merido,,17,Hospital Domingo Luciani (El Llanito),
+CABRERA YEDERLIN,,30,Hospital Universitario de Caracas,
+CABRERA KARINA,,20,Hospital Domingo Luciani (El Llanito),
+CACERES ELOISE,,15,,Hospital Dominguno Luciani El Llanito
+SAGES NATHALIA,,20,,Hospital Domingo Luciani (El Llanito)
+CÁCERES PATRICIA,,32,,Hospital Pérez Carreño
+CALDERA LEWIS,,27,,Hospital Pérez Carreño
+CORDERAS ALEXANDRA,,28,,Hospital Pérez Carreño
+SARDOZO CARLA,,25,,Hospital Pérez Carreño
+CARRILLO YASMIN,,5426786,Hospital Universitario de Caracas,56
+CANTU Viviana,,33273603,Hospital Pérez Carreño,
+CASTAÑA MARIA,73,,La Guaira
+CASTAÑO CARLOS,,15,,La Guaira
+CASTAÑO DANNA,,12,,La Guaira
+CASTELO JOSE,,21326401,Hospital Pérez Carreño,
+CASTILLO AYARI,,2637913,,La Guaira
+CASTILLO VICTORIA,,10,,La Guaira
+CASTILLO VICTORIA,,10,,La Guaira
+CASTILLO JUAN,,26,,Hospital Pérez Carreño
+GUILLEN MARIA,,8659288,Hospital Perez Carreño,25/6/26
+Gutierrez Jose,,2874719,Hospital Perez Carreño,24/6/26 11:54pm
+GUZMÁN ANGELICA,,1371968,Hospital Universitario de Caracas,25/6/26
+JAVIER ANTONIO,,5078282,Hospital Universitario de Caracas,25/6/26
+Hernandez Cruz,,H,,Hospital Perez Carreño,24/6/26 11:54pm
+HERRERO MERLANO GLADILUSKA,,2452829,Hospital Domingo Luciani (El Llanito),25/6/26
+IBARRA ELIAN,,1532763,Hospital Perez Carreño,25/6/26
+IBARRA WINKERWILMER,,32976829,Hospital Universitario de Caracas,25/6/26
+DALGO ELIANNI,,32976823,Hospital Perez Carreño,25/6/26
+LEÓN ELISA BESSEN,,123456,Hospital en Baruta,Hospital Domingo Luciani (El Llanito),25/6/26
+Lazquez Jenny,,3391784,Hospital en Los Polos Grandes,Hospital Domingo Luciani (El Llanito),25/6/26
+JAIME RUBEN DARIO,,633327,Hospital Universitario de Caracas,25/6/26
+UMF7X AIVIT,,3034342,Hospital Domingo Luciani (El Llanito),25/6/26
+LANDER SEBASTIAN,,,,,,La Guaira
+LANDER SEBASTIAN,,,,,,La Guaira
+LAMUS DILCIA,,687017,Hospital Perez Carreño,24/6/26 11:54pm
+León Edson,,9845,Hospital Perez Carreño,25/6/26
+Liscano Pedro,,1211523,Chacaito,Hospital Domingo Luciani (El Llanito),25/6/26
+LOPEZ DUKAR,,1211523,Hospital Perez Carreño,25/6/26
+LOPEZ EDS,,2385818,Hospital Universitario de Caracas,25/6/26
+LOPEZ FRANCISCA,,32330042,Hospital Universitario de Caracas,25/6/26
+LOPEZ FANDRELY,,9374757,Hospital Pérez Carreño,25/6/26
+LOPEZ HADY,,10528878,Hospital Pérez Carreño,25/6/26
+LOPEZ MAILINI,,15516866,Hospital Domingo Luciani (El Llanito),25/6/26
+LOPEZ NAZARE,,H,,,Hospital Vargas de Caracas,25/6/26
+LOPEZ THAIS,,33631870,Hospital Perez Carreño,25/6/26
+LOPEZ VALERIA,,8753421,Hospital Vargas de Caracas,25/6/26
+LOYO VISBAL CLARA,,8654811,Hospital Universitario de Caracas,25/6/26
+LU CINGP,,8368411,Hospital Domingo Luciani (El Llanito),25/6/26
+MACHADO ANABELA,,8598711,Hospital Domingo Luciani (El Llanito),25/6/26
+Marbeto Espino Josani,,32,Petare,Hospital Domingo Luciani (El Llanito),25/6/26
+MARCANO KATSUCA,,,,,,La Guaira
+Marcano Rosa,,493435,Hospital Perez Carreño,24/6/26 11:54pm
+Marcano Yenni,,18384118,Hospital en La Guaira,Hospital Universidad de Caracas
+Marquez César,,16132925,H,,La Guaira
+MARRENO CRISMILY,,H,,,Hospital Universitario de Caracas
+MARRERO YORELIS,,313362,20,La Guaira,Hospital Universitario de Caracas
+MARTINEZ JESUS,,H,,,Hospital Domingo Luciani (El Llanito),25/6/26
+MARTINEZ JOHAN,,H,,24/6/2026,Hospital Universidad de Caracas
+MARTINEZ WILLIAMS,,19367804,Hospital Universitario de Caracas,24/6/26
+MARTINEZ ZORAIDA,,628167,Hospital Pérez Carreño,25/6/26
+MAYORA GUUSTAVO,,11684321,Hospital R. Baquero González,25/6/26
+Meyone Elías,,265537,Hospital Pérez Carreño,25/6/26
+Medina NATH
+CARLOS,CHACON,27374286,Hospital Domingo Luciani (El Llanito),13 años ·
+Elizabeth,Chacon,27374286,Hospital Pérez Carreño,26/6/26 11:45pm ·
+ALEXANDRA,CHIRINOS,41935571,Hospital Ricardo Baquero Gonzalez,21 años ·
+CISNEROS,RODRA,18806471,Hospital Universitario de Caracas,36 M · La Guaira
+YADIRA,CORDERO,12763837,Hospital Pérez Carreño,26/6/26 2:10am ·
+Arnaldo,Cordova,,Hospital Baquero González,53 M · La Guaira
+Yonel,Cortez,22387626,Hospital Vargas de Caracas,61 M · La Guaira
+NOEL,CORTEZ,22387626,Hospital Vargas de Caracas,56 M · La Guaira
+LUYIAN,FRAN,6349091,Hospital Universitario de Caracas,58 M · La Guaira
+De Abreu,Geraldine,18701945,Hospital Pereira Gonzalez,36 M · La Guaira
+Alexis,Baeglera,331735,Hospital Ricardo Baquero Gonzalez,23 F · San Martín
+Rosa,Delgado,,Hospital Domingo Luciani (El Llanito),24/6/26 2:10am ·
+Bruno,Elvira,,-,
+Ivis,Escalona,6482915,Hospital Domingo Luciani (El Llanito),55 M ·
+JOAQUIN,ESCALONA,6482915,Hospital Domingo Luciani (El Llanito),55 M ·
+Johnson,Estevez,25734323,Hospital Ricardo Baquero Gonzalez,24 M · La Guaira
+Fernandez,,1631041,Hospital Pérez Carreño,31 m · Calta
+Fernando,,37,Hospital Pérez Carreño,,Guarenas
+RODNADO,MIEL,,Hospital Pérez Carreño,,
+Alberto,Fuentes,,Hospital Domingo Luciani (El Llanito),52M · Petare
+SALVIO FUENTES,ABEL,,Hospital Domingo Luciani (El Llanito),55 M · Petare
+ESPITIA,GARAVITO,,Hospital Vargas de Caracas,20 F · La Guaira
+Albani,García,,Hospital Vargas de Caracas,25/6/26 2:10am ·
+Ferni,Díaz,,Hospital Domingo Luciani (El Llanito),34 F · Petare
+Diego,García,33423811,Hospital Pérez Carreño,24/6/26 11:45pm ·
+Heilmar,García,2345420,Hospital Pérez Carreño,26/6/26 11:45pm ·
+Ambrocio,Garcia,27377422,Hospital Vargas de Caracas,24
+JIVER,GARCIA,27377422,Hospital Vargas de Caracas,26/6/26 11:45p ·
+Kilimara,Garcia,29450527,Hospital Ricardo Baquero Gonzalez,26/6/26 11:45pm ·
+Cristo,Gio,,Hospital Vargas de Caracas,22 M · La Guaira
+Manuel,Garrido,1375167,Hospital Pérez Carreño,38 M · La Guaira
+,Go,Arthur HAR,Hospital Pérez Carreño,26/6/26 11:45pm ·
+,GIN,VIRGO,,Hospital Pérez Carreño,12 M · La Guaira
+Gonzalez,Gabriela,82970996,Hospital Universitario de Caracas,43 M · Altamira
+Alexander,Gonzalez,,Hospital Pérez Carreño,42 F ·
+Alejandra,Gonzalez,,Hospital Domingo Luciani (El Llanito),49 F ·
+Gonzalez,Dalebit,30527416,Hospital Universitario de Caracas,33 F · La Guaira
+Elizabeth,Gonzalez,,Hospital Pérez Carreño,2 M · La Guaira
+,.,Gonzalez Milbelis,26468201,Hospital Pérez Carreño,26/6/26 11:45
+Gonzalez,,,Hospital Baquero Gonzalez,,
+Gonzalez,Stephan,26379721,Hospital Pérez Carreño,,
+Yasleska,Gonzalez,13828645,Hospital Puerto Cabello,47
+YUSBELIS,OROZCO,24.140.9520,HOSPITAL UNIVERSITARIO DE CARACAS,35
+FRAN,CUYAN,10.235.2900,HOSPITAL UNIVERSITARIO DE CARACAS,60
+CARLOS,OJEDA,12.066.8890,HOSPITAL UNIVERSITARIO DE CARACAS,51
+YILMAR,RAMIREZ,22.316.5620,HOSPITAL UNIVERSITARIO DE CARACAS,32
+JAIME,MOYANO,26.346.7430,HOSPITAL UNIVERSITARIO DE CARACAS,28
+YORLIANIS,BENEDETI,25.846.2210,HOSPITAL UNIVERSITARIO DE CARACAS,29
+CARLOS,TRIGOSO,8.418.7240,HOSPITAL UNIVERSITARIO DE CARACAS,59
+YORGELIS,MARRERO,31.331.6520,HOSPITAL UNIVERSITARIO DE CARACAS,20
+LUISONA,TOVAR,17.443.9800,HOSPITAL UNIVERSITARIO DE CARACAS,17
+YASMIN,CARILLO,5.424.7600,HOSPITAL UNIVERSITARIO DE CARACAS,67
+FABIAN,NOGUERA,30.334.6360,HOSPITAL UNIVERSITARIO DE CARACAS,22
+JOSE,CASTELLANO,21.364.2040,HOSPITAL UNIVERSITARIO DE CARACAS,35
+ANDRES,BARAJA,17.491.0870,HOSPITAL UNIVERSITARIO DE CARACAS,41
+DORIS,SANDOVAL,4.029.0930,HOSPITAL UNIVERSITARIO DE CARACAS,80
+JOAQUIN,ESCALONA,6.482.9180,HOSPITAL UNIVERSITARIO DE CARACAS,65
+EMILIA,VIDAL,3.409.1480,HOSPITAL UNIVERSITARIO DE CARACAS,78
+JOSE,SANCHEZ,32.320.2510,HOSPITAL UNIVERSITARIO DE CARACAS,19
+FRANCISCA,LOPEZ,33.230.0430,HOSPITAL UNIVERSITARIO DE CARACAS,16
+ANA,MENDOZA,5.343.4460,HOSPITAL UNIVERSITARIO DE CARACAS,72
+MAYULI,ANTEQUIA,12.882.4570,HOSPITAL UNIVERSITARIO DE CARACAS,50
+MOISES,URBINA,22.513.7890,HOSPITAL UNIVERSITARIO DE CARACAS,30
+NANCY,MONTILLA,10.813.5760,HOSPITAL UNIVERSITARIO DE CARACAS,57
+DOMINI,ZAMBRANO,18.274.2330,HOSPITAL UNIVERSITARIO DE CARACAS,39
+JHON,PALACIO,25.304.2110,HOSPITAL UNIVERSITARIO DE CARACAS,31
+NOELI,CORTEZ,22.538.5760,HOSPITAL UNIVERSITARIO DE CARACAS,30
+RAINER,PANTOJA,36.085.4670,HOSPITAL UNIVERSITARIO DE CARACAS,17
+TONI,DANTOJA,13.409.5590,HOSPITAL UNIVERSITARIO DE CARACAS,47
+ANTONIO,HANMA,5.072.8320,HOSPITAL UNIVERSITARIO DE CARACAS,66
+MOISES,URBINA,22.8904,,30
+MARIA,MORALES,32.807.7090,HOSPITAL UNIVERSITARIO DE CARACAS,18
+DEIVIS,COA,18.780.8410,HOSPITAL UNIVERSITARIO DE CARACAS,36
+JOSE,RUEDA,15.430.6080,HOSPITAL UNIVERSITARIO DE CARACAS,45
+LIZ,ROSIER,26.068.0020,HOSPITAL UNIVERSITARIO DE CARACAS,28
+YONTACO,OJEDA,13.470.1550,HOSPITAL UNIVERSITARIO DE CARACAS,62
+GEMA,MUÑOZ,27.797.1210,HOSPITAL UNIVERSITARIO DE CARACAS,24
+YOLERFAN,ACOSTA,28.136.1680,HOSPITAL UNIVERSITARIO DE CARACAS,26
+MAIKEL,RODRIGUEZ,16.208.2030,HOSPITAL UNIVERSITARIO DE CARACAS,42
+RIAND,SOMOZA,15.267.2930,HOSPITAL UNIVERSITARIO DE CARACAS,19
+OMARÑO,SOLORZANO,31.445.0700,HOSPITAL UNIVERSITARIO DE CARACAS,18
+VICTOR,LA VERDE,30.334.4520,HOSPITAL UNIVERSITARIO DE CARACAS,18
+DINGPI,LU,8.358.4110,HOSPITAL UNIVERSITARIO DE CARACAS,49
+JUAN,WU HUA,8229616041,HOSPITAL UNIVERSITARIO DE CARACAS,47
+SUSUP,WU,34.553.3370,HOSPITAL UNIVERSITARIO DE CARACAS,14
+NATHALIA,CÁCERES,36.192.9380,HOSPITAL UNIVERSITARIO DE CARACAS,13
+PATRICIA,CÁCERES,32.790.4750,HOSPITAL UNIVERSITARIO DE CARACAS,18
+ELIOSE,CÁCERES,11.061.1970,HOSPITAL UNIVERSITARIO DE CARACAS,55
+ARIANI,PEREZ,24.175.8210,HOSPITAL UNIVERSITARIO DE CARACAS,20
+WUIKMER,WILMER,IBARRA,15.332.7050,HOSPITAL UNIVERSITARIO DE CARACAS,45
+EDIS,LÓPEZ,6.045.5440,HOSPITAL UNIVERSITARIO DE CARACAS,70
+SOCORRO,OROPEZA,11.639.5180,HOSPITAL UNIVERSITARIO DE CARACAS,53
+CATIA,OROPEZA,11.639.5110,HOSPITAL UNIVERSITARIO DE CARACAS,52
+HAIRMON,GOSLING,29.900.1660,HOSPITAL UNIVERSITARIO DE CARACAS,49
+JOSE,ABREU,15.810.0580,HOSPITAL UNIVERSITARIO DE CARACAS,52
+IBRAHIM,SILVA,20.562.8440,HOSPITAL UNIVERSITARIO DE CARACAS,35
+RAYMOND,GOSLING,29.900.1660,HOSPITAL UNIVERSITARIO DE CARACAS,49
+MARIO,MENDOZA,6274191,HOSPITAL UNIVERSITARIO DE CARACAS,73
+MARYELIS,RAMOS/SILVA,32.111.7410,HOSPITAL UNIVERSITARIO DE CARACAS,18
+INDIANA,SILVA,14.929.7600,HOSPITAL UNIVERSITARIO DE CARACAS,46
+ANGELICA,GUZMAN,13.717.5960,HOSPITAL UNIVERSITARIO DE CARACAS,48
+ELEYSA,RAMÍREZ,64,HOSPITAL CRUZ ROJA,64
+MARBELIS,RODRÍGUEZ,52,HOSPITAL CRUZ ROJA,52
+YALITZA,RODRÍGUEZ,57,HOSPITAL CRUZ ROJA,57
+CHEN,ZHANGYOU,57,HOSPITAL CRUZ ROJA,57
+BOYE,CHEN,21,HOSPITAL CRUZ ROJA,21
+ANTONIO,FRANCO,63,HOSPITAL CRUZ ROJA,63
+IRAMA,BARRETO,74,HOSPITAL CRUZ ROJA,74
+,,MOISES (menor),HOSPITAL CRUZ ROJA,5
+CECALIO,PÉREZ,72,HOSPITAL CRUZ ROJA,72
+MARIA,MOY,47,HOSPITAL CRUZ ROJA,47
+CARMEN,PÉREZ,64,HOSPITAL CRUZ ROJA,64
+RAIZA,OMAÑA,45,HOSPITAL CRUZ ROJA,45
+JOFFRE,BELANDRIA,63,HOSPITAL CRUZ ROJA,63
+REINALDO,BEGOCHEA,43,HOSPITAL CRUZ ROJA,43
+CARMEN,MACHADO,77,HOSPITAL CRUZ ROJA,77
+JACKELINE,HERNÁNDEZ,62,HOSPITAL CRUZ ROJA,62
+JOSÉ,TINGY,44,HOSPITAL CRUZ ROJA,44
+CAMILA,MUÑOZ,15,HOSPITAL CRUZ ROJA,15
+LAURA,LLORET,85,HOSPITAL CRUZ ROJA,85
+LILIANA,LLORET,59,HOSPITAL CRUZ ROJA,59
+CARLOS,CEDEÑO,76,HOSPITAL CRUZ ROJA,76
+ANGEL,VARELA,47,HOSPITAL CRUZ ROJA,47
+BETI,ARTEAGA,51,HOSPITAL CRUZ ROJA,51
+PETRA,GUERRA,72,HOSPITAL
+Yanderson,Díaz,,,,
+Liber,Sanchez,,,,
+Yolimar,Benavides,,,,
+Michel,Chirino,,,,
+Marlene,Andrade,,,,
+Jean,Farias,,,,
+Jean Franco,Farias,,,,
+Jean Andrade,Farias,,,,
+Carlos,Paredes,,,,
+Caila,Paredes,,,,
+Mercedes,Pernia,,,,
+Magali,Cabrera,,,,
+Alirxon,Ramirez,,,,
+Adrian,Hurtado,,,,
+Osiel,Bello,,,,
+Rafael,Viralles,,,,
+Joel,Guevara,,,,
+Elias,Yunez,,,,
+Victor,Ruiz,,,,
+Teobaldo,Hernandez,,,,
+Afreddy,Rodriguez,,,,
+Ericka,Suarez,,,,
+Aiza,Sanoja,,,,
+Yilmer,Castillo,,,,
+Yeleisy,Castillo,,,,
+Deylis,Castillo,,,,
+Arielys,Delgado,,,,
+Aidelo,Guareno,,,,
+YubelKys,García,,,,
+Yeison,Rada,,,,
+Manuel,Castillo,,,,
+Jenifer,Guerire,,,,
+Sofía,Hernández,,,,
+Nicole,Hernandez,,,,
+Michell,Hernandez,,,,
+NorelKys,Castillo,,,,
+Gari,Graterol,,,,
+Nahomi,Graterol,,,,
+Ashly,Acosta,,,,
+Adriana,Acosta,,,,
+Alan,Deacosta,,,,
+Jean,Ramirez,,,,
+Alanis,Carmona,,,,
+Arely,Serrano,,,,
+Abigail,Renott,,,,
+Kennedy,Renott,,,,
+Lokomoto,Larez,,,,
+Noel,Silva,,,,
+Nelson,Silva,,,,
+Ignamary,Marval,,,,
+Anthony,Salazar,,,,
+Ana,Salazar,,,,
+Mayderlyn,Martinez,,,,
+Mary,Martinez,,,,
+Marcos,Planas,,,,
+Mariannys,Aranguren,,,,
+Luis,Rodriguez,,,,
+Daniela,Rodriguez,,,,
+Anyela,Planas,,,,
+Miguel,Planas,,,,
+Ebimela,Placido,,,,
+Saray,Sepulveda,,,,
+Viviana,Mendoza,,,,
+Arisca,Mendoza,,,,
+Rosa,Marquez,,,,
+Ronni,Pugorita,,,,
+Bonnie,Pugorita,,,,
+Marilyn,Pugorita,,,,
+Josebis,Deweett,,,,
+Yeili,Gallardo,,,,
+Williams,Lopez,,,,
+Rosely,Marquez,,,,
+Jose,Uscategui,,,,
+Wibert,Rivas,,,,
+Wilbelys,Lopez,,,,
+Yeibert,Pugarita,,,,
+Richard,Gonzalez,,,,
+Delgari,Blanco,,,,
+Benjamin,Deweett,,,,
+Orlando,José,Deweett,,,,
+Orlando,Deweett,,,,
+Yama,Margarita,,,,
+Domingo,Marco,Ureña,,,,
+Jesús,Ojed,,,,
+Angelina,Blanco,,,,
+Angelo,Blanco,,,,
+Stiven,Sanchez,,Trauma Vieja,24 años
+Yessica,Aponte,,Trauma Vieja,19 años
+Anyi,Pérez,,Trauma Vieja,45 años
+Isabel,Vega,,Trauma Vieja,50 años
+Joseph,Miranda,,Trauma Vieja,24 años
+Victoria,Caraballo,,Trauma Vieja,29 años
+Camila,Arellano,,Trauma Vieja,17 años
+Gismoli,Marino,,Trauma Vieja,31 años
+Yuliana,Mora,,Trauma Vieja,52 años
+Astrid,Mendez,,Trauma Vieja,38 años
+Janet,Anhalabi,,Trauma Vieja,23 años
+Mahmud,Anhalabi,,Trauma Vieja,56 años
+Catalina,Sanchez,,Trauma Vieja,64 años
+Ana,Gildeert,,Guaira,9 años
+Yinderli,Cavarea,,Guaira,13 años
+Bradian,Gareia,,Guaira,8 años
+Sebastian,landi,,Guaira,7 años
+Miel,Frontado,,Guaira,7 años
+Victoria,Castillo,,Guaira,10 años
+Hilser Anza,,4/2005,,
+Jiménez Ariel,,5/2010,,
+Cordero Arnoldo,,38,,
+Fernández Nelly,,10,,
+Castillo Victoria,,9,,
+Fonseca Trujillo,,7,,
+García Juan,,24,,
+Candelario Ríos,,28,,
+Valenzuela Carroll,,52,,
+Rosalis Vasquez,,28,,
+Mauricio Díaz,,30,,
+Jessis Rodríguez,,26,,
+Omar Cecis,,27,,
+Rafael E..,,20,,
+José,,26,,
+Tomás,,32,,
+Estrella Hernández,,36,,
+Ann.,,20,,
+Carlos Ramírez,,21,,
+Gabriel N. Valenzuela,,21,,
+Mónica Garibaldi,,25,,
+Pedro Morales,,54,,
+Eduardo Maldonado,,88,,
+Ramírez Naudry,,32,,
+Salcedo Esteban,,23,,
+Snyder Edgardo,,54,,
+Besada Evelin,,34,,
+Rosa Alieda,,7,,
+Elan Trujillo,,19,,
+Pedro Ascanio,,70,,
+S. V. D.??,,56,,
+Emely Fernández,,,,
+Carazo,Carla,, ,23 años
+Martínez,Sthan,, ,16 años
+Martínez,Sesus,, ,70 años
+Bergadere,Tmmy,, ,38 años
+Castillo,Maria,, ,23 años
+Ramirez,José,, ,37 años
+Valeri,Gonzalez,, ,10 años
+Acosta,Hasbel,, ,13 años
+Vasquez,Luis,, ,30 años
+Para,Estevan,, ,15 años
+Delgado,Edimer,, ,23 años
+Ibarra,Ana,, ,34 años
+Torres,Nubia,, ,68 años
+García,Yenny,, ,39 años
+Vilchez,Bryan,, ,23 años
+Veltes,Alberto,, ,52 años
+Martínez,Teresa,, ,16 años
+Martínez,Juan,, ,33 años
+Berrios,Josean,, ,26 años
+Tejada,Rosalinda,, ,20 años
+Cordova,Arnold,, ,29 años
+Rey,Jennifer,, ,14 años
+Riviera,Daniel,, ,60 años
+Jamo,Jorge,, ,29 años
+Fernández,Nelly,, ,32 años
+Acosta,Isael,, ,10 años
+Acosta,Alexander,, ,47 años
+Abreu,Paulina,, ,8 años
+Iguillo,Elian,, ,19 años
+Lisardo,Pedro,, ,40 años
+Antonio,Doris,, ,60 años
+Baltimore,Wilmer,, ,37 años
+Aulyn,Suygen,, ,8 años
+Ornamento,Sebastián,, ,16 años
+Blanco,Anyeri,, ,55 años
+Ceballos,Jeremías,, ,10 años
+Salagua,Sander,, ,16 años
+Patilla,Fuera,, ,25 años
+Rivas,César,, ,52 años
+Bustial,Frankel,, ,32 años
+Ceballos,Jesús,, ,50 años
+Rivas,Dani,, ,22 años
+Cetraro,Elisa,, ,25 años
+Cabrera,Andrés,, ,22 años
+Angi,Zanabria,15544792,HOSPITAL PEREZ CARREÑO,
+Maria,Zamora,27044236,HOSPITAL PEREZ CARREÑO,
+Dominio,Zambrano,18274233,HOSPITAL UNIVERSITARIO DE CARACAS,39
+Donmani,Zambrano,18714233,HOSPITAL UNIVERSITARIO DE CARACAS,39
+Jose,Yendez,9,HOSPITAL JM DE LOS RIOS,
+Eiban,Yegue,24058780,HOSPITAL PEREZ CARREÑO,
+Silvia,Yanes,3557870,HOPITAL RICARDO BAQUERO GONZALEZ,77
+Sebastian,Yandi,7,HOSPITAL DR. DOMINGO LUCIANI,
+Flores,Yadano,10,HOSPITAL PEREZ CARREÑO,
+Susup,Wu,34553337,HOSPITAL UNIVERSITARIO DE CARACAS,14
+Hua,Jiah,82296160,HOSPITAL UNIVERSITARIO DE CARACAS,47
+Huajuan,Wu,8229616,HOSPITAL UNIVERSITARIO DE CARACAS,47
+Susana,Wu,36533334,HOSPITAL UNIVERSITARIO DE CARACAS,14
+Kelly,Winchester,28,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Kelly,Winchester,28,HOSPITAL DR DOMINGO LUCIANI,
+Miguel,Villegas,5,HOSPITAL JM DE LOS RIOS,
+Yohan,Villafranda,36,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Brayan,Vilchez,23,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Brayan,Vilchez,23,HOSPITAL DR DOMINGO LUCIANI,
+Rosalinda,Viera,12717087,HOSPITAL PEREZ CARREÑO,
+Rosalinda,Viera,13717087,HOSPITAL PEREZ CARREÑO,
+Maria,Viedra,64,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Adriana,Vestida,17856045,HOSPITAL PEREZ CARREÑO,
+Aranza,Vergara,11,TARAGUARENA HOSPITAL PEREZ CARREÑO,
+Antonio,Venditte,21,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Carmen,Velazquez,16705956,HOSPITAL VARGAS DE CARACAS,
+Carmen,Velasquez,42,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Marielys,Vega,3 MESES,HOSPITAL JM DE LOS RIOS,
+Samuel,Vega,11,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Samuel,Vega,11,HOSPITAL DR DOMINGO LUCIANI,
+Rosalis,Vazquez,18,HOSPITAL DR.DOMINGO LUCIANI,
+Luis,Vasquez,77,SIN FAMILIAR,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Andrein,Vasconce,lo,F,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Andrein,Vasco,43,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Carmen,Varyac,22550086,HOSPITAL VARGAS DE CARACAS,
+Jose,Vargas,18,HOSPITAL JM DE LOS RIOS,
+Esmeralda,Vargase,54,HOSPITAL DR. DOMINGO LUCIANI,
+Fleici,Valero,13374764,HOSPITAL PEREZ CARREÑO,
+Valeria,Azocar,28544619,HOSPITAL PEREZ CARREÑO,
+Laura,Valera,22,HOSPITAL DR. DOMINGO LUCIANI,
+Zamara,Valentine,10,HOSPITAL PEREZ CARREÑO,
+Jose,Uzcategui,6225765,HOSPITAL PEREZ CARREÑO,
+Kendre,Useche,13,HOSPITAL JM DE LOS RIOS,
+Jose,Usategui,6225763,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Mauro,Urquiola,55,HOSPITAL DR. DOMINGO LUCIANI,
+Veronica,Uribe,22026527,HOSPITAL VARGAS DE CARACAS,
+Alanis,Urubina,5,HOSPITAL JM DE LOS RIOS,
+Edwin,Uribina,12113971,HOSPITAL PEREZ CARREÑO,
+Moises,Urbin,22513789,HOSPITAL UNIVERSITARIO DE CARACAS,30,MONTALBAN
+Liborio,Umbria,22034962,HOSPITAL UNIVERSITARIO DE CARACAS,11,M
+Kemberli,Ugueto,38,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Elián,Trujillo,19,HOSPITAL DR DOMINGO LUCIANI,
+Carlos,Trigos,8418724,HOSPITAL UNIVERSITARIO DE CARACAS,59,M
+Olga,Tovar,6487802,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Luisana,Tovar,17443980,HOSPITAL UNIVERSITARIO DE CARACAS,17,F
+Luisana,Tovar,17443950,HOSPITAL UNIVERSITARIO DE CARACAS,17,F
+Xavier,Toussaint,12,HOSPITAL JM DE LOS RIOS,
+Oscar,Tortoso,20558047,HOPITAL RICARDO BAQUERO GONZALEZ,37
+Garrez,Torres,33208202,CARIBE,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Isabel,Torres,4718019,HOSPITAL PEREZ CARREÑO,
+Jenner,Torres,15141012,HOSPITAL PEREZ CARREÑO,
+Milagros,Torres,46,HOSPITAL DR. DOMINGO LUCIANI,
+Calesca,Torres,14,HOSPITAL PEREZ CARREÑO,
+Milagros,Torres,46,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Sebastian,Torre,ALBA,JM DE LOS RIOS (HOSP DE NIÑOS),
+Dylan,Torrealba,10,HOSPITAL JM DE LOS RIOS,
+Nuvia,Torrealba,68,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Victor,Torrealba,ALBA,HOSPITAL PEREZ CARREÑO,
+Nuvia,Torrealba,68,HOSPITAL DR DOMINGO LUCIANI,
+Elías,Toro,32304284,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Yunior,Tirado,26372024,HOSPITAL PEREZ CARREÑO,
+Thiago,Teres,4,HOSPITAL JM DE LOS RIOS,
+Tenía,Audia,11055173,HOPITAL RICARDO BAQUERO GONZALEZ,54
+Tania Teresa,Teran Blanco,11409997,HOPITAL RICARDO BAQUERO GONZALEZ,55
+Maite,Tejera,14073961,HOSPITAL UNIVERSITARIO DE CARACAS,46
+Petra,Sucre,2945823,HOSPITAL PEREZ CARREÑO,
+Erene,Suarez Granado,62,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Erene,Suares Granado,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Rene,Suarez,62,HOSPITAL DOMINGO LUCIANI (EL LLANITO),
+Amilcar,Stabilito,23241059,HOSPITAL PEREZ CARREÑO,
+Kelly,Spinola,17482090,HOPITAL RICARDO BAQUERO GONZALEZ,38
+Emilia,Sosa,3409148,HOSPITAL UNIVERSITARIO DE CARACAS,78
+Riandy,Somozari,15267293,HOSPITAL UNIVERSITARIO DE CARACAS,19
+Naike,Sombrano,41,M,TANAGUARENA,HOSPITAL DR JOSE MARIA VARGAS LA GUAIRA,
+Omar,Nazario,31445070,HOSPITAL UNIVERSITARIO DE CARACAS,18
+Fiorella,Soloriano,3405970,HOSPITAL UNIVERSITARIO DE CARACAS,68
+Father,Soy,6892467,HOSPITAL PEREZ CARREÑO,
+Edna,Svirste,28136034,HOSPITAL PEREZ CARREÑO,
+Albenis,Suyon,4400465,HOSPITAL PEREZ CARRE
+ABDLY,ABDELYS,26254624,Hopital Ricardo Baquero Gonzalez,
+ABELLO,MATILDE,,Hospital Domingo Luciani (El Llanito),36
+Abello,Wilmari,,Hospital Domingo Luciani (El Llanito),36
+ABREU,ANA,22036301,Hopital Ricardo Baquero Gonzalez,
+Abreu,Emma,,Hospital Domingo Luciani (El Llanito),8f
+ABREU,JOSE,1581005852,MHospital Universitario de Caracas,
+ABREU,PAULINA,,Hospital Domingo Luciani (El Llanito),8
+ACOSTA,ALEXANDER,,Hospital Domingo Luciani (El Llanito),47
+Acosta,Ali,,Hospital Domingo Luciani (El Llanito),47
+Acosta,Hasael,,Hospital Domingo Luciani (El Llanito),13
+Acosta,Isael,,Hospital Domingo Luciani (El Llanito),10
+ACOSTA,ISRAEL,,Hospital Domingo Luciani (El Llanito),10
+Acosta,Yaneli,31760907,Hospital Perez Carreño,
+ACOSTA,YOLERFAN,2813616826,MHospital Universitario de Caracas,
+Aguilera,Ana,20003134,Hospital Perez Carreño,
+ALAYON, SUHYN,,Hospital Domingo Luciani (El Llanito),25
+Albe,Manuel,,Hospital Domingo Luciani (El Llanito),77m
+ALCANTARA,AMALIS,17443332,Hopital Ricardo Baquero Gonzalez,
+ALVAREZ,WILIAN,16125101,Hospital Perez Carreño,
+ANTEQUIA,MAYULI,1288245750,FHospital Universitario de Caracas,
+ARANA,EDUAR,,Hospital Perez Carreño,
+ARRIETA,DOLIS,,Hospital Domingo Luciani (El Llanito),65
+Arrieta,Doris,,Hospital Domingo Luciani (El Llanito),65f
+ARRIETA,OYOLA,DORIS,,Hospital Domingo Luciani (El Llanito),
+ARTEAGA,AIDE,,Hospital Domingo Luciani (El Llanito),
+ARTEAGA,GLADYS,,Hospital Domingo Luciani (El Llanito),72
+Azocar,Valeria,28544619,Hospital Perez Carreño,
+Balbuena,Wilmer,,Hospital Domingo Luciani (El Llanito),37m
+BALBUENO,WILMER,,Hospital Domingo Luciani (El Llanito),37
+BARAJA,ANDRES,1749108741,MHospital Universitario de Caracas,
+BARRETO,RICARDO,,Hospital Domingo Luciani (El Llanito),42
+BASTARDO,VERONICA,30170626,Hospital Perez Carreño,
+BASTIDA,ADRIANA,17856045,Hospital Perez Carreño,
+Becerra,Leonardo,34800366,Hospital Perez Carreño,
+BENEDETTI,YORLIANIS,2584622129,FHospital Universitario de Caracas,
+Bernal,Marcela,6049995,Hospital Perez Carreño,
+Betancourt,Maria,,Hospital Domingo Luciani (El Llanito),74f
+BISBAL,CLARA,,Hospital Domingo Luciani (El Llanito),62
+BLANCO,CARMEN,,Hospital Domingo Luciani (El Llanito),55
+Blanco,Jose,,Hospital Domingo Luciani (El Llanito),6m
+BLANCO,YESSIKA,,Hospital Domingo Luciani (El Llanito),53
+BOMPARD,RODNI,,Hospital Domingo Luciani (El Llanito),
+BOSPARTE,RONNY,,Hospital Domingo Luciani (El Llanito),33
+Boweyo,Jose,26327360,MLa Guaira,
+BRACAMONTE,GENESIS,31428533,Hospital Perez Carreño,
+Brizuela,Gabriel,32781459,Hospital Perez Carreño,
+Bueno,Merido,,Hospital Perez Carreño,
+CABARCA,YENDERLIN,,Hospital Domingo Luciani (El Llanito),13
+CABRERA,KARINA,,Hospital Domingo Luciani (El Llanito),30
+CABRERA,KARINA,,Hospital Domingo Luciani (El Llanito),
+CACERES,ELOISE,1106119755,MHospital Universitario de Caracas,
+CACERES,NATHALIA,3619293813,FHospital Universitario de Caracas,
+CACERES,PATRICIA,3279047518,FHospital Universitario de Caracas,
+CALDERA,LEWIS,,Hospital Domingo Luciani (El Llanito),10
+CARDENAS,ALEXANDRA,28143770,Hospital Perez Carreño,
+CARDOZO,CARLA,,Hospital Domingo Luciani (El Llanito),25
+CARRILLO,YASMIN,542476067,FHospital Universitario de Caracas,
+Carrizo,Viviana,33232603,Hospital Perez Carreño,
+CASTAÑEDA,MARIA,,Hospital Domingo Luciani (El Llanito),73
+CASTAÑO,CARLOS,,Hospital Domingo Luciani (El Llanito),
+CASTAÑO,DANNA,,Hospital Domingo Luciani (El Llanito),12F
+CASTELLANO,JOSE,2136420435,MHospital Universitario de Caracas,
+CASTILLO,AYARI,26327913,Hospital Perez Carreño,
+CASTILLO,VICTORIA,,Hospital Domingo Luciani (El Llanito),10F
+CASTRO,JUAN,,Hospital Domingo Luciani (El Llanito),26
+CHACON,CARLOS,,Hospital Domingo Luciani (El Llanito),13
+Chacon,Elizabeth,27374286,Hospital Perez Carreño,
+Chavez,Meri,81462470,Hospital Perez Carreño,
+CHIRINOS,ALEXANDRA,3199551721,Hopital Ricardo Baquero Gonzalez,
+CISNERO,ROJA,,Hospital Domingo Luciani (El Llanito),57
+COA,DEIVIS,1878084136,MHospital Universitario de Caracas,
+Colmenares,Darwin,25867267,MLa Guaira,
+CORDERO,YADIRA,12763837,Hospital Perez Carreño,
+CORDOBA,EDUANYELIS,6,Hopital Ricardo Baquero Gonzalez,
+Cordova,Arnaldo,,Hospital Domingo Luciani (El Llanito),19m
+Coronel,Yonel,,La Guaira,
+CORTEZ,NOELI,2253857630,FHospital Universitario de Caracas,
+CORTEZ,YORIMAR,634099158,Hopital Ricardo Baquero Gonzalez,
+CUYAN,FRAN,1023529060,MHospital Universitario de Caracas,
+De Abreu,Geraldine,18709145,FLa Guaira,
+De Anzola,Manuela,296723,Hospital Perez Carreño,
+DEAGRELA,JOSE,1337313548,Hopital Ricardo Baquero Gonzalez,
+Delgado,Edimar,,Hospital Domingo Luciani (El Llanito),23f
+DIAZ,ANA,10576803,Hospital Perez Carreño,
+Divito,Rosa,,Hospital Domingo Luciani (El Llanito),64f
+Drana,Eduar,,Hospital Perez Carreño,
+ESCALONA,IVIS,,Hospital Domingo Luciani (El Llanito),55
+ESCALONA,JOAQUIN,648291865,MHospital Universitario de Caracas,
+ESTEVEZ,JOHNSON,2957173324,Hopital Ricardo Baquero Gonzalez,
+Fernandez,Ana,25699054,Hospital Perez Carreño,
+FERNANDEZ,ANGEL,16310014,Hospital Perez Carreño,
+Fernandez,Efrain,,Hospital Domingo Luciani (El Llanito),31m
+Fernandez,Neisy,,Hospital Domingo Luciani (El Llanito),37f
+FERNANDEZ,RODRIGO,,Hospital Perez Carreño,
+FRONTADO,MIEL,7,Hospital Domingo Luciani (El Llanito),
+Fuentes,Alberto,,Hospital Domingo Luciani (El Llanito),52m
+FUENTES,GALVIS,ALBERTO,,Hospital Domingo Luciani (El Llanito),
+GARAVITO,ESPITIA,YOHANY,,Hospital Domingo Luciani (El Llanito),
+Garcia,Albani,F,La Guaira,
+Garcia,Diaz,Yenni Fernanda,34f,Petare,
+Garcia,Diego,33423811,Hospital Perez Carreño,
+GARCIA,HEILIMAR,32543420,Hospital Perez Carreño,
+Garcia,Jolisbe,F,La Guaira,
+GARCIA,JUVER,27377514,Hospital Perez Carreño,
+Garcia,Keilimar,,Hospital Perez Carreño,
+GEORRIN,VALELLA,3011491822,Hopital Ricardo Baquero Gonzalez,
+Gil,Cristofer,32919700,MLa Guaira,
+GODOY,ERIC,
+Carla,Cardozo,,,"25 años"
+Johan,Martínez,,,"10 años"
+Jesús,Martínez,,,"7 años"
+Tenny,Bejar,,"38 años"
+María,Castañeda,,,""
+José,Ramírez,,,"37 años"
+González,Valeri,,,"10 años"
+Hasael,Acosta,,,"13 años"
+Luis,Villegas,,,"77 años"
+Fania,Para Estefanía,,,"15 años"
+Edimer,Delgado,,,"23 años"
+Ana,Ibarra,,,"74 años"
+Nivia,Torres,,,"68 años"
+Elian,Jrujillo,,,"19 años"
+Pedro,Liscano,,,"40 años"
+Dolis,Ariela,,,"65 años"
+Wilmer,Balbueno,,,"37 años"
+Suhyn,Alayon,,,"25 años"
+Sebastián,Omance,,,""
+Carmen,Blanco,,,""
+Yenderlin,Cabarca,,,""
+Arturo,Seguera,,,""
+Clara,Bubal,,,""
+Brayan,Vilchez,,,"23 años"
+Alberto,Fuentes,,,"52 años"
+Francisca,Pérez,,,"63 años"
+Josefina,Malabito,,,"32 años"
+Eduardo,Rodríguez,,,"56 años"
+Rosa,Dulito,,,"64 años"
+Deiverson,Guerrero,,,"20 años"
+Armando,Córdoba,,,"50 años"
+Jannicel,Rey,,,"29 años"
+Daniel,Rivero,,,"60 años"
+José,Blanco,,,"6 años"
+Kelsy,Fernández,,,"37 años"
+Israel,Acosta,,,"10 años"
+Alexander,Acosta,,,"44 años"
+Vega,Samuel,28, ,
+Ronaldón,Angel,12, ,
+Brengifo,Gullermuna, , ,
+Gonzalez,Olga,63, ,
+Alayón,Suhyn,25, ,
+Rodaski,Padilla,52, ,
+Piñero,Sebastián,16, ,
+Barreto,Plutarco,16, ,
+Obregon,Diego,14, ,
+Cábera,Karina, , ,
+Gonzalez,Alexander,30, ,
+Chacón,Carlos,13, ,
+Lopez,Hadly,42, ,
+Castillo,Victoria,Qx 10, ,
+Castano,Dara,12, ,
+Torres,Milagros,46, ,
+Parra,Gabriela,15, ,
+Arteaga,Gladys,72, ,
+Sheplary,Gonzalez,, ,22 años
+Rafael,Gonzalez,, ,39 años
+Juan,Castro,, ,26 años
+Ivis,Escalona,, ,55 años
+Nancy,Serrano,, ,67 años
+José,Romero,, ,28 años
+Efrén,Guapín,P2,,30 años
+Josefina,Muñoz,, ,72 años
+Luzana,Ordeaz,, ,58 años
+Anabella,Machado,, ,9 años
+Miel,Fronteado,Qx,,7 años
+Axel,Jimenez,Qx,,4 años
+Jesús,Pedro,, ,68 años
+Rafael,Goyo,, ,32 años
+Yessica,Blanco,,,,
+Diego,Obregon,,,,
+Alexander,Gonzalez,,,,
+Carina,Cabiera,,,Trauma
+Aide,Ateoga,,,Rx
+Carlos,Castrano,,,Rx
+José,Romero,,,,
+Rodrigo,Bompard,,,,
+María,Castañeda,,,,
+Sergura,Blanco,Sofia,,,,
+Suarez,Giraldo,René,,,,
+Blanco,Briñeno,Carmen,,,,
+Fuente,Calvus,Alberto,,,,
+Garauito,Espitia,Yosniry,,,,
+Ramirez,Escalante,Maingel,,,,
+Piter,Mullano,Włodzimierz,,,,
+Piwol,Lepur,Hronin,,,,
+Parra,Misl,Gabriel,,,,
+Serrano,González,Nancy,,,,
+Alejandra,Gydia,Doris,,,,
+Pedro,Jorge,Efrén,,,,
+Gualinda,Pador,Efrén,,,,
+Loyto,Visbal,Clara,,,,
+Vasconulo,Anchuna,,,,
+Omar,Portillo,,,,
+Carlos,Suárez,,,,
+Ronron Fran,,19699867,Hospital Perez Carreño,
+Rosier Liz,,26028602,Hospital Universitario de Caracas,28 años · F
+Rueda José,,15436063,Hospital Universitario de Caracas,
+Salazar Arturo,,13,M La Guaira,Hospital Domingo Luciani (El Llanito)
+Salazar Juan,,27044326,Hospital Perez Carreño,
+Sánchez José,,35026189,Hospital Universitario de Caracas,
+Sandoval Doris,,4209033,Hospital Universitario de Caracas,80 años · F
+Semeral Iris,,570858,Hospital Domingo Luciani (El Llanito)
+Secuera Blanco Sofía,,Hospital Domingo Luciani (El Llanito)
+Secuera Sofía,,Hospital Domingo Luciani (El Llanito)
+Serrano González Nancy,,67,Hospital Domingo Luciani (El Llanito)
+Serrano Nancy,,Hospital Universitario de Caracas,
+Silva Ibrahim,,1292790,Hospital Universitario de Caracas,M
+Silva Indiana,,1249641,Hospital Universitario de Caracas,
+Sierra Leonedy,,3157435,HospitalRicardo Baquero Gonzalez,
+Solorzano Amar Ró,,3145700,Hospital Universitario de Caracas,
+Somozas Riand,,1562791,Hospital Universitario de Caracas,
+Sosa Emilia,,34019748,Hospital Universitario de Caracas,
+Soza Alejandra,,6202819,Hospital Pérez Carreño,
+Spinola Kelly,,1742890,Hospital Ricardo Baquero Gonzalez,
+Suárez Granado René,,2331509,Hospital Perez Carreño,
+Suarez Rene,,2945278,Hospital Domingo Luciani (El Llanito)
+Surce Peta,,25482362,Hospital Perez Carreño,
+Tegan Audia,,1165173,M La Guaira,Hospital Vargas de Caracas
+Tera Audia,,1165173,M La Guaira,Hospital Vargas de Caracas
+Tenn Tena,,11409937,Hospital Domingo Luciani (El Llanito)
+Torreblanca Nuvia,,68,Chacao,Hospital Domingo Luciani (El Llanito)
+Torrealba Rodríguez/ Sebastián,,4/18119,CUIDAD CARIBIA,
+Torre Isabel,,Hospital Pérez Carreño,
+Torre Milagros,,46,Hospital Domingo Luciani (El Llanito)
+Tortoso Oscar,,20585047,Hospital Ricardo Baquero Gonzalez,
+Tovar Luisana,,17443890,Hospital Universitario de Caracas,17 años · F
+Tovar Yesion,,7174551,Hospital Ricardo Baquero Gonzalez,
+Trigoso Carlo,,81187419,Hospital Universitario de Caracas,
+Tuglio Elian,,22513789,Hospital Domingo Luciani (El Llanito)
+Urbinia Moises,,Hospital de La Guaira,
+Uribe Veronica,,2206257,Hospital de La Guaira,
+Valero Fleici,,1337441,Hospital Pérez Carreño,
+Varga Carmen,,2250086,Hospital Vargas de Caracas,
+Vasconcelto Andreina,,43,Hospital Domingo Luciani (El Llanito)
+Vasconcelto Eduardo,,
+Vasquez Luis,,
+Yas Samir,,11,m en Petare,Hospital Domingo Luciani (El Llanito)
+Valenzuela Carmen,,16/70956,Hospital Pérez Carreño,
+Vera Rosalinda,,1277082,Hospital Pérez Carreño,
+Vichcle Brayan,,
+Winos Candelario,,94168413,Hospital Pérez Carreño,
+Winchester Kellys,,
+Wu Hla Juan,,
+Yasus,,35533736,Hospital Universitario de Caracas,
+Yanes Silvia,,24687380,Hospital Ricardo Baquero Gonzalez,
+Yeque Eivan,,
+Zambrano Domin,,18274233,Hospital Universitario de Caracas,39 años · F
+ABLY ABDYELS,ABDYELS,26256424,Hospital Recaredo Baquero Gonzalez,28
+ABELLO MATILDE,ABELLO, 36,Petare,
+ABELLO Wilmar,ABELLO, ,Hospital Domingo Luciani (El Lambio),
+ABREU ANA,ABREU,220963301,Hospital Recaredo Baquero Gonzalez,
+ABREU Emma,ABREU, ,Sabana Grande,
+ABREU JOSE,ABREU,158100568,Hospital Domingo Luciani (El Lambio),58
+ABREU PAULINA,ABREU, ,Hospital Domingo Luciani (El Lambio),
+ACOSTA ALEXANDER,ACOSTA, ,Baruta,
+ACOSTA Ali,ACOSTA,47,Hospital Domingo Luciani (El Lambio),
+ACOSTA Hasael,ACOSTA, ,Baruta,
+Acosta Israel,ACOSTA,11,Hospital Domingo Luciani (El Lambio),
+ACOSTA YANEIL,YANEIL,31,Hospital Domingo Luciani (El Lambio),26
+ACOSTA YOLEFRAN,ACOSTA,218136184,Hospital Domingo Luciani (El Lambio),
+AGUIRRE Ana,AGUIRRE,20003134,Hospital Universitario de Caracas,
+ALAVYON SUHY,ALAVYON, ,Hospital Pere Carreño,M
+ALABE Manuel,ALABE, ,Hospital Recaredo Baquero Gonzalez,
+ALCANTARA AMALIS,ALCANTARA,17143332,Hospital Recaredo Baquero Gonzalez,39
+ALVAREZ WILAN,ALVAREZ, , ,16
+ANTEQUA MAYUL,ANTEQUA,12824547,Hospital Universitario de Caracas,50
+ARANA EDUAR,ARANA, ,Hospital Pere Carreño,
+ARETTA DOLOIS,ARETTA, ,Hospital Domingo Luciani (El Lambio),
+ARIEITA Doris,ARIEITA,65,Hospital Domingo Luciani (El Lambio),
+ARTEAGA AIDE,ARTEAGA, ,Hospital Domingo Luciani (El Lambio),72
+ARTEAGA GLADYS,ARTEAGA, ,Hospital Domingo Luciani (El Lambio),
+Azoar Valeria,Azoar,28546119,Hospital Domingo Luciani (El Lambio),
+ABELINO WILMER,BELINO,37, ,Petare
+BUENO WILMER,BUENO, ,Hospital Domingo Luciani (El Lambio),
+BAZARDO ANDRES,BAZARDO, ,Hospital Domingo Luciani (El Lambio),
+BASTARDO VERONICA,BASTARDO,31706726,Hospital Domingo Luciani (El Lambio),
+Becerra Leonardo,BECERRA,34800366,Hospital Perez Carreño,
+BENEDICTI YORLANIS,BENEDICTI,25816221,Hospital Universitario de Caracas,29
+Bernal Marcela,BERNAL,6949952,Hospital Perez Carreño,
+Berlaucourt María,BERLAUCOURT, ,Hospital Domingo Luciani (El Lambio),
+BISAL CLARA,BISAL, ,Petare,
+BLANCO JOSE,BLANCO,53,Hospital Domingo Luciani (El Lambio),
+BOMPARO RODI,BOMPARO, ,Hospital Domingo Luciani (El Lambio),
+BOSPARTE RONNY,BOSPARTE,33, ,La Guaira
+Alvejo José,ALVEJO, ,Hospital Vargas de Caracas,
+BACAMONTE GENESIS,BACAMONTE,31246353,Hospital Perez Carreño,
+Buitrago Gabriel,BUITRAGO,32781491,Hospital Domingo Luciani (El Lambio),
+Burbano Merino,BURBANO,17,Hospital Domingo Luciani (El Lambio),
+CABARRA YEDENLIN,CABARRA,16,Hospital Domingo Luciani (El Lambio),
+CABRERA KARINA,CABRERA,30,Hospital Universitario de Caracas,
+CÁCERES ELOISE,CÁCERES,11061197,Hospital Domingo Luciani (El Lambio),
+SACES NATHALIA,SACES,26,Hospital Universitario de Caracas,
+CALDERA LEWIS,CALDERA,32,Hospital Domingo Luciani (El Lambio),
+CRODEMAS ALEXANDRA,CRODEMAS,28,Hospital Perez Carreño,
+CARDOZO CARLA,CARDOZO, ,Hospital Universitario de Caracas,
+CARRILLO YASMIN,CARRILLO,5248760,Hospital Perez Carreño,56
+Canto Viviana,CANTO,33326304,Hospital Universitario de Caracas,
+CASTAÑEDA MARIA,CASTAÑEDA,73,Hospital Domingo Luciani (El Lambio),
+CASTAÑO CARLOS,CASTAÑO, ,La Guaira,
+CASTAÑO DANA,CASTAÑO,12,La Guaira,
+CASTEJO JOSE,CASTEJO,213624014,Hospital Universitario de Caracas,
+CASTILLO AYARI,CASTILLO,26279113,Hospital Perez Carreño,
+CASTILLO VICTORIA,CASTILLO, ,La Guaira,
+CASTILLO VICTORIA,CASTILLO,10,La Guaira,
+CASTILLO JUAN,CASTILLO,26,Hospital Universitario de Caracas,
+GUILLEN MARIA,,869288,Hospital Perez Carreño,24/6/26
+Gutierrez Jose,,28747159,Hospital Perez Carreño,24/6/26
+GUZMAN ANGELICA,,137196,Hospital Universitario de Caracas,25/6/26
+JAIMAN ANTONIO,,50782268,Hospital Universitario de Caracas,25/6/26
+Hernandez Cruz,,H,,Hospital Perez Carreño,24/6/26
+HERRENO MERLANO GLADILUSKA,,M,,Hospital Domingo Luciani (El Llanito),25/6/26
+IBARRA ELIANI,,15327615,Hospital Perez Carreño,25/6/26
+IBARRA WINKWERMILER,,32976293,Hospital Perez Carreño,25/6/26
+DALO ELIANNI,,32976293,Hospital Perez Carreño,25/6/26
+LEANDER ELISA BESS,,16516733,Banuta,Hospital Domingo Luciani (El Llanito),25/6/26
+Lazaro y Juan,,B,,Hospital Domingo Luciani (El Llanito),25/6/26
+JAIME RUBEN DARIO,,633372,Hospital Record Baquero Gonzalez,25/6/26
+UMFWF ZAFIR,,30314452,Hospital Universitario de Caracas,26/6/26
+LANDER SEBASTIAN,,30415182,,La Guaira,25/6/26
+LAMUS DILCIA,,1560441,Hospital Perez Carreño,25/6/26
+Edison Gonzalo,,983642,,La Guaira,25/6/26
+Lisando Pedro,,12115323,40,Chacalo,Hospital Domingo Luciani (El Llanito),25/6/26
+Lopez Dikar,,1531,,Hospital Perez Carreño,24/6/26
+LOPEZ FRANCISCA,,32370043,F,Hospital Universitario de Caracas,25/6/26
+LOPEZ FRANLYED,,68764,,H,,Hospital Perez Carreño,25/6/26
+LOPEZ HAYDEY,,10,,H,,La Guaira,25/6/26
+LOPEZ MAILINI,,15516669,,La Guaira,Hospital Vargas de Caracas,25/6/26
+Loeza Nazar,,318179,,Hospital Perez Carreño,24/6/26
+LOPEZ THAIS,,33186170,Hospital Perez Carreño,25/6/26
+LOPEZ VALERIA,,31156120,,La Guaira,Hospital Vargas de Caracas,25/6/26
+LOYO VISBAL CLARA,,8638411,49,,Hospital Universitario de Caracas,26/6/26
+MACHADO ANABELA,,9,Hospital Domingo Luciani (El Llanito),25/6/26
+Marbrito Espino Josani,,32,Petr,Hospital Domingo Luciani (El Llanito),25/6/26
+MARTINO KATSKUA,,H,,La Guaira,25/6/26
+Marcano Rosa,,493435,Hospital Perez Carreño,24/6/26
+Marcono Yenni,,1832849,,La Guaira,25/6/26
+Marquez César,,1612923,M,La Guaira,Hospital Vargas de Caracas,25/6/26
+Marrero Crisnaly,,1546891,F,,La Guaira,Hospital Universitario de Caracas,25/6/26
+MARRERO YORGELIS,,31316320,,La Guaira,Hospital Vargas de Caracas,25/6/26
+MARTINEZ JESUS,,19367804,,H,,Hospital Perez Carreño,24/6/26
+MARTINEZ WILLIAMS,,6228671,,F,H,Municipio,,25/6/26
+MARTINEZ ZORAIDA,,6981671,,H,,Hospital Record Baquero Gonzalez,25/6/26
+MAYORA GUUSTAVO,,1168431,Hospital Universal de Caracas,25/6/26
+Jimenez Elisa,,285693,,El Junquito,Hospital Vargas de Caracas,25/6/26
+Medina NATHALIEVANTHACHA?,,,24,H,Hosp,,25/6/26
+Mendez Yesire,,295565,,F,,La Guaira,25/6/26
+MENDOZA ANA,,533416,72,,Hospital Universitario de Caracas,25/6/26
+MENDOZA MARIO,,789145,,Hospital Record Baquero Gonzalez,Cirugía General
+MENDOZA REINA,,1887652,,,198,Municipal,,La Guaira
+Mijares Celina,,19844532,Hospital Record Baquero Gonzalez,Cirugía General
+MORGAN GLADILUSKA,,139,,Hospital Record Baquero Gonzalez,Cirugía General
+MILAN SOLET,,18192815,,39,,Hospital Record Baquero Gonzalez,Cirugía General
+MENDIA Victoria,,304586354,Hospital Perez Carreño,25/6/26
+MOJNA NAYYIB,,29783650,,H,,Hospital Universitario de Caracas,25/6/26
+Montilla KATLI,,22397157,F,,La Guaira,25/6/26
+Montilla Nancy,,25027316,37,H,,Hospital Vargas de Caracas,25/6/26
+Morales Lesvy,,24573218,H,,H,,25/6/26
+Morales Maria,,14322813,34,H,H,,25/6/26
+MAYO ANSOB,,216874,25,,,,Hospital Universitario de Caracas,25/6/26
+MUÑOZ JAMIE,,31648713,,41,,La Guaira,25/6/26
+MUÑOZ GEMA,,27791721,24,M,,H,,25/6/26
+MUÑOZ JOSEFINA,,72,,,,Hospital Domingo Luciani (El Llanito),25/6/26
+CARLOS,CHACON,27374286,Hospital Domingo Luciani (El Llanito),13
+Elizabeth,Chacon,27374286,Hospital Pérez Carreño,,27
+ALEXANDRA,CHIRINOS,41935571,Hospital Ricardo Baquero Gonzalez,21
+RODA,CISNEROS,,Hospital Universitario de Caracas,,36
+DEIVIS,COA,,La Guaira,,56
+EDUARDOS,CORDEO,22763837,Hospital Vargas de Caracas,19
+Arnaldo,Cordova,,La Guaira,,50
+Yonel,Cord,,,Hospital Vargas de Caracas,,1
+NOEL,CORTEZ,,Hospital Vargas de Caracas,,64
+YORIMAR,CORTEZ,,Hospital Pérez Carreño,,58
+LIYIAN,CUVAN,,Hospital Vargas de Caracas,,17
+Geraldine,De Abreu,,Hospital Vargas de Caracas,,36
+JOSÉ,BEAGLEA,,Hospital Ricardo Baquero Gonzalez,,23
+Eliamar,Delgado,,San Martín,,24
+DIAZ,AN,,Chacao,,23
+Rosa,De La,,Hospital Domingo Luciani (El Llanito),,3
+Bran,Ed,t,,Hospital Pérez Carreño,,30
+MIRO,RIVERA,,Hospital Universitario de Caracas,,11
+JOAQUÍN,ESCALONA,,Hospital Domingo Luciani (El Llanito),,55
+IVES,ESCALONA,64821985,Hospital Domingo Luciani (El Llanito),,65
+Johnson,ESTEVEZ,25377433,Hospital Ricardo Baquero Gonzalez,24
+Ángel,FERNANDEZ,,Hospital Pérez Carreño,,36
+Erlin,Fernandez,,La Guaira,,31
+RODRIGO,FERNANDEZ,,Guarenas,7
+Miel,FRONTADO,,Hospital Pérez Carreño,,12
+Alberto,Fuentes,,Hospital Domingo Luciani (El Llanito),52
+ALBERTO,JUENTES SALVÍS,,,,,
+YOHAN,GARAVITO ESPERITA,,Hospital Vargas de Caracas,,1
+Albani,GARAVITO,,Hospital Domingo Luciani (El Llanito),,23
+Fenanda,GARCÍA DIEZ,33417,Hospital Domingo Luciani (El Llanito),34
+Diego,GARCÍA,33423811,Hospital Pérez Carreño,,30
+HEILMAR,GARCÍA,23454203,Hospital Vargas de Caracas,,27
+JOSLBTE, GARCÍA,,Hospital Pérez Carreño,,31
+JIVER, GARCÍA,,,Hospital Vargas de Caracas,,22
+KEILI,SIGMON,,Hospital Pérez Carreño,,2
+Cristopher,GODÍNEZ,,La Guaira,,26
+Manuel,GONZÁLEZ,,Hospital Pérez Carreño,,37
+Gabriel,GONZÁLEZ,82970996,Hospital Pérez Carreño,,41
+Abimar,GONZÁLEZ,,Hospital Domingo Luciani (El Llanito),,,1
+ALEXANDER,GONZÁLEZ,,Hospital Vargas de Caracas,,42
+SOPHIA,GONZÁLEZ,,Hospital Vargas de Caracas,,28
+CATHERINE,GONZÁLEZ,,Hospital Vargas de Caracas,,41
+KARLA,GONZÁLEZ,,Hospital Pérez Carreño,,39
+José,GONZÁLEZ,30527436,La Guaira,,23
+ISABEL,GONZÁLEZ,,Hospital Pérez Carreño,,37
+Milibidis,GONZALEZ,,Hospital Pérez Carreño,,38
+OLGA,GONZÁLEZ,,Hospital Pérez Carreño,,31
+RAFAEL,GONZÁLEZ,,Hospital Vargas de Caracas,,38
+STEPHANY,GONZÁLEZ,,Hospital Vargas de Caracas,,39
+VALERI,GONZÁLEZ,,Hospital Ricardo Baquero González,,17
+YANEZKA,GONZÁLEZ,13874655,Hospital Ricardo Baquero González,,47
+REIMOND,GOSLYN,,Hospital Pedro Carreño,,16
+Símbolo,GRANADO,,Hospital Domingo Luciani (El Llanito),,1
+FERNANDEZ,PARDON,,Hospital Domingo Luciani (El Llanito),,,16
+Evlin,GUITAR,,La Guaira,,3
+DEIVERSON,GUERRERO,,La Guaira,,12
+Stefany,Gessen,,Hospital Vargas de Caracas,,25
