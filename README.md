@@ -1,63 +1,59 @@
 # UniProcesador Data Listas (IA Extractor)
 
-Una aplicación de consola en Node.js, ligera y potente, para la extracción automatizada y unificación de datos médicos (pacientes) utilizando Inteligencia Artificial (Google Gemini).
+Una aplicación de consola en Node.js, optimizada y potente, para la extracción automatizada y unificación de datos médicos (pacientes) utilizando Inteligencia Artificial (OpenAI gpt-4o-mini).
 
-## 🚀 ¿Qué hace esta herramienta?
+## 🚀 ¿Qué hace?
 
-Esta aplicación toma archivos de diferentes formatos (imágenes, PDFs, hojas de cálculo, videos) y enlaces de redes sociales (Instagram, Google Drive), y utiliza un modelo multimodal de IA para extraer datos tabulares y unificarlos en un archivo CSV estandarizado.
+El programa automatiza el trabajo de transcribir listas de pacientes contenidas en:
+1. **Imágenes** (.jpg, .png) locales o alojadas en Google Drive/Web.
+2. **Videos** (.mp4) locales o extraídos de Instagram Reels/TikTok.
+3. **Documentos** (.pdf) como informes o consolidados de pacientes.
 
-Formatos y fuentes soportadas:
-- **Redes Sociales:** Links públicos de Instagram (Reels y Posts) usando `yt-dlp`.
-- **Directorios Locales:** Lectura masiva de carpetas enteras descargadas (ej. de Google Drive).
-- **Archivos Locales:** PDFs, Imágenes (PNG, JPG), Videos (MP4) y textos (CSV).
+Lee estos archivos, extrae la información clave usando IA y la guarda ordenadamente en un archivo de Excel/CSV (`plantilla_pacientes.csv`) unificado.
 
-El archivo de salida final (`plantilla_pacientes.csv`) contendrá siempre este formato estándar:
-`nombre,apellido,cedula,centro,edad_sector`
+## ✨ Características Principales
 
-## 🛠️ Tecnologías Utilizadas
-- **Node.js**: Entorno de ejecución principal.
-- **Google Gemini API**: Modelo de Inteligencia artificial multimodal (`gemini-1.5-pro`) capaz de leer imágenes y video para extraer texto estructurado sin usar OCR convencional.
-- **yt-dlp**: Motor de descarga de contenido multimedia universal.
-- **Dotenv**: Manejo seguro de variables de entorno y credenciales.
+*   **Motor OpenAI**: Utiliza el modelo `gpt-4o-mini` (API de Visión y Texto) garantizando extracción perfecta de datos a costos mínimos.
+*   **Procesamiento de Video (FFmpeg)**: Extrae automáticamente fotogramas clave de videos para que la IA los analice sin necesidad de subir archivos pesados.
+*   **Lectura de PDFs**: Integra `pdf-parse` para destripar documentos estructurados y pasarlos directamente a la IA.
+*   **Descarga Automática**: Usa `yt-dlp` para bajar contenido web (ej. Instagram) al vuelo.
+*   **🛡️ Escudo Anti-Duplicados Doble**:
+    *   **En Memoria**: Evita escribir al CSV a un paciente que ya haya sido guardado antes.
+    *   **Por Hash (Ahorro de Tokens)**: Calcula el MD5 de cada archivo procesado. Si detecta que un archivo ya fue analizado antes, lo omite por completo ahorrando el 100% del consumo de API.
 
-## 📋 Requisitos
-- Node.js (v18+ recomendado)
-- Clave de API de Google Gemini (Obtenida desde [Google AI Studio](https://aistudio.google.com/app/apikey))
+## 📋 Requisitos Previos
+
+1.  **Node.js**: Debes tener instalado Node.js (v16 o superior).
+2.  **yt-dlp**: Archivo `yt-dlp.exe` en la raíz del proyecto para descargar enlaces.
+3.  **FFmpeg**: Archivo `ffmpeg.exe` en la raíz del proyecto para el procesamiento de videos.
 
 ## ⚙️ Instalación y Configuración
 
-1. **Clonar repositorio** e instalar dependencias:
-   ```bash
-   git clone https://github.com/imundo/UniProcesador-Data-Listas.git
-   cd UniProcesador-Data-Listas
-   npm install
-   ```
+1.  Clona o descarga este repositorio.
+2.  Abre la terminal en la carpeta del proyecto y ejecuta:
+    ```bash
+    npm install
+    ```
+3.  Crea un archivo llamado `.env` en la raíz del proyecto y agrega tu clave de OpenAI:
+    ```env
+    OPENAI_API_KEY="sk-tu-clave-secreta-aqui"
+    ```
 
-2. **Descargar yt-dlp** (Solo Windows):
-   La aplicación requiere `yt-dlp.exe` en la raíz del proyecto para descargar videos de redes sociales. 
-   Puedes descargarlo desde su [repositorio oficial](https://github.com/yt-dlp/yt-dlp/releases/latest) y colocar el archivo `yt-dlp.exe` junto a `index.js`.
+## 🚀 Cómo Usarlo
 
-3. **Configurar Credenciales:**
-   - Duplica el archivo `.env.example` y nómbralo `.env`.
-   - Coloca tu clave de API de Gemini dentro del archivo:
-     ```
-     GEMINI_API_KEY="AIzaSyTuClaveAqui..."
-     ```
+1.  Abre el archivo **`links.txt`**.
+2.  Pega allí las URLs (una por línea) de los posts de Instagram, o **las rutas de tus carpetas locales** que contengan las imágenes y PDFs (ej. `C:\Users\imund\Downloads\procesar`).
+3.  Ejecuta el script desde tu terminal:
+    ```bash
+    node index.js
+    ```
+4.  El programa comenzará a descargar (si es web), leer, procesar con IA y unificar los datos.
 
-## 💻 Uso
+## 📁 Archivos Generados
 
-1. Abre el archivo `links.txt`.
-2. Pega línea por línea las rutas que quieres que procese la IA. Pueden ser:
-   - **Rutas de carpetas locales** (ej. `C:\Users\tuUsuario\Descargas\DriveFolder`) <- *Recomendado para carpetas pesadas de Drive*.
-   - **Archivos individuales** (ej. `C:\pacientes\lista1.jpg`).
-   - **URLs públicas** (ej. `https://www.instagram.com/reel/...`).
+*   `plantilla_pacientes.csv`: Tu base de datos unificada lista para abrir en Excel. ¡Cuidala!
+*   `procesados.json`: Memoria caché del sistema (Hashes MD5) para evitar reprocesar archivos antiguos.
+*   `temp_processing/`: Carpeta temporal donde se alojan descargas y fotogramas.
 
-3. Ejecuta el programa:
-   ```bash
-   node index.js
-   ```
-
-4. Observa cómo la aplicación analiza cada fuente y añade los registros extraídos directamente al archivo `plantilla_pacientes.csv`.
-
-## 📜 Licencia
-Este proyecto fue creado para centralizar y unificar flujos de información rápida y eficientemente. Puedes modificarlo libremente para ajustarlo a tus necesidades.
+---
+**Nota de Privacidad:** El archivo `plantilla_pacientes.csv` y los archivos locales han sido agregados al `.gitignore` para proteger la información médica de los pacientes y evitar subidas accidentales a repositorios públicos.
