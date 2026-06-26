@@ -1,0 +1,6 @@
+## Pega aquí tus URLs o rutas locales (una por línea)
+https://www.instagram.com/p/DaB8PhRkRGR/?igsh=MWh4cmRjOG5pN2Jxcg==
+https://www.instagram.com/reel/DaB0LSooGtV/?igsh=NnU5cmNhZnE2MHN3
+https://www.instagram.com/reel/DaB9AERtRcf/?igsh=MXBjYzBxYnBwNm5mNg==
+## NOTA: Para carpetas de Google Drive, es mejor descargarlas manualmente a una ruta local y poner la ruta de los archivos aquí (ej: C:\ruta\a\archivo1.jpg)
+## ya que las herramientas automáticas a veces son bloqueadas por Google Drive.
