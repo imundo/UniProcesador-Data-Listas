@@ -13,7 +13,13 @@ export async function GET() {
             // Reemplazar comas dentro de los campos para no romper el formato CSV simple
             const safeN = (p.nombre || "").replace(/,/g, '');
             const safeA = (p.apellido || "").replace(/,/g, '');
-            const safeC = (p.cedula || "").replace(/,/g, '');
+            let safeC = (p.cedula || "").replace(/,/g, '').trim().toUpperCase();
+            
+            // Asegurar prefijo V- o E-
+            if (safeC && !safeC.match(/^[VE]-/)) {
+                safeC = "V-" + safeC.replace(/[^0-9]/g, '');
+            }
+
             const safeCen = (p.centro || "").replace(/,/g, '');
             const safeE = (p.edad_sector || "").replace(/,/g, '');
             
