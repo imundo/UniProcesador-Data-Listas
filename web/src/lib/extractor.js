@@ -58,8 +58,20 @@ export async function processFiles(files) {
     let totalDuplicados = 0;
     let archivosSaltados = 0;
 
-    const checkCedula = db.prepare('SELECT 1 FROM pacientes WHERE cedula = ?');
-    const checkNombreApellido = db.prepare('SELECT 1 FROM pacientes WHERE nombre = ? AND apellido = ?');
+    // Load existing patients for accurate normalized deduplication in memory
+    const existingRecords = db.prepare('SELECT cedula, nombre, apellido FROM pacientes').all();
+    const existingCedulas = new Set();
+    const existingNombres = new Set();
+    
+    for (const rec of existingRecords) {
+        const nc = normalizeText(rec.cedula);
+        if (nc && nc !== "") existingCedulas.add(nc);
+        
+        const nn = normalizeText(rec.nombre);
+        const na = normalizeText(rec.apellido);
+        if (nn) existingNombres.add(`${nn}|${na}`);
+    }
+
     const insertPaciente = db.prepare('INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector) VALUES (?, ?, ?, ?, ?)');
 
     for (const file of files) {
@@ -121,10 +133,12 @@ export async function processFiles(files) {
                     model: MODEL,
                     messages: [{ role: "user", content: contentMessages }],
                     response_format: { type: "json_object" },
-                    max_tokens: 1000,
+                    max_tokens: 4000,
                 });
 
                 let textResult = response.choices[0].message.content;
+                // Strip markdown in case the AI wraps it despite json_object
+                textResult = textResult.replace(/```json/gi, '').replace(/```/g, '').trim();
                 
                 let parsedResult;
                 try {
@@ -146,7 +160,7 @@ export async function processFiles(files) {
                             const safeCen = (centro || "N/D").trim();
                             const safeE = (edad_sector || "N/D").trim();
                             
-                            if (safeN === "N/D" && safeC === "") continue; // Inválido
+                            if (safeN === "N/D" && safeC === "" && safeA === "N/D") continue; // Completamente Inválido
 
                             const normN = normalizeText(safeN);
                             const normA = normalizeText(safeA);
@@ -155,14 +169,17 @@ export async function processFiles(files) {
                             let isDuplicate = false;
                             
                             if (normC && normC !== "") {
-                                isDuplicate = !!checkCedula.get(normC);
-                            } else if (normN && normA) {
-                                isDuplicate = !!checkNombreApellido.get(normN, normA);
+                                isDuplicate = existingCedulas.has(normC);
+                            } else if (normN) {
+                                isDuplicate = existingNombres.has(`${normN}|${normA}`);
                             }
 
                             if (!isDuplicate) {
                                 insertPaciente.run(safeN, safeA, safeC || "N/D", safeCen, safeE);
                                 totalNuevos++;
+                                
+                                if (normC && normC !== "") existingCedulas.add(normC);
+                                if (normN) existingNombres.add(`${normN}|${normA}`);
                                 
                                 pacientesExtraidos.push({
                                     nombre: safeN,
