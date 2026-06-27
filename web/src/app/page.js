@@ -56,17 +56,36 @@ export default function Home() {
     setIsDragging(false);
   };
 
+  const handleFilesValidation = (newFiles) => {
+    if (newFiles.length > 5) {
+      alert("Solo puedes subir un máximo de 5 archivos a la vez.");
+      return;
+    }
+    
+    const validFiles = newFiles.filter(file => {
+      if (file.size > 2 * 1024 * 1024) {
+        alert(`El archivo ${file.name} supera el límite de 2MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setFiles(validFiles);
+    }
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFiles(Array.from(e.dataTransfer.files));
+      handleFilesValidation(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFiles(Array.from(e.target.files));
+      handleFilesValidation(Array.from(e.target.files));
     }
   };
 
@@ -143,7 +162,7 @@ export default function Home() {
               </svg>
               <h3 className="font-medium text-lg mb-1">Subir Archivos</h3>
               <p className="text-sm text-neutral-400">Arrastra archivos aquí o haz clic para explorar</p>
-              <p className="text-xs text-neutral-500 mt-2">Soporta JPG, PNG, MP4 y PDF (Max 10MB c/u)</p>
+              <p className="text-xs text-neutral-500 mt-2">Max 5 archivos a la vez. Soporta JPG, PNG, MP4 y PDF (Max 2MB c/u)</p>
             </div>
 
             {files.length > 0 && (
