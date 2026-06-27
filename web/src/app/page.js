@@ -378,10 +378,13 @@ export default function Home() {
                       <td className="px-6 py-4">
                         <span className="text-orange-400 font-medium px-2 py-1 bg-orange-500/10 rounded-md">{item.duplicatesIgnored}</span> / <span className="text-blue-400 px-2 py-1 bg-blue-500/10 rounded-md" title="Archivos saltados por Hash MD5">{item.filesSkippedByHash} hashes</span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <button onClick={() => fetchBatchPreview(item.id)} className="p-2 bg-neutral-800 hover:bg-blue-600 rounded-full text-neutral-400 hover:text-white transition-colors shadow-sm" title="Ver registros de esta carga">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </button>
+                        <a href={`/api/downloadBatch?id=${item.id}`} className="p-2 bg-neutral-800 hover:bg-green-600 rounded-full text-neutral-400 hover:text-white transition-colors shadow-sm inline-flex items-center justify-center" title="Descargar CSV de esta carga">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </a>
                       </td>
                     </tr>
                   ))}
