@@ -12,8 +12,7 @@ export async function GET() {
             return NextResponse.json({ total: 0, showing: 0, pacientes: [] });
         }
 
-        const MAX_PREVIEW = 100;
-        const pacientes = db.prepare('SELECT * FROM pacientes ORDER BY id DESC LIMIT ?').all(MAX_PREVIEW);
+        const pacientes = db.prepare('SELECT * FROM pacientes ORDER BY id DESC').all();
 
         return NextResponse.json({ 
             total, 

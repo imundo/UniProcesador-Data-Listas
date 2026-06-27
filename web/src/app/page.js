@@ -12,6 +12,7 @@ export default function Home() {
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [aiThought, setAiThought] = useState("Iniciando análisis...");
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState(null);
 
@@ -130,6 +131,48 @@ export default function Home() {
     fetchHospitals();
   }, []);
 
+  useEffect(() => {
+    let interval;
+    if (isProcessing) {
+      const thoughts = [
+        "Iniciando análisis de imagen...",
+        "Extrayendo texto manuscrito...",
+        "Identificando nombres y cédulas...",
+        "Cruzando datos con bases existentes...",
+        "Limpiando y estructurando información...",
+        "Generando preview de carga..."
+      ];
+      let i = 0;
+      setAiThought(thoughts[0]);
+      interval = setInterval(() => {
+        i = (i + 1) % thoughts.length;
+        setAiThought(thoughts[i]);
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [isProcessing]);
+
+  const handleEditPaciente = (id, field, value) => {
+    if (!stats || !stats.nuevosPacientes) return;
+    const updated = stats.nuevosPacientes.map(p => {
+      if (p._id === id) {
+        return { ...p, [field]: value };
+      }
+      return p;
+    });
+    setStats({ ...stats, nuevosPacientes: updated });
+  };
+
+  const handleDeletePaciente = (id) => {
+    if (!stats || !stats.nuevosPacientes) return;
+    const updated = stats.nuevosPacientes.filter(p => p._id !== id);
+    setStats({ 
+      ...stats, 
+      nuevosPacientes: updated,
+      totalNuevos: updated.length // update the count
+    });
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -245,6 +288,15 @@ export default function Home() {
         body: formData,
       });
       const data = await response.json();
+      
+      // Inject unique IDs for editable grid
+      if (data.nuevosPacientes) {
+        data.nuevosPacientes = data.nuevosPacientes.map((p, i) => ({
+          ...p,
+          _id: i.toString()
+        }));
+      }
+      
       setStats(data);
       setFiles([]); // Clear selection
     } catch (error) {
@@ -526,6 +578,13 @@ export default function Home() {
                     </>
                   ) : "Procesar Archivos"}
                 </button>
+                {isProcessing && (
+                  <div className="text-center mt-2 animate-in fade-in slide-in-from-top-1 duration-500">
+                    <p className="text-xs text-blue-300 font-medium tracking-wide">
+                      {aiThought}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -612,7 +671,7 @@ export default function Home() {
               <div className="mt-2 bg-neutral-950/60 rounded-2xl border border-green-500/30 overflow-hidden backdrop-blur-md flex flex-col">
                 <div className="px-4 py-3 border-b border-green-500/30 bg-green-500/10 flex flex-col gap-3">
                   <div className="flex flex-wrap justify-between items-center gap-4">
-                    <h5 className="text-sm font-semibold text-green-300 whitespace-nowrap">Vista Previa de Nuevos Ingresos</h5>
+                    <h5 className="text-sm font-semibold text-green-300 whitespace-nowrap">Nueva Persona</h5>
                     <div className="flex items-center gap-3">
                       <input
                         type="text"
@@ -695,11 +754,48 @@ export default function Home() {
                     </thead>
                     <tbody className="divide-y divide-neutral-800/50">
                       {localCurrent.map((p, idx) => (
-                        <tr key={idx} className="hover:bg-white/5 transition-colors">
-                          <td className="px-4 py-2 font-medium text-white">{p.nombre} {p.apellido}</td>
-                          <td className="px-4 py-2 font-mono text-green-200">{p.cedula || '-'}</td>
-                          <td className="px-4 py-2 opacity-80">{p.centro}</td>
-                          <td className="px-4 py-2 opacity-80">{p.edad_sector}</td>
+                        <tr key={p._id || idx} className="hover:bg-white/5 transition-colors group">
+                          <td className="px-2 py-1">
+                            <input 
+                              className="bg-transparent border border-transparent focus:border-green-500/50 hover:border-neutral-700 rounded outline-none w-full text-white font-medium transition-colors px-2 py-1"
+                              value={p.nombre || ''}
+                              onChange={(e) => handleEditPaciente(p._id, 'nombre', e.target.value)}
+                              placeholder="Nombre"
+                            />
+                          </td>
+                          <td className="px-2 py-1">
+                            <input 
+                              className="bg-transparent border border-transparent focus:border-green-500/50 hover:border-neutral-700 rounded outline-none w-full font-mono text-green-200 transition-colors px-2 py-1"
+                              value={p.cedula || ''}
+                              onChange={(e) => handleEditPaciente(p._id, 'cedula', e.target.value)}
+                              placeholder="Cédula"
+                            />
+                          </td>
+                          <td className="px-2 py-1">
+                            <input 
+                              className="bg-transparent border border-transparent focus:border-green-500/50 hover:border-neutral-700 rounded outline-none w-full opacity-80 focus:opacity-100 transition-colors px-2 py-1"
+                              value={p.centro || ''}
+                              onChange={(e) => handleEditPaciente(p._id, 'centro', e.target.value)}
+                              placeholder="Centro"
+                            />
+                          </td>
+                          <td className="px-2 py-1 relative">
+                            <div className="flex items-center gap-2">
+                              <input 
+                                className="bg-transparent border border-transparent focus:border-green-500/50 hover:border-neutral-700 rounded outline-none w-full opacity-80 focus:opacity-100 transition-colors px-2 py-1"
+                                value={p.edad_sector || ''}
+                                onChange={(e) => handleEditPaciente(p._id, 'edad_sector', e.target.value)}
+                                placeholder="Edad/Sector"
+                              />
+                              <button 
+                                onClick={() => handleDeletePaciente(p._id)}
+                                className="opacity-0 group-hover:opacity-100 p-1.5 text-red-400 hover:bg-red-500/20 rounded transition-all shrink-0"
+                                title="Eliminar registro"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
