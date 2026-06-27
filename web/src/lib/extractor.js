@@ -10,6 +10,7 @@ import { execSync } from 'child_process';
 import OpenAI from 'openai';
 import db from './db.js';
 import sharp from 'sharp';
+import Fuse from 'fuse.js';
 
 const MODEL = "gpt-4o-mini";
 const PROMPT = `Vas a actuar como un experto extraedor de datos médicos.
@@ -18,7 +19,15 @@ Tu objetivo es transcribir estrictamente todos los pacientes a los campos requer
 
 Reglas obligatorias:
 1. Extrae únicamente: Nombres, Apellidos, Cédula (solo números, elimina V- o E-. IMPORTANTE: Las cédulas venezolanas pueden llegar hasta los 40 millones y tener 8 dígitos, NO CORTES ni elimines ningún número de la cédula), Centro de Salud / Hospital, Edad y Sector / Zona.
-2. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con un string vacío "". ¡No los dejes nulos ni escribas N/D!`;
+2. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con un string vacío "". ¡No los dejes nulos ni escribas N/D!
+
+EJEMPLOS DE EXTRACCIÓN (FEW-SHOT TRAINING):
+- Input sucio: "Maria perez, ci: V- 12.3O4.567 (nota: usó una letra O mayúscula y puntos), Hosp. central."
+- Salida Esperada: {"nombre": "Maria", "apellido": "Perez", "cedula": "12304567", "centro": "Hospital Central", "edad_sector": ""}
+- Input sucio: "Juan, CI E- 84.456, 45 Años, Pctare"
+- Salida Esperada: {"nombre": "Juan", "apellido": "", "cedula": "84456", "centro": "", "edad_sector": "45 Años - Pctare"}
+- Input sucio: "Pedro Gomez, Hospital JM de los Rios, C.I 4.567.890"
+- Salida Esperada: {"nombre": "Pedro", "apellido": "Gomez", "cedula": "4567890", "centro": "Hospital JM de los Rios", "edad_sector": ""}`;
 
 function normalizeText(text) {
     if (!text || text === "N/D" || text === "") return "";
@@ -214,10 +223,32 @@ export async function processFiles(files) {
 
             const allExtractedBatches = await processInBatches(openAiTasks, 10, processChunk);
 
-            // DB Insertion Transaction
+            // Fetch Official Centers for Fuzzy Matching
+            let officialCenters = [];
+            try {
+                const rows = db.prepare("SELECT DISTINCT centro FROM pacientes WHERE centro IS NOT NULL AND centro != ''").all();
+                officialCenters = rows.map(r => r.centro);
+            } catch (e) {
+                console.error("Error loading official centers for Fuse", e);
+            }
+
+            const fuse = new Fuse(officialCenters, {
+                includeScore: true,
+                threshold: 0.3 // Requires 70%+ similarity
+            });
+
+            // DB Insertion Transaction (Actually just formatting and caching now)
             const insertMany = db.transaction((allPacientes) => {
                 for (const paciente of allPacientes) {
-                    const { nombre, apellido, cedula, centro, edad_sector } = paciente;
+                    const { nombre, apellido, cedula, edad_sector } = paciente;
+                    let { centro } = paciente;
+                    
+                    if (centro && centro.trim() !== '') {
+                        const match = fuse.search(centro.trim());
+                        if (match.length > 0) {
+                            centro = match[0].item;
+                        }
+                    }
                     
                     const safeN = (nombre || "").trim();
                     const safeA = (apellido || "").trim();
