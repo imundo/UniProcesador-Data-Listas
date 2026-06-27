@@ -96,7 +96,7 @@ export async function processFiles(files) {
             if (ext === '.pdf') {
                 const data = await pdfParse(buffer);
                 const lines = data.text.split('\n');
-                const chunkSize = 150; // Process 150 lines at a time
+                const chunkSize = 50; // Process 50 lines at a time to prevent exceeding output token limit
                 
                 for (let i = 0; i < lines.length; i += chunkSize) {
                     const chunk = lines.slice(i, i + chunkSize).join('\n');
