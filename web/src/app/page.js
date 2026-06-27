@@ -427,6 +427,7 @@ export default function Home() {
                 const isExternal = !!person.sourceUrl;
                 const badgeColor = person.source === 'HospitalesEnVenezuela.com' ? 'bg-blue-500/20 text-blue-400' :
                                    person.source === 'RedSolidariaVenezuela.com' ? 'bg-red-500/20 text-red-400' :
+                                   person.source === 'DesaparecidosTerremotoVenezuela.com' ? 'bg-purple-500/20 text-purple-400' :
                                    'bg-emerald-500/20 text-emerald-400';
                                    
                 const shareText = encodeURIComponent(`🚨 PERSONA LOCALIZADA\nNombre: ${person.nombre} ${person.apellido}\nCédula: ${person.cedula}\nUbicación: ${person.centro}\n${person.edad_sector ? `Sector/Nota: ${person.edad_sector}\n` : ''}Fuente: ${person.source}`);

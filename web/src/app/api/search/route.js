@@ -77,6 +77,39 @@ async function searchGoogleSheets(term) {
         return [];
     }
 }
+async function searchDesaparecidosAPI(term) {
+    try {
+        const encodedTerm = encodeURIComponent(term);
+        const response = await fetch(`https://desaparecidos-terremoto-api.theempire.tech/api/personas?page=1&pageSize=20&q=${encodedTerm}`, {
+            method: 'GET',
+            headers: {
+                'accept': '*/*',
+                'origin': 'https://desaparecidosterremotovenezuela.com',
+                'referer': 'https://desaparecidosterremotovenezuela.com/'
+                // Note: omitting x-recaptcha-token as it might expire. If required by the server, it will fail gracefully.
+            }
+        });
+        
+        if (!response.ok) return [];
+        
+        const data = await response.json();
+        // Assuming data is an array or has a property containing results. Commonly `data.data` or `data.results` or `data` directly
+        const results = Array.isArray(data) ? data : (data.data || data.results || data.personas || []);
+        
+        return results.map(p => ({
+            nombre: (p.nombre || p.nombres || "").trim(),
+            apellido: (p.apellido || p.apellidos || "").trim(),
+            cedula: (p.cedula || p.ci || "").toString().trim(),
+            centro: (p.centro || p.hospital || p.ubicacion || "").trim(),
+            edad_sector: (p.detalle || p.edad_sector || p.sector || p.estado || "").trim(),
+            source: 'DesaparecidosTerremotoVenezuela.com',
+            sourceUrl: 'https://desaparecidosterremotovenezuela.com'
+        }));
+    } catch (e) {
+        console.error("Desaparecidos API search error:", e);
+        return [];
+    }
+}
 
 async function searchLocalDb(term) {
     try {
@@ -110,19 +143,21 @@ export async function GET(req) {
     const term = q.trim();
 
     try {
-        // Ejecutar las 3 búsquedas en paralelo (Búsqueda Federada)
-        const [localRes, supabaseRes, sheetsRes] = await Promise.allSettled([
+        // Ejecutar las 4 búsquedas en paralelo (Búsqueda Federada)
+        const [localRes, supabaseRes, sheetsRes, desaparecidosRes] = await Promise.allSettled([
             searchLocalDb(term),
             searchSupabase(term),
-            searchGoogleSheets(term)
+            searchGoogleSheets(term),
+            searchDesaparecidosAPI(term)
         ]);
 
         const localData = localRes.status === 'fulfilled' ? localRes.value : [];
         const supabaseData = supabaseRes.status === 'fulfilled' ? supabaseRes.value : [];
         const sheetsData = sheetsRes.status === 'fulfilled' ? sheetsRes.value : [];
+        const desaparecidosData = desaparecidosRes.status === 'fulfilled' ? desaparecidosRes.value : [];
 
         // Combinar resultados
-        let combinedResults = [...localData, ...supabaseData, ...sheetsData];
+        let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData];
         
         // Limitar a los mejores 30 resultados para no saturar la UI
         if (combinedResults.length > 30) {
