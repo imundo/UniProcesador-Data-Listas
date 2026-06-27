@@ -347,6 +347,10 @@ export default function Home() {
       });
       const data = await response.json();
       
+      if (!response.ok) {
+        throw new Error(data.error || "Error al procesar archivo desde el servidor");
+      }
+
       // Inject unique IDs for editable grid
       if (data.nuevosPacientes) {
         data.nuevosPacientes = data.nuevosPacientes.map((p, i) => ({
@@ -366,7 +370,7 @@ export default function Home() {
       setFiles([]); // Clear selection
     } catch (error) {
       console.error("Error al procesar", error);
-      alert("Hubo un error procesando los archivos.");
+      alert(`Hubo un error procesando los archivos: ${error.message}`);
     } finally {
       setIsProcessing(false);
     }
