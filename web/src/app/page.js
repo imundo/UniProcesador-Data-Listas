@@ -17,6 +17,8 @@ export default function Home() {
   const [isFetchingBatch, setIsFetchingBatch] = useState(false);
   const [showBatchPreview, setShowBatchPreview] = useState(false);
   
+  const [isUploadingToPortal, setIsUploadingToPortal] = useState(false);
+  
   const [hospitals, setHospitals] = useState([]);
 
   const [localSearch, setLocalSearch] = useState("");
@@ -155,6 +157,25 @@ export default function Home() {
       alert("Hubo un error procesando los archivos.");
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleUploadToPortal = async (batchId = null, global = false) => {
+    setIsUploadingToPortal(true);
+    try {
+      const response = await fetch("/api/uploadToPortal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ batchId, global }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Error desconocido");
+      alert(`¡Éxito! Se enviaron ${data.count} registros a hospitalesenvenezuela.com.\nRespuesta del servidor: ${JSON.stringify(data.supabaseResponse)}`);
+    } catch (error) {
+      console.error("Error subiendo al portal:", error);
+      alert(`Error al enviar los datos al portal: ${error.message}`);
+    } finally {
+      setIsUploadingToPortal(false);
     }
   };
 
@@ -308,6 +329,24 @@ export default function Home() {
                 </svg>
                 Descargar CSV Global
               </a>
+
+              <button 
+                onClick={() => handleUploadToPortal(null, true)}
+                disabled={isUploadingToPortal}
+                className="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(234,88,12,0.3)] hover:shadow-[0_0_30px_rgba(234,88,12,0.5)] flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {isUploadingToPortal ? (
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                )}
+                Subir a hospitalesenvenezuela.com
+              </button>
             </div>
           </div>
         </div>
@@ -347,6 +386,16 @@ export default function Home() {
                       setLocalPage(1);
                     }}
                   />
+                  <button 
+                    onClick={() => handleUploadToPortal(stats.batchId, false)}
+                    disabled={isUploadingToPortal}
+                    className="ml-auto px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Subir al Portal
+                  </button>
                 </div>
                 <div className="overflow-x-auto max-h-60 overflow-y-auto custom-scrollbar flex-1">
                   <table className="w-full text-left text-xs text-neutral-300">
