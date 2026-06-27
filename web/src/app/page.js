@@ -502,9 +502,10 @@ export default function Home() {
               <svg className={`w-12 h-12 mb-4 transition-colors ${isDragging ? 'text-blue-400' : 'text-neutral-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <h3 className="font-medium text-lg mb-1">Subir Archivos</h3>
-              <p className="text-sm text-neutral-400">Arrastra archivos aquí o haz clic para explorar</p>
-              <p className="text-xs text-neutral-500 mt-2">Max 5 archivos a la vez. Soporta JPG, PNG, PDF, Excel y Word (Max 2MB c/u)</p>
+              <h3 className="font-medium text-lg mb-1">Sube tus listas de pacientes</h3>
+              <p className="text-sm text-neutral-400">Arrastra aquí tus archivos con listas de pacientes o haz clic para seleccionarlos.</p>
+              <p className="text-sm text-blue-400 mt-2 font-medium">Nuestra IA analizará la información para ayudarte a organizarla y procesarla de forma rápida.</p>
+              <p className="text-xs text-neutral-500 mt-3">Formatos permitidos: JPG, PNG, PDF, Excel y Word · Máx. 5 archivos · 1 MB c/u</p>
             </div>
 
             {files.length > 0 && (
