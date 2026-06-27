@@ -16,13 +16,13 @@ export async function POST(req) {
         } else if (pacientes && pacientes.length > 0) {
             // Guardado diferido: Insertamos en SQLite lo que venía en caché del frontend
             const insertPaciente = db.prepare(`
-                INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector, batch_id) 
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector, batch_id, estatus) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             `);
             
             db.transaction((pacs) => {
                 for (const p of pacs) {
-                    insertPaciente.run(p.nombre || "", p.apellido || "", p.cedula || "", p.centro || "", p.edad_sector || "", batchId);
+                    insertPaciente.run(p.nombre || "", p.apellido || "", p.cedula || "", p.centro || "", p.edad_sector || "", batchId, p.estatus || 'Válido');
                 }
             })(pacientes);
             

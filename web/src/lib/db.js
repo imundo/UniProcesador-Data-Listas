@@ -27,6 +27,7 @@ function getDb() {
         cedula TEXT,
         centro TEXT,
         edad_sector TEXT,
+        estatus TEXT DEFAULT 'Válido',
         fecha_ingreso DATETIME DEFAULT CURRENT_TIMESTAMP
       );
       
@@ -38,12 +39,16 @@ function getDb() {
       );
     `);
 
-    // Migración: añadir batch_id si no existe
+    // Migración: añadir batch_id y estatus si no existen
     try {
         const tableInfo = db.pragma("table_info(pacientes)");
         const hasBatchId = tableInfo.some(col => col.name === 'batch_id');
         if (!hasBatchId) {
             db.exec("ALTER TABLE pacientes ADD COLUMN batch_id TEXT");
+        }
+        const hasEstatus = tableInfo.some(col => col.name === 'estatus');
+        if (!hasEstatus) {
+            db.exec("ALTER TABLE pacientes ADD COLUMN estatus TEXT DEFAULT 'Válido'");
         }
     } catch(e) {
         console.error("Migration error:", e);

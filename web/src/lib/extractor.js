@@ -272,8 +272,11 @@ export async function processFiles(files) {
                     // - ONLY Cedula is INVALID
                     // - ONLY Extra is INVALID
                     const isValidData = (hasName && hasCedula) || (hasName && hasExtra) || (hasCedula && hasExtra);
+                    const isPartialData = hasName || hasCedula; // Al menos debe tener un nombre o una cedula para ser guardado
                     
-                    if (!isValidData) continue;
+                    if (!isPartialData) continue;
+                    const estatus = isValidData ? 'Válido' : 'Incompleto';
+                    
                     const normN = normalizeText(safeN);
                     const normA = normalizeText(safeA);
                     const normC = safeC ? normalizeText(safeC) : "";
@@ -298,7 +301,8 @@ export async function processFiles(files) {
                             apellido: safeA,
                             cedula: safeC,
                             centro: safeCen,
-                            edad_sector: safeE
+                            edad_sector: safeE,
+                            estatus: estatus
                         });
                     } else {
                         totalDuplicados++;

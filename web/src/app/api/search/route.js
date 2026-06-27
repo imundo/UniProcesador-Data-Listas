@@ -177,7 +177,7 @@ async function searchLocalDb(term) {
         
         return results.map(p => ({
             ...p,
-            estado: "",
+            estado: p.estatus === 'Incompleto' ? 'Incompleto' : '',
             source: 'Base de Datos Local',
             sourceUrl: null
         }));
