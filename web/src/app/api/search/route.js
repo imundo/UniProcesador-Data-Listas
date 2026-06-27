@@ -32,6 +32,7 @@ async function searchSupabase(term) {
             cedula: (p.cedula || p.ci || "").toString().trim(),
             centro: (p.centro || p.hospital || "").trim(),
             edad_sector: (p.detalle || p.edad_sector || p.sector || "").trim(),
+            estado: (p.estado || p.status || "").trim(),
             source: 'HospitalesEnVenezuela.com',
             sourceUrl: 'https://hospitalesenvenezuela.com'
         }));
@@ -75,6 +76,7 @@ async function searchGoogleSheets(term) {
             cedula: row[2] || "",
             centro: row[3] || "",
             edad_sector: (row[4] || "") + (row[5] ? ` - ${row[5]}` : ""),
+            estado: (row[6] || "").trim(),
             source: 'RedSolidariaVenezuela.com',
             sourceUrl: 'https://www.redsolidariavenezuela.com'
         }));
@@ -107,7 +109,8 @@ async function searchDesaparecidosAPI(term) {
             apellido: (p.apellido || p.apellidos || "").trim(),
             cedula: (p.cedula || p.ci || "").toString().trim(),
             centro: (p.centro || p.hospital || p.ubicacion || "").trim(),
-            edad_sector: (p.detalle || p.edad_sector || p.sector || p.estado || "").trim(),
+            edad_sector: (p.detalle || p.edad_sector || p.sector || "").trim(),
+            estado: (p.estado || p.status || "").trim(),
             source: 'DesaparecidosTerremotoVenezuela.com',
             sourceUrl: 'https://desaparecidosterremotovenezuela.com'
         }));
@@ -143,7 +146,8 @@ async function searchRedAyudaAPI(term) {
             apellido: (p.last_name || p.apellidos || "").trim(),
             cedula: (p.id_document || p.cedula || p.ci || "").toString().trim(),
             centro: (p.last_seen_location || p.location || p.hospital || "").trim(),
-            edad_sector: (p.description || p.notes || p.status || "").trim(),
+            edad_sector: (p.description || p.notes || "").trim(),
+            estado: (p.status || p.estado || "").trim(),
             source: 'RedAyudaVenezuela.com',
             sourceUrl: 'https://redayudavenezuela.com'
         }));
@@ -173,6 +177,7 @@ async function searchLocalDb(term) {
         
         return results.map(p => ({
             ...p,
+            estado: "",
             source: 'Base de Datos Local',
             sourceUrl: null
         }));
@@ -224,6 +229,9 @@ export async function GET(req) {
                 const existing = groupedMap.get(key);
                 if (!existing.sources.find(s => s.name === p.source)) {
                     existing.sources.push({ name: p.source, url: p.sourceUrl });
+                }
+                if (!existing.estado && p.estado) {
+                    existing.estado = p.estado;
                 }
             } else {
                 p.sources = [{ name: p.source, url: p.sourceUrl }];
