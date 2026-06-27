@@ -64,8 +64,8 @@ export default function MapView() {
     );
   }
 
-  // Centered roughly on Caracas, La Guaira and Puerto Cabello
-  const center = [10.50, -67.45];
+  // Centered roughly on Caracas, La Guaira
+  const center = [10.60, -66.95];
 
   return (
     <div className="w-full relative rounded-3xl overflow-hidden border border-neutral-800 shadow-2xl">
