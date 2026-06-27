@@ -18,16 +18,20 @@ A continuación te proporcionaré texto pre-procesado, una imagen o fotogramas d
 Tu objetivo es transcribir estrictamente todos los pacientes a los campos requeridos.
 
 Reglas obligatorias:
-1. Extrae únicamente: Nombres (todos los nombres que tenga la persona), Apellidos (todos los apellidos que tenga), Cédula (solo números, elimina V- o E-. IMPORTANTE: Las cédulas venezolanas pueden llegar hasta los 40 millones y tener 8 dígitos, NO CORTES ni elimines ningún número de la cédula), Centro de Salud / Hospital, Edad y Sector / Zona.
-2. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con un string vacío "". ¡No los dejes nulos ni escribas N/D!
+1. Extrae únicamente: Nombres (todos los nombres de la persona), Apellidos (todos los apellidos), Cédula, Centro de Salud / Hospital, Edad y Sector / Zona.
+2. Cédula: Puede aparecer bajo sinónimos como "C.I", "ID", "Identificación", "Doc", "Pasaporte". Corrige errores obvios de lectura óptica (OCR), por ejemplo, si ves una letra 'O' o 'o' en medio de números, cámbiala a '0'. Si ves una 'l' o 'I' entre números, cámbiala a '1'. Mantén el prefijo V- o E- si existe. NO CORTES ni elimines números.
+3. Orden de Nombres y Apellidos: Si la lista está en formato "Apellido, Nombre" o claramente invierte el orden natural, asegúrate de colocar los apellidos en el campo "apellido" y los nombres en el campo "nombre".
+4. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con un string vacío "". ¡No los dejes nulos ni escribas N/D!
 
 EJEMPLOS DE EXTRACCIÓN (FEW-SHOT TRAINING):
 - Input sucio: "Maria del Carmen perez de lopez, ci: V- 12.3O4.567 (nota: usó una letra O mayúscula y puntos), Hosp. central."
-- Salida Esperada: {"nombre": "Maria del Carmen", "apellido": "Perez de Lopez", "cedula": "12304567", "centro": "Hospital Central", "edad_sector": ""}
-- Input sucio: "Juan Carlos, CI E- 84.456, 45 Años, Pctare"
-- Salida Esperada: {"nombre": "Juan Carlos", "apellido": "", "cedula": "84456", "centro": "", "edad_sector": "45 Años - Pctare"}
-- Input sucio: "Pedro Luis Gomez Suarez, Hospital JM de los Rios, C.I 4.567.890"
-- Salida Esperada: {"nombre": "Pedro Luis", "apellido": "Gomez Suarez", "cedula": "4567890", "centro": "Hospital JM de los Rios", "edad_sector": ""}`;
+- Salida Esperada: {"nombre": "Maria del Carmen", "apellido": "Perez de Lopez", "cedula": "V-12304567", "centro": "Hospital Central", "edad_sector": ""}
+- Input sucio: "Rodriguez Gomez, Juan Carlos, Identificación: E- 84.456, 45 Años, Pctare"
+- Salida Esperada: {"nombre": "Juan Carlos", "apellido": "Rodriguez Gomez", "cedula": "E-84456", "centro": "", "edad_sector": "45 Años - Pctare"}
+- Input sucio: "Gomez Suarez Pedro Luis, Hospital JM de los Rios, ID l4.567.89O"
+- Salida Esperada: {"nombre": "Pedro Luis", "apellido": "Gomez Suarez", "cedula": "14567890", "centro": "Hospital JM de los Rios", "edad_sector": ""}
+- Input sucio: "Jose Fernandez, Doc 1543O686, Caracas"
+- Salida Esperada: {"nombre": "Jose", "apellido": "Fernandez", "cedula": "15430686", "centro": "Caracas", "edad_sector": ""}`;
 
 function normalizeText(text) {
     if (!text || text === "N/D" || text === "") return "";
