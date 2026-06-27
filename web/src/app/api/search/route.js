@@ -111,6 +111,42 @@ async function searchDesaparecidosAPI(term) {
     }
 }
 
+async function searchRedAyudaAPI(term) {
+    try {
+        const encodedTerm = encodeURIComponent(term);
+        // Supabase ILIKE search with % wildcards encoded as %25
+        const response = await fetch(`https://cpavwkdonvkvrwygfzfo.supabase.co/rest/v1/missing_persons?select=*&status=eq.active&order=ext_created.desc&offset=0&limit=40&name=ilike.%25${encodedTerm}%25`, {
+            method: 'GET',
+            headers: {
+                'accept': '*/*',
+                'accept-profile': 'public',
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwYXZ3a2RvbnZrdnJ3eWdmemZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjAyODMsImV4cCI6MjA5NzkzNjI4M30.-_FAsA2csTrB9qt267pBfjJkczMP7pcaUi4plMv3kv4',
+                'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwYXZ3a2RvbnZrdnJ3eWdmemZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjAyODMsImV4cCI6MjA5NzkzNjI4M30.-_FAsA2csTrB9qt267pBfjJkczMP7pcaUi4plMv3kv4',
+                'origin': 'https://redayudavenezuela.com',
+                'referer': 'https://redayudavenezuela.com/'
+            }
+        });
+        
+        if (!response.ok) return [];
+        
+        const data = await response.json();
+        const results = Array.isArray(data) ? data : [];
+        
+        return results.map(p => ({
+            nombre: (p.name || p.nombres || "").trim(),
+            apellido: (p.last_name || p.apellidos || "").trim(),
+            cedula: (p.id_document || p.cedula || p.ci || "").toString().trim(),
+            centro: (p.last_seen_location || p.location || p.hospital || "").trim(),
+            edad_sector: (p.description || p.notes || p.status || "").trim(),
+            source: 'RedAyudaVenezuela.com',
+            sourceUrl: 'https://redayudavenezuela.com'
+        }));
+    } catch (e) {
+        console.error("RedAyuda API search error:", e);
+        return [];
+    }
+}
+
 async function searchLocalDb(term) {
     try {
         const searchTerm = `%${term.trim()}%`;
@@ -143,25 +179,27 @@ export async function GET(req) {
     const term = q.trim();
 
     try {
-        // Ejecutar las 4 búsquedas en paralelo (Búsqueda Federada)
-        const [localRes, supabaseRes, sheetsRes, desaparecidosRes] = await Promise.allSettled([
+        // Ejecutar las 5 búsquedas en paralelo (Búsqueda Federada)
+        const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes] = await Promise.allSettled([
             searchLocalDb(term),
             searchSupabase(term),
             searchGoogleSheets(term),
-            searchDesaparecidosAPI(term)
+            searchDesaparecidosAPI(term),
+            searchRedAyudaAPI(term)
         ]);
 
         const localData = localRes.status === 'fulfilled' ? localRes.value : [];
         const supabaseData = supabaseRes.status === 'fulfilled' ? supabaseRes.value : [];
         const sheetsData = sheetsRes.status === 'fulfilled' ? sheetsRes.value : [];
         const desaparecidosData = desaparecidosRes.status === 'fulfilled' ? desaparecidosRes.value : [];
+        const redAyudaData = redAyudaRes.status === 'fulfilled' ? redAyudaRes.value : [];
 
         // Combinar resultados
-        let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData];
+        let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData];
         
-        // Limitar a los mejores 30 resultados para no saturar la UI
-        if (combinedResults.length > 30) {
-            combinedResults = combinedResults.slice(0, 30);
+        // Limitar a los mejores 50 resultados para no saturar la UI pero mostrar más resultados
+        if (combinedResults.length > 50) {
+            combinedResults = combinedResults.slice(0, 50);
         }
 
         return NextResponse.json(combinedResults);
