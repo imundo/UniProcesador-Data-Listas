@@ -475,7 +475,7 @@ export default function Home() {
             <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">🏢 Base Local</span>
             <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)]">🌐 HospitalesEnVenezuela.com</span>
             <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]">🌐 RedSolidariaVenezuela.com</span>
-            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]">🌐 DesaparecidosTerremoto.com</span>
+            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]">🌐 DesaparecidosTerremotoVenezuela.com</span>
             <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]">🌐 RedAyudaVenezuela.com</span>
           </div>
         </div>
