@@ -162,11 +162,10 @@ export async function processFiles(files) {
 
                 const base64Image = enhancedBuffer.toString('base64');
                 
-                // Se envía directamente al modelo con detail: "high" para forzar 
-                // una lectura segmentada en máxima resolución y sin pérdida de calidad.
+                // Se envía directamente al modelo con detail: "auto" para ahorrar tokens
                 openAiTasks.push([{
                     type: "image_url",
-                    image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
+                    image_url: { url: `data:${mimeType};base64,${base64Image}` }
                 }]);
             } else {
                 console.log(`Extensión no soportada ignorada: ${ext}`);
