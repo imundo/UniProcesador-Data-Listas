@@ -268,5 +268,5 @@ export async function processFiles(files) {
     });
     fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
 
-    return { success: true, totalNuevos, totalDuplicados, archivosSaltados, nuevosPacientes: pacientesExtraidos };
+    return { success: true, batchId, totalNuevos, totalDuplicados, archivosSaltados, nuevosPacientes: pacientesExtraidos };
 }
