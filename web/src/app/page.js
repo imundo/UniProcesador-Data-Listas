@@ -36,7 +36,10 @@ export default function Home() {
   const [localPage, setLocalPage] = useState(1);
   const [globalPage, setGlobalPage] = useState(1);
   const [batchPage, setBatchPage] = useState(1);
+  const [historyPage, setHistoryPage] = useState(1);
+  
   const itemsPerPage = 100;
+  const historyItemsPerPage = 10;
 
   const fileInputRef = useRef(null);
 
@@ -232,6 +235,8 @@ export default function Home() {
     `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(batchSearch.toLowerCase())
   ) || [];
   const batchCurrent = batchFiltered.slice((batchPage - 1) * itemsPerPage, batchPage * itemsPerPage);
+
+  const historyCurrent = history.slice((historyPage - 1) * historyItemsPerPage, historyPage * historyItemsPerPage);
 
   return (
     <div 
@@ -479,7 +484,7 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60">
-                  {history.map((item) => (
+                  {historyCurrent.map((item) => (
                     <tr key={item.id} className="hover:bg-neutral-800/50 transition-colors">
                       <td className="px-6 py-4 text-neutral-200">
                         {new Date(item.date).toLocaleString()}
@@ -509,6 +514,39 @@ export default function Home() {
               </table>
             )}
           </div>
+          {history.length > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 bg-neutral-900/80 border-t border-neutral-700">
+              <div className="text-xs text-neutral-400">
+                Mostrando {(historyPage - 1) * historyItemsPerPage + 1} a {Math.min(historyPage * historyItemsPerPage, history.length)} de {history.length} lotes
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  disabled={historyPage === 1}
+                  onClick={() => setHistoryPage(historyPage - 1)}
+                  className="px-3 py-1 bg-neutral-800 text-neutral-300 rounded hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+                >
+                  Anterior
+                </button>
+                <span className="px-3 py-1 text-xs font-medium text-neutral-400">
+                  Página {historyPage} de {Math.ceil(history.length / historyItemsPerPage) || 1}
+                </span>
+                <button 
+                  disabled={historyPage === Math.ceil(history.length / historyItemsPerPage)}
+                <button 
+                  disabled={historyPage >= Math.ceil(history.length / 10)}
+                  onClick={() => setHistoryPage(p => p + 1)}
+                  className="px-3 py-1 bg-neutral-800 text-neutral-300 rounded hover:bg-neutral-700 disabled:opacity-50 text-xs font-medium"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Map Section */}
+        <div className="w-full mt-12 mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+          <MapView />
         </div>
 
       </div>
