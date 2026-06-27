@@ -108,10 +108,12 @@ export async function processFiles(files) {
             hashSum.update(buffer);
             const fileHash = hashSum.digest('hex');
 
-            if (processedFiles[fileHash]) {
-                archivosSaltados++;
-                continue;
-            }
+            // Removido filtro de performance temporalmente a petición del usuario
+            // para permitir procesar el mismo archivo múltiples veces y revisar duplicados visuales.
+            // if (processedFiles[fileHash]) {
+            //     archivosSaltados++;
+            //     continue;
+            // }
 
             let openAiTasks = []; 
 
