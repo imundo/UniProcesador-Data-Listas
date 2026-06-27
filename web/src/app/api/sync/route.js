@@ -6,28 +6,39 @@ const dataDir = path.join(process.cwd(), 'data');
 const dbFile = path.join(dataDir, 'unified_db.json');
 
 async function pullSupabase() {
+    let allResults = [];
     try {
-        const response = await fetch('https://ozuxfepfkvnxkywdsqxy.supabase.co/rest/v1/rpc/buscar_paciente', {
-            method: 'POST',
-            headers: {
-                'accept': '*/*',
-                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96dXhmZXBma3ZueGt5d2RzcXh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MjI5NTEsImV4cCI6MjA5Nzk5ODk1MX0.YhW0GalGkQZdO2NJTg_01C5XhdMmJ6RbNSNXXC0xG4o',
-                'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96dXhmZXBma3ZueGt5d2RzcXh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MjI5NTEsImV4cCI6MjA5Nzk5ODk1MX0.YhW0GalGkQZdO2NJTg_01C5XhdMmJ6RbNSNXXC0xG4o',
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify({ p_term: '' })
-        });
-        if (!response.ok) return [];
-        const data = await response.json();
-        return (data || []).map(p => ({
-            nombre: (p.nombre || p.nombres || "").trim(),
-            apellido: (p.apellido || p.apellidos || "").trim(),
-            cedula: (p.cedula || p.ci || "").toString().trim(),
-            centro: (p.centro || p.hospital || "").trim(),
-            edad_sector: (p.detalle || p.edad_sector || p.sector || "").trim(),
-            source: 'HospitalesEnVenezuela.com',
-            sourceUrl: 'https://hospitalesenvenezuela.com'
-        }));
+        const terms = ["a", "e", "i", "o", "u"];
+        const headers = {
+            'accept': '*/*',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96dXhmZXBma3ZueGt5d2RzcXh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MjI5NTEsImV4cCI6MjA5Nzk5ODk1MX0.YhW0GalGkQZdO2NJTg_01C5XhdMmJ6RbNSNXXC0xG4o',
+            'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96dXhmZXBma3ZueGt5d2RzcXh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MjI5NTEsImV4cCI6MjA5Nzk5ODk1MX0.YhW0GalGkQZdO2NJTg_01C5XhdMmJ6RbNSNXXC0xG4o',
+            'content-type': 'application/json'
+        };
+
+        for (const term of terms) {
+            const response = await fetch('https://ozuxfepfkvnxkywdsqxy.supabase.co/rest/v1/rpc/buscar_paciente', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ p_term: term })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                const mapped = (data || []).map(p => ({
+                    nombre: (p.nombre || p.nombres || "").trim(),
+                    apellido: (p.apellido || p.apellidos || "").trim(),
+                    cedula: (p.cedula || p.ci || "").toString().trim(),
+                    centro: (p.centro || p.hospital || "").trim(),
+                    edad_sector: (p.detalle || p.edad_sector || p.sector || "").trim(),
+                    source: 'HospitalesEnVenezuela.com',
+                    sourceUrl: 'https://hospitalesenvenezuela.com'
+                }));
+                allResults = allResults.concat(mapped);
+            }
+        }
+        // Deduplicate by cedula + nombre
+        const unique = Array.from(new Map(allResults.map(item => [item.cedula + item.nombre, item])).values());
+        return unique;
     } catch (e) {
         console.error("Supabase pull error:", e);
         return [];
@@ -62,7 +73,7 @@ async function pullDesaparecidosAPI() {
     let hasMore = true;
     try {
         while(hasMore) {
-            const response = await fetch(`https://desaparecidos-terremoto-api.theempire.tech/api/personas?page=${page}&pageSize=100&q=`);
+            const response = await fetch(`https://desaparecidos-terremoto-api.theempire.tech/api/personas?page=${page}&pageSize=100`);
             if (!response.ok) break;
             const data = await response.json();
             const results = Array.isArray(data) ? data : (data.data || data.results || data.personas || []);
@@ -91,29 +102,44 @@ async function pullDesaparecidosAPI() {
 }
 
 async function pullRedAyudaAPI() {
+    let allResults = [];
+    let offset = 0;
+    const limit = 1000;
+    let hasMore = true;
     try {
-        const response = await fetch(`https://cpavwkdonvkvrwygfzfo.supabase.co/rest/v1/missing_persons?select=*&status=eq.active&order=ext_created.desc&offset=0&limit=5000`, {
-            headers: {
-                'accept': '*/*',
-                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwYXZ3a2RvbnZrdnJ3eWdmemZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjAyODMsImV4cCI6MjA5NzkzNjI4M30.-_FAsA2csTrB9qt267pBfjJkczMP7pcaUi4plMv3kv4',
-                'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwYXZ3a2RvbnZrdnJ3eWdmemZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjAyODMsImV4cCI6MjA5NzkzNjI4M30.-_FAsA2csTrB9qt267pBfjJkczMP7pcaUi4plMv3kv4'
+        while(hasMore) {
+            const response = await fetch(`https://cpavwkdonvkvrwygfzfo.supabase.co/rest/v1/missing_persons?select=*&status=eq.active&order=ext_created.desc&offset=${offset}&limit=${limit}`, {
+                headers: {
+                    'accept': '*/*',
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwYXZ3a2RvbnZrdnJ3eWdmemZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjAyODMsImV4cCI6MjA5NzkzNjI4M30.-_FAsA2csTrB9qt267pBfjJkczMP7pcaUi4plMv3kv4',
+                    'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwYXZ3a2RvbnZrdnJ3eWdmemZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNjAyODMsImV4cCI6MjA5NzkzNjI4M30.-_FAsA2csTrB9qt267pBfjJkczMP7pcaUi4plMv3kv4'
+                }
+            });
+            if (!response.ok) break;
+            const data = await response.json();
+            const results = data || [];
+            
+            if (results.length === 0) {
+                hasMore = false;
+            } else {
+                const mapped = results.map(p => ({
+                    nombre: (p.name || p.nombres || "").trim(),
+                    apellido: (p.last_name || p.apellidos || "").trim(),
+                    cedula: (p.id_document || p.cedula || p.ci || "").toString().trim(),
+                    centro: (p.last_seen_location || p.location || p.hospital || "").trim(),
+                    edad_sector: (p.description || p.notes || p.status || "").trim(),
+                    source: 'RedAyudaVenezuela.com',
+                    sourceUrl: 'https://redayudavenezuela.com'
+                }));
+                allResults = allResults.concat(mapped);
+                offset += limit;
+                if (results.length < limit) hasMore = false;
             }
-        });
-        if (!response.ok) return [];
-        const data = await response.json();
-        return (data || []).map(p => ({
-            nombre: (p.name || p.nombres || "").trim(),
-            apellido: (p.last_name || p.apellidos || "").trim(),
-            cedula: (p.id_document || p.cedula || p.ci || "").toString().trim(),
-            centro: (p.last_seen_location || p.location || p.hospital || "").trim(),
-            edad_sector: (p.description || p.notes || p.status || "").trim(),
-            source: 'RedAyudaVenezuela.com',
-            sourceUrl: 'https://redayudavenezuela.com'
-        }));
+        }
     } catch (e) {
         console.error("RedAyuda pull error:", e);
-        return [];
     }
+    return allResults;
 }
 
 export async function GET(req) {

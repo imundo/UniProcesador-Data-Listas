@@ -15,7 +15,6 @@ export default function Home() {
   const [aiThought, setAiThought] = useState("Iniciando análisis...");
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState(null);
-  const [syncTotal, setSyncTotal] = useState(0);
 
   const [globalPreview, setGlobalPreview] = useState(null);
   const [isFetchingGlobal, setIsFetchingGlobal] = useState(false);
@@ -90,16 +89,6 @@ export default function Home() {
     }
   };
 
-  const fetchSyncStats = async () => {
-    try {
-      const res = await fetch("/api/sync/stats");
-      const data = await res.json();
-      setSyncTotal(data.total);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const fetchBatchPreview = async (batchId) => {
     setIsFetchingBatch(true);
     try {
@@ -140,7 +129,6 @@ export default function Home() {
   useEffect(() => {
     fetchHistory();
     fetchHospitals();
-    fetchSyncStats();
   }, []);
 
   useEffect(() => {
@@ -441,7 +429,7 @@ export default function Home() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             </div>
             <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Personas Registradas</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{(syncTotal > 0 ? syncTotal : totalPacientesLeidos).toLocaleString()}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{totalPacientesLeidos.toLocaleString()}</p>
           </div>
 
           <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
@@ -463,13 +451,6 @@ export default function Home() {
 
         {/* Multi-source indicator */}
         <div className="w-full flex flex-col items-center mb-6 z-20">
-          <div className="flex flex-col items-center group mb-4">
-            <a href="/api/sync/download" download className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all flex items-center gap-3">
-              <svg className="w-5 h-5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-              <span className="text-lg font-bold text-white">Descargar Lista Unificada de Portales</span>
-            </a>
-            <span className="text-xs text-neutral-400 mt-2 font-medium tracking-wide">Descarga la data de todos los orígenes consolidada en un solo archivo CSV</span>
-          </div>
 
           <div className="flex flex-wrap justify-center gap-3">
             <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">🏢 Base Local</span>
