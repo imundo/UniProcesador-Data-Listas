@@ -9,6 +9,7 @@ const mammoth = require('mammoth');
 import { execSync } from 'child_process';
 import OpenAI from 'openai';
 import db from './db.js';
+import sharp from 'sharp';
 
 const MODEL = "gpt-4o-mini";
 const PROMPT = `Vas a actuar como un experto extraedor de datos médicos.
@@ -141,15 +142,22 @@ export async function processFiles(files) {
                 }
             } else if (['.jpg', '.jpeg', '.png'].includes(ext)) {
                 let mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
-                const base64Image = fs.readFileSync(filePath).toString('base64');
+                const fileBuffer = fs.readFileSync(filePath);
                 
-                // Se removió el pre-filtro visual porque en baja resolución "detail: low" 
-                // la IA no podía leer letras borrosas y descartaba imágenes válidas.
-                // Todas las imágenes pasan directo al modelo de extracción de alto detalle.
+                // Pre-procesamiento fotográfico avanzado con Sharp para maximizar el OCR
+                const enhancedBuffer = await sharp(fileBuffer)
+                    .grayscale()         // Elimina ruido de color y sombras amarillentas
+                    .normalize()         // Maximiza el contraste (blanco puro, letras negras fuertes)
+                    .sharpen({ sigma: 1, m1: 1, m2: 2 }) // Endurece bordes borrosos
+                    .toBuffer();
 
+                const base64Image = enhancedBuffer.toString('base64');
+                
+                // Se envía directamente al modelo con detail: "high" para forzar 
+                // una lectura segmentada en máxima resolución y sin pérdida de calidad.
                 openAiTasks.push([{
                     type: "image_url",
-                    image_url: { url: `data:${mimeType};base64,${base64Image}` }
+                    image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
                 }]);
             } else {
                 console.log(`Extensión no soportada ignorada: ${ext}`);
