@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db.js';
+import fs from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
     try {
-        const { batchId, global, pacientes } = await req.json();
+        const reqJson = await req.json();
+        const { batchId, global, pacientes, stats } = reqJson;
 
         let rows = [];
         if (global) {
@@ -68,6 +71,36 @@ export async function POST(req) {
         }
 
         const data = await response.json().catch(() => ({ success: true }));
+
+        // Guardar historial solo si fue una carga nueva (no global)
+        if (!global && stats) {
+            const dataDir = path.join(process.cwd(), 'data');
+            const processedFilesPath = path.join(dataDir, 'procesados.json');
+            const historyFile = path.join(dataDir, 'history.json');
+            
+            if (stats.fileHashes && stats.fileHashes.length > 0) {
+                let processedFiles = {};
+                if (fs.existsSync(processedFilesPath)) {
+                    processedFiles = JSON.parse(fs.readFileSync(processedFilesPath, 'utf8'));
+                }
+                stats.fileHashes.forEach(hash => processedFiles[hash] = true);
+                fs.writeFileSync(processedFilesPath, JSON.stringify(processedFiles, null, 2), 'utf8');
+            }
+
+            let history = [];
+            if (fs.existsSync(historyFile)) {
+                history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+            }
+            history.unshift({
+                id: batchId,
+                date: new Date().toISOString(),
+                filesUploaded: stats.filesUploaded || 0,
+                newPatients: stats.totalNuevos || 0,
+                duplicatesIgnored: stats.totalDuplicados || 0,
+                filesSkippedByHash: stats.archivosSaltados || 0
+            });
+            fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
+        }
 
         return NextResponse.json({ success: true, count: p_rows.length, supabaseResponse: data });
 

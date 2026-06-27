@@ -233,8 +233,9 @@ export default function Home() {
     try {
       const payload = { batchId, global };
       // Si no es global, enviamos los pacientes cacheados localmente para que se guarden y suban
-      if (!global && stats?.nuevosPacientes) {
-          payload.pacientes = stats.nuevosPacientes;
+      if (!global && stats) {
+          payload.pacientes = stats.nuevosPacientes || [];
+          payload.stats = stats;
       }
       const response = await fetch("/api/uploadToPortal", {
         method: "POST",

@@ -262,28 +262,23 @@ export async function processFiles(files) {
             if (flattenedPacientes.length > 0) {
                 insertMany(flattenedPacientes);
             }
-
             processedFiles[fileHash] = true;
         } catch (error) {
             console.error(`Error procesando archivo ${file.name}:`, error);
         }
     }
 
-    fs.writeFileSync(processedFilesPath, JSON.stringify(processedFiles, null, 2), 'utf8');
-
-    let history = [];
-    if (fs.existsSync(historyFile)) {
-        history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
-    }
-    history.unshift({
-        id: batchId,
-        date: new Date().toISOString(),
+    // No guardamos history.json ni procesados.json aquí. Lo haremos en uploadToPortal.
+    return { 
+        success: true, 
+        batchId, 
+        totalNuevos, 
+        totalDuplicados, 
+        archivosSaltados, 
+        nuevosPacientes: pacientesExtraidos,
+        // Pasamos también la cantidad de archivos para el history
         filesUploaded: files.length,
-        newPatients: totalNuevos,
-        duplicatesIgnored: totalDuplicados,
-        filesSkippedByHash: archivosSaltados
-    });
-    fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
-
-    return { success: true, batchId, totalNuevos, totalDuplicados, archivosSaltados, nuevosPacientes: pacientesExtraidos };
+        // Pasamos los file hashes para marcarlos como procesados luego
+        fileHashes: Object.keys(processedFiles)
+    };
 }
