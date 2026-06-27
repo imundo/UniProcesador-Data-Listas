@@ -414,28 +414,12 @@ export default function Home() {
           <div className="inline-flex items-center justify-center p-2 bg-transparent rounded-2xl mb-2">
             <img src="https://flagcdn.com/w80/ve.png" alt="Bandera de Venezuela" className="w-12 drop-shadow-md rounded-[4px]" />
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Unificar Lista para Hospitales y Personas</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Unificar listas para hospitales y personas.</h1>
           <p className="text-neutral-400 max-w-2xl mx-auto">
             Sube tus imágenes, videos y PDFs de Lista de pacientes o personas. Nuestra IA extraerá automáticamente la información y la consolidará en una sola base de datos unificada sin duplicados. Con formato para ser subidos a portales como <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">https://hospitalesenvenezuela.com/</a>
           </p>
         </header>
 
-        {/* Nuestro Compromiso */}
-        <section className="bg-neutral-900/40 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-6 text-sm text-neutral-300 leading-relaxed text-center shadow-lg w-full max-w-4xl mx-auto">
-          <h2 className="text-lg font-bold text-white mb-3">Nuestro compromiso</h2>
-          <p className="mb-3">
-            Esta aplicación nació para ayudar a centralizar la información, reducir el trabajo manual y facilitar la actualización de los datos, permitiendo que los equipos dediquen más tiempo a las personas y menos tiempo a la transcripción.
-          </p>
-          <p className="mb-3">
-            Es un proyecto desarrollado de forma independiente, voluntaria y sin fines de lucro. Creemos que la tecnología puede marcar una diferencia cuando se pone al servicio de quienes la necesitan, y esperamos que esta herramienta contribuya a hacer ese trabajo un poco más fácil.
-          </p>
-          <p className="mb-3">
-            La aplicación utiliza Inteligencia Artificial para extraer y organizar la información de manera automática. Sin embargo, los resultados deben ser revisados y validados por el usuario antes de utilizarlos o publicarlos en otras plataformas, como hospitalesenvenezuela.com.
-          </p>
-          <p className="text-blue-300 font-medium">
-            Gracias por confiar en esta herramienta. Seguiremos mejorándola para que sea cada día más útil, rápida, sencilla y confiable.
-          </p>
-        </section>
 
         {/* Dashboard Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
@@ -476,11 +460,11 @@ export default function Home() {
         <div className="w-full flex flex-col items-center mb-6 z-20">
 
           <div className="flex flex-wrap justify-center gap-3">
-            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">🏢 Base Local</span>
-            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)]">🌐 HospitalesEnVenezuela.com</span>
-            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]">🌐 RedSolidariaVenezuela.com</span>
-            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]">🌐 DesaparecidosTerremotoVenezuela.com</span>
-            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]">🌐 RedAyudaVenezuela.com</span>
+            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)] cursor-default">🏢 Base Local</span>
+            <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)] hover:bg-blue-500/30 transition-colors">🌐 HospitalesEnVenezuela.com</a>
+            <a href="https://redsolidariavenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)] hover:bg-red-500/30 transition-colors">🌐 RedSolidariaVenezuela.com</a>
+            <a href="https://desaparecidosterremotovenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)] hover:bg-purple-500/30 transition-colors">🌐 DesaparecidosTerremotoVenezuela.com</a>
+            <a href="https://redayudavenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)] hover:bg-amber-500/30 transition-colors">🌐 RedAyudaVenezuela.com</a>
           </div>
         </div>
 
@@ -952,6 +936,26 @@ export default function Home() {
         <div className="w-full mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
           <MapView />
         </div>
+
+        {/* Nuestro Compromiso */}
+        <section className="bg-neutral-900/40 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-6 text-sm text-neutral-300 leading-relaxed text-center shadow-lg w-full max-w-4xl mx-auto mt-12 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-400/5 via-transparent to-transparent opacity-50"></div>
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-300 mb-6 relative z-10">Nuestro Compromiso</h2>
+          <div className="leading-relaxed space-y-4 relative z-10 text-[15px]">
+            <p>
+              Esta aplicación nació para ayudar a centralizar la información, reducir el trabajo manual y facilitar la actualización de los datos, permitiendo que los equipos dediquen <strong className="text-blue-200 font-medium">más tiempo a las personas</strong> y menos tiempo a la transcripción.
+            </p>
+            <p>
+              Es un proyecto desarrollado de forma independiente, voluntaria y sin fines de lucro. Creemos que la tecnología puede marcar una diferencia cuando se pone al servicio de quienes la necesitan, y esperamos que esta herramienta contribuya a hacer ese trabajo un poco más fácil.
+            </p>
+            <p>
+              La aplicación utiliza Inteligencia Artificial para extraer y organizar la información de manera automática. Sin embargo, los resultados deben ser revisados y validados por el usuario antes de utilizarlos o publicarlos en otras plataformas, como hospitalesenvenezuela.com.
+            </p>
+            <p className="text-blue-300 font-semibold mt-4 text-base">
+              Gracias por confiar en esta herramienta. Seguiremos mejorándola para que sea cada día más útil, rápida, sencilla y confiable. 💙
+            </p>
+          </div>
+        </section>
 
         {/* Footer */}
         <div className="w-full text-center mt-6 mb-8 animate-in fade-in duration-700 delay-500">
