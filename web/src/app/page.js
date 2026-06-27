@@ -26,6 +26,9 @@ export default function Home() {
   const [isUploadingToPortal, setIsUploadingToPortal] = useState(false);
   const [portalResponse, setPortalResponse] = useState(null);
   
+  const [massCentroValue, setMassCentroValue] = useState("");
+  const [isUpdatingCentro, setIsUpdatingCentro] = useState(false);
+  
   const [hospitals, setHospitals] = useState([]);
 
   const [localSearch, setLocalSearch] = useState("");
@@ -106,6 +109,31 @@ export default function Home() {
   const handleDragLeave = (e) => {
     e.preventDefault();
     setIsDragging(false);
+  };
+
+  const handleMassUpdateCentro = async () => {
+    if (!massCentroValue.trim() || !stats?.batchId) return;
+    setIsUpdatingCentro(true);
+    try {
+      const res = await fetch("/api/massUpdateCentro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ batchId: stats.batchId, centro: massCentroValue })
+      });
+      if (res.ok) {
+        // Mute local state to reflect changes instantly
+        const updatedPacientes = stats.nuevosPacientes.map(p => ({
+          ...p,
+          centro: massCentroValue
+        }));
+        setStats({ ...stats, nuevosPacientes: updatedPacientes });
+        setMassCentroValue("");
+      }
+    } catch(e) {
+      console.error(e);
+    } finally {
+      setIsUpdatingCentro(false);
+    }
   };
 
   const handleFilesValidation = (newFiles) => {
@@ -400,19 +428,47 @@ export default function Home() {
             {/* Preview Subida */}
             {stats.nuevosPacientes && stats.nuevosPacientes.length > 0 && (
               <div className="mt-2 bg-neutral-950/60 rounded-2xl border border-green-500/30 overflow-hidden backdrop-blur-md flex flex-col">
-                <div className="px-4 py-3 border-b border-green-500/30 bg-green-500/10 flex justify-between items-center gap-4">
-                  <h5 className="text-sm font-semibold text-green-300">Vista Previa de Nuevos Ingresos</h5>
-                  <input 
-                    type="text" 
-                    placeholder="Buscar..." 
-                    className="bg-black/40 border border-green-500/30 rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-green-400 placeholder-neutral-500 w-40"
-                    value={localSearch}
-                    onChange={(e) => {
-                      setLocalSearch(e.target.value);
-                      setLocalPage(1);
-                    }}
-                  />
-                  <button 
+                <div className="px-4 py-3 border-b border-green-500/30 bg-green-500/10 flex flex-wrap justify-between items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <h5 className="text-sm font-semibold text-green-300 whitespace-nowrap">Vista Previa de Nuevos Ingresos</h5>
+                    
+                    {/* Mass Assignment Input */}
+                    <div className="flex items-center bg-black/40 border border-green-500/30 rounded-lg overflow-hidden focus-within:border-green-400 transition-colors">
+                      <input 
+                        type="text" 
+                        placeholder="Asignar Centro a Todos..."
+                        list="hospitals-list"
+                        className="bg-transparent px-3 py-1 text-xs text-white focus:outline-none placeholder-neutral-500 w-48"
+                        value={massCentroValue}
+                        onChange={(e) => setMassCentroValue(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleMassUpdateCentro()}
+                      />
+                      <datalist id="hospitals-list">
+                        {hospitals.map((h, i) => <option key={i} value={h} />)}
+                      </datalist>
+                      <button 
+                        onClick={handleMassUpdateCentro}
+                        disabled={isUpdatingCentro || !massCentroValue.trim()}
+                        className="bg-green-600 hover:bg-green-500 px-3 py-1 text-xs font-semibold text-white transition-colors disabled:opacity-50"
+                        title="Aplicar a todos los registros de esta carga"
+                      >
+                        {isUpdatingCentro ? "..." : "Aplicar"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 ml-auto">
+                    <input 
+                      type="text" 
+                      placeholder="Buscar..." 
+                      className="bg-black/40 border border-green-500/30 rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-green-400 placeholder-neutral-500 w-40"
+                      value={localSearch}
+                      onChange={(e) => {
+                        setLocalSearch(e.target.value);
+                        setLocalPage(1);
+                      }}
+                    />
+                    <button 
                     onClick={() => handleUploadToPortal(stats.batchId, false)}
                     disabled={isUploadingToPortal}
                     className="ml-auto px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
