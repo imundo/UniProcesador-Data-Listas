@@ -1,6 +1,104 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db.js';
 
+async function searchSupabase(term) {
+    try {
+        const response = await fetch('https://ozuxfepfkvnxkywdsqxy.supabase.co/rest/v1/rpc/buscar_paciente', {
+            method: 'POST',
+            headers: {
+                'accept': '*/*',
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96dXhmZXBma3ZueGt5d2RzcXh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MjI5NTEsImV4cCI6MjA5Nzk5ODk1MX0.YhW0GalGkQZdO2NJTg_01C5XhdMmJ6RbNSNXXC0xG4o',
+                'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96dXhmZXBma3ZueGt5d2RzcXh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MjI5NTEsImV4cCI6MjA5Nzk5ODk1MX0.YhW0GalGkQZdO2NJTg_01C5XhdMmJ6RbNSNXXC0xG4o',
+                'content-type': 'application/json',
+                'origin': 'https://hospitalesenvenezuela.com',
+                'referer': 'https://hospitalesenvenezuela.com/'
+            },
+            body: JSON.stringify({ p_term: term })
+        });
+        
+        if (!response.ok) return [];
+        
+        const data = await response.json();
+        // Asumimos que data es un array de pacientes. Mapear a nuestro formato estándar
+        return (data || []).map(p => ({
+            nombre: (p.nombre || p.nombres || "").trim(),
+            apellido: (p.apellido || p.apellidos || "").trim(),
+            cedula: (p.cedula || p.ci || "").toString().trim(),
+            centro: (p.centro || p.hospital || "").trim(),
+            edad_sector: (p.detalle || p.edad_sector || p.sector || "").trim(),
+            source: 'HospitalesEnVenezuela.com',
+            sourceUrl: 'https://hospitalesenvenezuela.com'
+        }));
+    } catch (e) {
+        console.error("Supabase search error:", e);
+        return [];
+    }
+}
+
+async function searchGoogleSheets(term) {
+    try {
+        const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets/1FlFw-guJpiQED_EsR_YJyUhzANy_1HU84_loZqH4_CY/values/Pacientes!A:H?key=AIzaSyCtG3uppOIps8UGNETdMa5ZCNEt7ffYUFQ', {
+            method: 'GET',
+            headers: {
+                'accept': '*/*',
+                'origin': 'https://www.redsolidariavenezuela.com',
+                'referer': 'https://www.redsolidariavenezuela.com/'
+            }
+        });
+        
+        if (!response.ok) return [];
+        
+        const data = await response.json();
+        const rows = data.values || [];
+        
+        // Remove headers
+        if (rows.length > 0) rows.shift();
+        
+        const termLower = term.toLowerCase();
+        
+        // Filtrar localmente ya que Sheets devuelve todo
+        const filtered = rows.filter(row => {
+            const rowStr = row.join(" ").toLowerCase();
+            return rowStr.includes(termLower);
+        });
+        
+        return filtered.map(row => ({
+            // Asumiendo formato común: A=Nombre, B=Apellido, C=Cédula, D=Centro, E=Status/Sector
+            nombre: row[0] || "",
+            apellido: row[1] || "",
+            cedula: row[2] || "",
+            centro: row[3] || "",
+            edad_sector: (row[4] || "") + (row[5] ? ` - ${row[5]}` : ""),
+            source: 'RedSolidariaVenezuela.com',
+            sourceUrl: 'https://www.redsolidariavenezuela.com'
+        }));
+    } catch (e) {
+        console.error("Google Sheets search error:", e);
+        return [];
+    }
+}
+
+async function searchLocalDb(term) {
+    try {
+        const searchTerm = `%${term.trim()}%`;
+        const stmt = db.prepare(`
+            SELECT * FROM pacientes 
+            WHERE nombre LIKE ? OR apellido LIKE ? OR cedula LIKE ?
+            LIMIT 15
+        `);
+        const results = stmt.all(searchTerm, searchTerm, searchTerm);
+        
+        return results.map(p => ({
+            ...p,
+            source: 'Base de Datos Local',
+            sourceUrl: null
+        }));
+    } catch (e) {
+        console.error("Local DB search error:", e);
+        return [];
+    }
+}
+
 export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q');
@@ -9,18 +107,31 @@ export async function GET(req) {
         return NextResponse.json([]);
     }
 
-    const searchTerm = `%${q.trim()}%`;
+    const term = q.trim();
 
     try {
-        const stmt = db.prepare(`
-            SELECT * FROM pacientes 
-            WHERE nombre LIKE ? OR apellido LIKE ? OR cedula LIKE ?
-            LIMIT 15
-        `);
-        const results = stmt.all(searchTerm, searchTerm, searchTerm);
-        return NextResponse.json(results);
+        // Ejecutar las 3 búsquedas en paralelo (Búsqueda Federada)
+        const [localRes, supabaseRes, sheetsRes] = await Promise.allSettled([
+            searchLocalDb(term),
+            searchSupabase(term),
+            searchGoogleSheets(term)
+        ]);
+
+        const localData = localRes.status === 'fulfilled' ? localRes.value : [];
+        const supabaseData = supabaseRes.status === 'fulfilled' ? supabaseRes.value : [];
+        const sheetsData = sheetsRes.status === 'fulfilled' ? sheetsRes.value : [];
+
+        // Combinar resultados
+        let combinedResults = [...localData, ...supabaseData, ...sheetsData];
+        
+        // Limitar a los mejores 30 resultados para no saturar la UI
+        if (combinedResults.length > 30) {
+            combinedResults = combinedResults.slice(0, 30);
+        }
+
+        return NextResponse.json(combinedResults);
     } catch (e) {
-        console.error("Error searching patients:", e);
+        console.error("Federated search fatal error:", e);
         return NextResponse.json({ error: "Search failed" }, { status: 500 });
     }
 }
