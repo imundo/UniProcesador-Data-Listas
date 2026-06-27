@@ -531,9 +531,7 @@ export default function Home() {
                   Página {historyPage} de {Math.ceil(history.length / historyItemsPerPage) || 1}
                 </span>
                 <button 
-                  disabled={historyPage === Math.ceil(history.length / historyItemsPerPage)}
-                <button 
-                  disabled={historyPage >= Math.ceil(history.length / 10)}
+                  disabled={historyPage >= Math.ceil(history.length / historyItemsPerPage)}
                   onClick={() => setHistoryPage(p => p + 1)}
                   className="px-3 py-1 bg-neutral-800 text-neutral-300 rounded hover:bg-neutral-700 disabled:opacity-50 text-xs font-medium"
                 >
