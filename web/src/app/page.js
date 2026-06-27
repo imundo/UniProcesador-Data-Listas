@@ -407,7 +407,7 @@ export default function Home() {
               </div>
               <input
                 type="text"
-                placeholder="Busca a tu familiar por nombre o cédula 👨‍👩‍👦"
+                placeholder="Busca fácilmente a tu ser querido por nombre o cédula 💙"
                 className="w-full bg-transparent text-lg text-white font-medium focus:outline-none placeholder-neutral-500 py-3"
                 value={emergencySearchQuery}
                 onChange={(e) => setEmergencySearchQuery(e.target.value)}
