@@ -5,30 +5,39 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
     try {
-        const { batchId, centro } = await req.json();
+        const { batchId, type = "centro", value } = await req.json();
 
         if (!batchId) {
             return NextResponse.json({ error: "Batch ID is required" }, { status: 400 });
         }
 
-        if (centro === undefined || centro === null) {
-            return NextResponse.json({ error: "Centro is required" }, { status: 400 });
+        if (value === undefined || value === null) {
+            return NextResponse.json({ error: "Value is required" }, { status: 400 });
         }
 
-        const safeCentro = centro.trim();
+        const safeValue = value.trim();
+        let result;
 
-        const updateStmt = db.prepare(`
-            UPDATE pacientes 
-            SET centro = ? 
-            WHERE batch_id = ?
-        `);
-        
-        const result = updateStmt.run(safeCentro, batchId);
+        if (type === "sector") {
+            const updateStmt = db.prepare(`
+                UPDATE pacientes 
+                SET edad_sector = ? 
+                WHERE batch_id = ?
+            `);
+            result = updateStmt.run(safeValue, batchId);
+        } else {
+            const updateStmt = db.prepare(`
+                UPDATE pacientes 
+                SET centro = ? 
+                WHERE batch_id = ?
+            `);
+            result = updateStmt.run(safeValue, batchId);
+        }
 
         return NextResponse.json({ 
             success: true, 
             changes: result.changes,
-            message: `Actualizados ${result.changes} pacientes con el centro: ${safeCentro}` 
+            message: `Actualizados ${result.changes} pacientes con ${type}: ${safeValue}` 
         });
 
     } catch (error) {

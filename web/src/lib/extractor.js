@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse/lib/pdf-parse.js');
+const xlsx = require('xlsx');
+const mammoth = require('mammoth');
 import { execSync } from 'child_process';
 import OpenAI from 'openai';
 import db from './db.js';
@@ -97,10 +99,25 @@ export async function processFiles(files) {
 
             let openAiTasks = []; 
 
+            let extractedText = null;
+
             if (ext === '.pdf') {
                 const data = await pdfParse(buffer);
-                const cleanedText = cleanPdfText(data.text);
-                const lines = cleanedText.split('\n');
+                extractedText = cleanPdfText(data.text);
+            } else if (['.xlsx', '.xls', '.csv'].includes(ext)) {
+                const workbook = xlsx.read(buffer, { type: 'buffer' });
+                extractedText = "";
+                for (const sheetName of workbook.SheetNames) {
+                    const sheet = workbook.Sheets[sheetName];
+                    extractedText += xlsx.utils.sheet_to_csv(sheet) + "\n";
+                }
+            } else if (['.docx', '.doc'].includes(ext)) {
+                const result = await mammoth.extractRawText({ buffer });
+                extractedText = result.value;
+            }
+
+            if (extractedText !== null) {
+                const lines = extractedText.split('\n');
                 const chunkSize = 800; // Drastically increased to allow AI to see full columns if pdf-parse reads vertically
                 
                 for (let i = 0; i < lines.length; i += chunkSize) {
@@ -108,7 +125,7 @@ export async function processFiles(files) {
                     if (chunk.trim().length > 0) {
                         openAiTasks.push([{
                             type: "text",
-                            text: `Contenido PDF:\n\n${chunk}`
+                            text: `Contenido del documento:\n\n${chunk}`
                         }]);
                     }
                 }

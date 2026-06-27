@@ -28,6 +28,8 @@ export default function Home() {
   
   const [massCentroValue, setMassCentroValue] = useState("");
   const [isUpdatingCentro, setIsUpdatingCentro] = useState(false);
+  const [massSectorValue, setMassSectorValue] = useState("");
+  const [isUpdatingSector, setIsUpdatingSector] = useState(false);
   
   const [hospitals, setHospitals] = useState([]);
 
@@ -111,28 +113,34 @@ export default function Home() {
     setIsDragging(false);
   };
 
-  const handleMassUpdateCentro = async () => {
-    if (!massCentroValue.trim() || !stats?.batchId) return;
-    setIsUpdatingCentro(true);
+  const handleMassUpdate = async (type) => {
+    const value = type === 'centro' ? massCentroValue : massSectorValue;
+    if (!value.trim() || !stats?.batchId) return;
+    
+    if (type === 'centro') setIsUpdatingCentro(true);
+    else setIsUpdatingSector(true);
+
     try {
       const res = await fetch("/api/massUpdateCentro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ batchId: stats.batchId, centro: massCentroValue })
+        body: JSON.stringify({ batchId: stats.batchId, type, value })
       });
       if (res.ok) {
         // Mute local state to reflect changes instantly
         const updatedPacientes = stats.nuevosPacientes.map(p => ({
           ...p,
-          centro: massCentroValue
+          ...(type === 'centro' ? { centro: value } : { edad_sector: value })
         }));
         setStats({ ...stats, nuevosPacientes: updatedPacientes });
-        setMassCentroValue("");
+        if (type === 'centro') setMassCentroValue("");
+        else setMassSectorValue("");
       }
     } catch(e) {
       console.error(e);
     } finally {
-      setIsUpdatingCentro(false);
+      if (type === 'centro') setIsUpdatingCentro(false);
+      else setIsUpdatingSector(false);
     }
   };
 
@@ -148,13 +156,20 @@ export default function Home() {
         return false;
       }
       
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      const validTypes = [
+        'image/jpeg', 'image/jpg', 'image/png', 'application/pdf',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+        'application/vnd.ms-excel', // xls
+        'text/csv', // csv
+        'application/msword', // doc
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // docx
+      ];
       // Also check extension as fallback for some OS
       const ext = file.name.toLowerCase().slice((file.name.lastIndexOf(".") - 1 >>> 0) + 2);
-      const validExts = ['jpg', 'jpeg', 'png', 'pdf'];
+      const validExts = ['jpg', 'jpeg', 'png', 'pdf', 'xlsx', 'xls', 'csv', 'doc', 'docx'];
       
       if (!validTypes.includes(file.type) && !validExts.includes(ext)) {
-        alert(`El archivo ${file.name} no es válido. Solo se permiten PDF e Imágenes (JPG, PNG). Videos y otros formatos fueron deshabilitados por estabilidad y costo.`);
+        alert(`El archivo ${file.name} no es válido. Solo se permiten PDFs, Imágenes y documentos de Office (Excel, Word, CSV).`);
         return false;
       }
       
@@ -316,14 +331,14 @@ export default function Home() {
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
             >
-              <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".jpg,.jpeg,.png,.pdf" />
+              <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".jpg,.jpeg,.png,.pdf,.xlsx,.xls,.csv,.doc,.docx" />
               
               <svg className={`w-12 h-12 mb-4 transition-colors ${isDragging ? 'text-blue-400' : 'text-neutral-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               <h3 className="font-medium text-lg mb-1">Subir Archivos</h3>
               <p className="text-sm text-neutral-400">Arrastra archivos aquí o haz clic para explorar</p>
-              <p className="text-xs text-neutral-500 mt-2">Max 5 archivos a la vez. Soporta JPG, PNG y PDF (Max 2MB c/u)</p>
+              <p className="text-xs text-neutral-500 mt-2">Max 5 archivos a la vez. Soporta JPG, PNG, PDF, Excel y Word (Max 2MB c/u)</p>
             </div>
 
             {files.length > 0 && (
@@ -419,7 +434,7 @@ export default function Home() {
                 <p className="text-sm mt-1 opacity-90 text-green-100">Se añadieron <b>{stats.totalNuevos}</b> pacientes nuevos al CSV.</p>
                 {(stats.totalDuplicados > 0 || stats.archivosSaltados > 0) && (
                   <p className="text-xs mt-2 opacity-75 text-green-200">
-                    Protección activa: {stats.totalDuplicados} duplicados ignorados en base de datos. {stats.archivosSaltados} archivos omitidos por MD5 Hash para ahorrar tokens.
+                    Protección activa: {stats.totalDuplicados} duplicados ignorados en base de datos. {stats.archivosSaltados} archivos omitidos por performance.
                   </p>
                 )}
               </div>
@@ -428,11 +443,35 @@ export default function Home() {
             {/* Preview Subida */}
             {stats.nuevosPacientes && stats.nuevosPacientes.length > 0 && (
               <div className="mt-2 bg-neutral-950/60 rounded-2xl border border-green-500/30 overflow-hidden backdrop-blur-md flex flex-col">
-                <div className="px-4 py-3 border-b border-green-500/30 bg-green-500/10 flex flex-wrap justify-between items-center gap-4">
-                  <div className="flex items-center gap-4">
+                <div className="px-4 py-3 border-b border-green-500/30 bg-green-500/10 flex flex-col gap-3">
+                  <div className="flex flex-wrap justify-between items-center gap-4">
                     <h5 className="text-sm font-semibold text-green-300 whitespace-nowrap">Vista Previa de Nuevos Ingresos</h5>
-                    
-                    {/* Mass Assignment Input */}
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="text" 
+                        placeholder="Buscar..." 
+                        className="bg-black/40 border border-green-500/30 rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-green-400 placeholder-neutral-500 w-40"
+                        value={localSearch}
+                        onChange={(e) => {
+                          setLocalSearch(e.target.value);
+                          setLocalPage(1);
+                        }}
+                      />
+                      <button 
+                        onClick={() => handleUploadToPortal(stats.batchId, false)}
+                        disabled={isUploadingToPortal}
+                        className="px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Subir al Portal
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Mass Assignment Input Centro */}
                     <div className="flex items-center bg-black/40 border border-green-500/30 rounded-lg overflow-hidden focus-within:border-green-400 transition-colors">
                       <input 
                         type="text" 
@@ -441,44 +480,41 @@ export default function Home() {
                         className="bg-transparent px-3 py-1 text-xs text-white focus:outline-none placeholder-neutral-500 w-48"
                         value={massCentroValue}
                         onChange={(e) => setMassCentroValue(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleMassUpdateCentro()}
+                        onKeyDown={(e) => e.key === 'Enter' && handleMassUpdate('centro')}
                       />
                       <datalist id="hospitals-list">
                         {hospitals.map((h, i) => <option key={i} value={h} />)}
                       </datalist>
                       <button 
-                        onClick={handleMassUpdateCentro}
+                        onClick={() => handleMassUpdate('centro')}
                         disabled={isUpdatingCentro || !massCentroValue.trim()}
                         className="bg-green-600 hover:bg-green-500 px-3 py-1 text-xs font-semibold text-white transition-colors disabled:opacity-50"
-                        title="Aplicar a todos los registros de esta carga"
+                        title="Aplicar Centro a todos los registros de esta carga"
                       >
                         {isUpdatingCentro ? "..." : "Aplicar"}
                       </button>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-3 ml-auto">
-                    <input 
-                      type="text" 
-                      placeholder="Buscar..." 
-                      className="bg-black/40 border border-green-500/30 rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-green-400 placeholder-neutral-500 w-40"
-                      value={localSearch}
-                      onChange={(e) => {
-                        setLocalSearch(e.target.value);
-                        setLocalPage(1);
-                      }}
-                    />
-                    <button 
-                    onClick={() => handleUploadToPortal(stats.batchId, false)}
-                    disabled={isUploadingToPortal}
-                    className="ml-auto px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Subir al Portal
-                  </button>
-                </div>
+                    {/* Mass Assignment Input Sector */}
+                    <div className="flex items-center bg-black/40 border border-green-500/30 rounded-lg overflow-hidden focus-within:border-green-400 transition-colors">
+                      <input 
+                        type="text" 
+                        placeholder="Asignar Sector a Todos..."
+                        className="bg-transparent px-3 py-1 text-xs text-white focus:outline-none placeholder-neutral-500 w-48"
+                        value={massSectorValue}
+                        onChange={(e) => setMassSectorValue(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleMassUpdate('sector')}
+                      />
+                      <button 
+                        onClick={() => handleMassUpdate('sector')}
+                        disabled={isUpdatingSector || !massSectorValue.trim()}
+                        className="bg-green-600 hover:bg-green-500 px-3 py-1 text-xs font-semibold text-white transition-colors disabled:opacity-50"
+                        title="Aplicar Sector a todos los registros de esta carga"
+                      >
+                        {isUpdatingSector ? "..." : "Aplicar"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div className="overflow-x-auto max-h-60 overflow-y-auto custom-scrollbar flex-1">
                   <table className="w-full text-left text-xs text-neutral-300">
