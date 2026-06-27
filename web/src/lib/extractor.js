@@ -14,7 +14,7 @@ A continuación te proporcionaré texto pre-procesado, una imagen o fotogramas d
 Tu objetivo es transcribir estrictamente todos los pacientes a los campos requeridos.
 
 Reglas obligatorias:
-1. Extrae únicamente: Nombres, Apellidos, Cédula (solo números, elimina V- o E-), Centro de Salud / Hospital, Edad y Sector / Zona.
+1. Extrae únicamente: Nombres, Apellidos, Cédula (solo números, elimina V- o E-. IMPORTANTE: Las cédulas venezolanas pueden llegar hasta los 40 millones y tener 8 dígitos, NO CORTES ni elimines ningún número de la cédula), Centro de Salud / Hospital, Edad y Sector / Zona.
 2. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con un string vacío "". ¡No los dejes nulos ni escribas N/D!`;
 
 function normalizeText(text) {

@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import dynamic from 'next/dynamic';
+
+const MapView = dynamic(() => import('@/components/MapView'), {
+  ssr: false,
+  loading: () => <div className="w-full h-[500px] rounded-3xl bg-neutral-900 border border-neutral-800 animate-pulse"></div>
+});
 
 export default function Home() {
   const [files, setFiles] = useState([]);

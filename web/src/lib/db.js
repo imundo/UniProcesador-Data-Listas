@@ -28,7 +28,14 @@ function getDb() {
         centro TEXT,
         edad_sector TEXT,
         fecha_ingreso DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
+      );
+      
+      CREATE TABLE IF NOT EXISTS hospital_locations (
+        centro TEXT PRIMARY KEY,
+        lat REAL,
+        lon REAL,
+        last_checked DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     // Migración: añadir batch_id si no existe

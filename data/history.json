@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1782527596166",
+    "date": "2026-06-27T02:36:09.524Z",
+    "filesUploaded": 1,
+    "newPatients": 601,
+    "duplicatesIgnored": 326,
+    "filesSkippedByHash": 0
+  },
+  {
+    "id": "1782527647557",
+    "date": "2026-06-27T02:34:18.741Z",
+    "filesUploaded": 1,
+    "newPatients": 30,
+    "duplicatesIgnored": 0,
+    "filesSkippedByHash": 0
+  }
+]
