@@ -1,7 +1,7 @@
 FROM node:20-slim
 
-# Instalar ffmpeg para el procesamiento de video
-RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
+# Instalar ffmpeg y herramientas de compilación nativas para better-sqlite3
+RUN apt-get update && apt-get install -y ffmpeg python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Configurar directorio de trabajo
 WORKDIR /app
