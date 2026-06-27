@@ -754,9 +754,22 @@ export default function Home() {
                 <h4 className="text-lg font-bold text-green-300">¡Proceso Completado Exitosamente!</h4>
                 <p className="text-sm mt-1 opacity-90 text-green-100">Se añadieron <b>{stats.totalNuevos}</b> pacientes nuevos al CSV.</p>
                 {(stats.totalDuplicados > 0 || stats.archivosSaltados > 0) && (
-                  <p className="text-xs mt-2 opacity-75 text-green-200">
-                    Protección activa: {stats.totalDuplicados} duplicados ignorados en base de datos. {stats.archivosSaltados} archivos omitidos por performance.
-                  </p>
+                  <div className="mt-3 flex flex-col gap-2 items-start">
+                    <p className="text-xs opacity-75 text-green-200">
+                      Protección activa: {stats.totalDuplicados} duplicados encontrados. {stats.archivosSaltados > 0 ? `${stats.archivosSaltados} archivos omitidos por performance.` : ''}
+                    </p>
+                    {stats.totalDuplicados > 0 && (
+                      <button
+                        onClick={() => {
+                          document.getElementById('duplicates-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/50 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        Visualizar y Validar Duplicados
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -921,7 +934,7 @@ export default function Home() {
 
             {/* Revisión de Posibles Duplicados */}
             {stats.pacientesDuplicados && stats.pacientesDuplicados.length > 0 && (
-              <div className="mt-4 bg-neutral-950/60 rounded-2xl border border-yellow-500/30 overflow-hidden backdrop-blur-md flex flex-col">
+              <div id="duplicates-section" className="mt-4 bg-neutral-950/60 rounded-2xl border border-yellow-500/30 overflow-hidden backdrop-blur-md flex flex-col">
                 <div className="px-4 py-3 border-b border-yellow-500/30 bg-yellow-500/10 flex flex-col gap-3">
                   <div className="flex flex-wrap justify-between items-center gap-4">
                     <h5 className="text-sm font-semibold text-yellow-300 whitespace-nowrap">Revisión de Posibles Duplicados ({stats.totalDuplicados})</h5>
