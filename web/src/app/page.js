@@ -463,12 +463,12 @@ export default function Home() {
 
         {/* Multi-source indicator */}
         <div className="w-full flex flex-col items-center mb-6 z-20">
-          <div className="flex flex-col items-center group cursor-pointer mb-4">
-            <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all flex items-center gap-3">
+          <div className="flex flex-col items-center group mb-4">
+            <a href="/api/sync/download" download className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all flex items-center gap-3">
               <svg className="w-5 h-5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-              <span className="text-lg font-bold text-white">Lista Unificada de Portales</span>
-            </button>
-            <span className="text-xs text-neutral-400 mt-2 font-medium tracking-wide">Unifica la data de todos los orígenes en un solo lugar</span>
+              <span className="text-lg font-bold text-white">Descargar Lista Unificada de Portales</span>
+            </a>
+            <span className="text-xs text-neutral-400 mt-2 font-medium tracking-wide">Descarga la data de todos los orígenes consolidada en un solo archivo CSV</span>
           </div>
 
           <div className="flex flex-wrap justify-center gap-3">
