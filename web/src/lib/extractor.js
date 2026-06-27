@@ -13,10 +13,10 @@ Tu objetivo es transcribir estrictamente todos los pacientes a los campos requer
 
 Reglas obligatorias:
 1. Extrae únicamente: Nombres, Apellidos, Cédula (solo números, elimina V- o E-), Centro de Salud / Hospital, Edad y Sector / Zona.
-2. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con el valor de referencia "N/D". ¡No los dejes vacíos!`;
+2. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con un string vacío "". ¡No los dejes nulos ni escribas N/D!`;
 
 function normalizeText(text) {
-    if (!text || text === "N/D") return "";
+    if (!text || text === "N/D" || text === "") return "";
     return text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, ' ');
 }
 
@@ -198,13 +198,13 @@ export async function processFiles(files) {
                 for (const paciente of allPacientes) {
                     const { nombre, apellido, cedula, centro, edad_sector } = paciente;
                     
-                    const safeN = (nombre || "N/D").trim();
-                    const safeA = (apellido || "N/D").trim();
-                    const safeC = (cedula || "N/D").replace(/\D/g, ''); 
-                    const safeCen = (centro || "N/D").trim();
-                    const safeE = (edad_sector || "N/D").trim();
+                    const safeN = (nombre || "").trim();
+                    const safeA = (apellido || "").trim();
+                    const safeC = (cedula || "").replace(/\D/g, ''); 
+                    const safeCen = (centro || "").trim();
+                    const safeE = (edad_sector || "").trim();
                     
-                    if (safeN === "N/D" && safeC === "" && safeA === "N/D") continue;
+                    if (safeN === "" && safeC === "" && safeA === "") continue;
 
                     const normN = normalizeText(safeN);
                     const normA = normalizeText(safeA);
@@ -219,7 +219,7 @@ export async function processFiles(files) {
                     }
 
                     if (!isDuplicate) {
-                        insertPaciente.run(safeN, safeA, safeC || "N/D", safeCen, safeE, batchId);
+                        insertPaciente.run(safeN, safeA, safeC, safeCen, safeE, batchId);
                         totalNuevos++;
                         
                         if (normC && normC !== "") existingCedulas.add(normC);
@@ -228,7 +228,7 @@ export async function processFiles(files) {
                         pacientesExtraidos.push({
                             nombre: safeN,
                             apellido: safeA,
-                            cedula: safeC || "N/D",
+                            cedula: safeC,
                             centro: safeCen,
                             edad_sector: safeE
                         });
