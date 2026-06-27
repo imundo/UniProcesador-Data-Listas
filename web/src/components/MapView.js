@@ -64,8 +64,8 @@ export default function MapView() {
     );
   }
 
-  // Centered roughly on Venezuela
-  const center = [7.5, -66.5];
+  // Centered roughly on Caracas, La Guaira and Puerto Cabello
+  const center = [10.50, -67.45];
 
   return (
     <div className="w-full relative rounded-3xl overflow-hidden border border-neutral-800 shadow-2xl">
@@ -76,7 +76,7 @@ export default function MapView() {
       </div>
       <MapContainer 
         center={center} 
-        zoom={6} 
+        zoom={9} 
         style={{ height: '500px', width: '100%', zIndex: 1 }}
         scrollWheelZoom={false}
       >
