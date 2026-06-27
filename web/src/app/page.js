@@ -918,7 +918,6 @@ export default function Home() {
                 {renderPagination(localPage, localFiltered.length, setLocalPage)}
               </div>
             )}
-            )}
 
             {/* Revisión de Posibles Duplicados */}
             {stats.pacientesDuplicados && stats.pacientesDuplicados.length > 0 && (
