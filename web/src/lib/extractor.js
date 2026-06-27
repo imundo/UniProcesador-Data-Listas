@@ -75,22 +75,23 @@ export async function processFiles(files) {
     }
 
     let pacientesExtraidos = [];
+    let pacientesDuplicados = [];
     let totalNuevos = 0;
     let totalDuplicados = 0;
     let archivosSaltados = 0;
 
     const existingRecords = db.prepare('SELECT cedula, nombre, apellido, centro FROM pacientes').all();
-    const existingCedulas = new Set();
-    const existingNombresYCentros = new Set();
+    const existingCedulas = new Map();
+    const existingNombresYCentros = new Map();
     
     for (const rec of existingRecords) {
         const nc = normalizeText(rec.cedula);
-        if (nc && nc !== "") existingCedulas.add(nc);
+        if (nc && nc !== "") existingCedulas.set(nc, rec);
         
         const nn = normalizeText(rec.nombre);
         const na = normalizeText(rec.apellido);
         const ncen = normalizeText(rec.centro);
-        if (nn) existingNombresYCentros.add(`${nn}|${na}|${ncen}`);
+        if (nn) existingNombresYCentros.set(`${nn}|${na}|${ncen}`, rec);
     }
 
     const insertPaciente = db.prepare('INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector, batch_id) VALUES (?, ?, ?, ?, ?, ?)');
@@ -285,30 +286,44 @@ export async function processFiles(files) {
                     const normCen = safeCen ? normalizeText(safeCen) : "";
 
                     let isDuplicate = false;
+                    let existingMatch = null;
                     
                     if (normC && normC !== "") {
-                        isDuplicate = existingCedulas.has(normC);
+                        if (existingCedulas.has(normC)) {
+                            isDuplicate = true;
+                            existingMatch = existingCedulas.get(normC);
+                        }
                     } else if (normN) {
-                        isDuplicate = existingNombresYCentros.has(`${normN}|${normA}|${normCen}`);
+                        const key = `${normN}|${normA}|${normCen}`;
+                        if (existingNombresYCentros.has(key)) {
+                            isDuplicate = true;
+                            existingMatch = existingNombresYCentros.get(key);
+                        }
                     }
+
+                    const nuevoPaciente = {
+                        nombre: safeN,
+                        apellido: safeA,
+                        cedula: safeC,
+                        centro: safeCen,
+                        edad_sector: safeE,
+                        estatus: estatus
+                    };
 
                     if (!isDuplicate) {
                         totalNuevos++;
                         
                         // Guardar en el set TEMPORAL en memoria para no duplicarlos dentro del mismo lote
-                        if (normC && normC !== "") existingCedulas.add(normC);
-                        if (normN) existingNombresYCentros.add(`${normN}|${normA}|${normCen}`);
+                        if (normC && normC !== "") existingCedulas.set(normC, nuevoPaciente);
+                        if (normN) existingNombresYCentros.set(`${normN}|${normA}|${normCen}`, nuevoPaciente);
                         
-                        pacientesExtraidos.push({
-                            nombre: safeN,
-                            apellido: safeA,
-                            cedula: safeC,
-                            centro: safeCen,
-                            edad_sector: safeE,
-                            estatus: estatus
-                        });
+                        pacientesExtraidos.push(nuevoPaciente);
                     } else {
                         totalDuplicados++;
+                        pacientesDuplicados.push({
+                            nuevo: nuevoPaciente,
+                            existente: existingMatch
+                        });
                     }
                 }
             });
@@ -332,6 +347,7 @@ export async function processFiles(files) {
         totalDuplicados, 
         archivosSaltados, 
         nuevosPacientes: pacientesExtraidos,
+        pacientesDuplicados: pacientesDuplicados,
         // Pasamos también la cantidad de archivos para el history
         filesUploaded: files.length,
         // Pasamos los file hashes para marcarlos como procesados luego

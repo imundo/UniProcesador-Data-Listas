@@ -42,6 +42,7 @@ export default function Home() {
   const [globalSearch, setGlobalSearch] = useState("");
   const [batchSearch, setBatchSearch] = useState("");
   const [invalidsSearch, setInvalidsSearch] = useState("");
+  const [localDuplicatesSearch, setLocalDuplicatesSearch] = useState("");
 
   // Pagination States
   const [localPage, setLocalPage] = useState(1);
@@ -49,6 +50,7 @@ export default function Home() {
   const [batchPage, setBatchPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
   const [invalidsPage, setInvalidsPage] = useState(1);
+  const [localDuplicatesPage, setLocalDuplicatesPage] = useState(1);
 
   const itemsPerPage = 100;
   const historyItemsPerPage = 10;
@@ -194,6 +196,33 @@ export default function Home() {
     });
   };
 
+  const handleAproveDuplicate = (id) => {
+    if (!stats || !stats.pacientesDuplicados) return;
+    const dupToApprove = stats.pacientesDuplicados.find(p => p._id === id);
+    if (!dupToApprove) return;
+    
+    const updatedDuplicates = stats.pacientesDuplicados.filter(p => p._id !== id);
+    const updatedNuevos = [...(stats.nuevosPacientes || []), dupToApprove.nuevo];
+    
+    setStats({
+      ...stats,
+      pacientesDuplicados: updatedDuplicates,
+      nuevosPacientes: updatedNuevos,
+      totalDuplicados: updatedDuplicates.length,
+      totalNuevos: updatedNuevos.length
+    });
+  };
+
+  const handleDiscardDuplicate = (id) => {
+    if (!stats || !stats.pacientesDuplicados) return;
+    const updatedDuplicates = stats.pacientesDuplicados.filter(p => p._id !== id);
+    setStats({
+      ...stats,
+      pacientesDuplicados: updatedDuplicates,
+      totalDuplicados: updatedDuplicates.length
+    });
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -322,7 +351,14 @@ export default function Home() {
       if (data.nuevosPacientes) {
         data.nuevosPacientes = data.nuevosPacientes.map((p, i) => ({
           ...p,
-          _id: i.toString()
+          _id: `n_${i}`
+        }));
+      }
+      
+      if (data.pacientesDuplicados) {
+        data.pacientesDuplicados = data.pacientesDuplicados.map((p, i) => ({
+          ...p,
+          _id: `d_${i}`
         }));
       }
       
@@ -403,6 +439,11 @@ export default function Home() {
     `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(localSearch.toLowerCase())
   ) || [];
   const localCurrent = localFiltered.slice((localPage - 1) * itemsPerPage, localPage * itemsPerPage);
+
+  const localDuplicatesFiltered = stats?.pacientesDuplicados?.filter(p =>
+    `${p.nuevo.nombre} ${p.nuevo.apellido} ${p.nuevo.cedula} ${p.nuevo.centro}`.toLowerCase().includes(localDuplicatesSearch.toLowerCase())
+  ) || [];
+  const localDuplicatesCurrent = localDuplicatesFiltered.slice((localDuplicatesPage - 1) * itemsPerPage, localDuplicatesPage * itemsPerPage);
 
   const globalFiltered = globalPreview?.pacientes?.filter(p =>
     `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(globalSearch.toLowerCase())
@@ -875,6 +916,85 @@ export default function Home() {
                   </table>
                 </div>
                 {renderPagination(localPage, localFiltered.length, setLocalPage)}
+              </div>
+            )}
+            )}
+
+            {/* Revisión de Posibles Duplicados */}
+            {stats.pacientesDuplicados && stats.pacientesDuplicados.length > 0 && (
+              <div className="mt-4 bg-neutral-950/60 rounded-2xl border border-yellow-500/30 overflow-hidden backdrop-blur-md flex flex-col">
+                <div className="px-4 py-3 border-b border-yellow-500/30 bg-yellow-500/10 flex flex-col gap-3">
+                  <div className="flex flex-wrap justify-between items-center gap-4">
+                    <h5 className="text-sm font-semibold text-yellow-300 whitespace-nowrap">Revisión de Posibles Duplicados ({stats.totalDuplicados})</h5>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        placeholder="Buscar duplicados..."
+                        className="bg-black/40 border border-yellow-500/30 rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-yellow-400 placeholder-neutral-500 w-40"
+                        value={localDuplicatesSearch}
+                        onChange={(e) => {
+                          setLocalDuplicatesSearch(e.target.value);
+                          setLocalDuplicatesPage(1);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-yellow-400/80">Compara el dato leído por la IA con el registro que ya existe en la base de datos. Si son diferentes personas, apruébalo. Si es el mismo, descártalo.</p>
+                </div>
+                <div className="overflow-x-auto max-h-96 overflow-y-auto custom-scrollbar flex-1">
+                  <table className="w-full text-left text-xs text-neutral-300">
+                    <thead className="bg-neutral-950/90 text-neutral-400 uppercase font-semibold sticky top-0 backdrop-blur-md z-10 shadow-sm">
+                      <tr>
+                        <th className="px-4 py-3">Lado A (Leído por IA)</th>
+                        <th className="px-4 py-3">Lado B (Almacenado)</th>
+                        <th className="px-4 py-3 text-center">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800/50">
+                      {localDuplicatesCurrent.map((p, idx) => (
+                        <tr key={p._id || idx} className="hover:bg-white/5 transition-colors">
+                          <td className="px-4 py-3 align-top border-r border-neutral-800">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-bold text-white">{p.nuevo.nombre} {p.nuevo.apellido}</span>
+                              <span className="text-yellow-200 font-mono text-[10px]">CI: {p.nuevo.cedula || 'S/N'}</span>
+                              <span className="text-neutral-400">🏥 {p.nuevo.centro || 'S/N'}</span>
+                              <span className="text-neutral-500 italic">{p.nuevo.edad_sector}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 align-top">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-bold text-neutral-300">{p.existente?.nombre} {p.existente?.apellido}</span>
+                              <span className="text-neutral-400 font-mono text-[10px]">CI: {p.existente?.cedula || 'S/N'}</span>
+                              <span className="text-neutral-400">🏥 {p.existente?.centro || 'S/N'}</span>
+                              <span className="text-neutral-500 italic">{p.existente?.edad_sector}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 align-middle text-center">
+                            <div className="flex flex-col gap-2 items-center justify-center">
+                              <button
+                                onClick={() => handleAproveDuplicate(p._id)}
+                                className="w-full max-w-[120px] py-1.5 px-2 bg-emerald-600/20 hover:bg-emerald-500 border border-emerald-500/50 text-emerald-400 hover:text-white rounded text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+                                title="Son personas distintas. Guardar como nuevo paciente."
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                                Aprobar
+                              </button>
+                              <button
+                                onClick={() => handleDiscardDuplicate(p._id)}
+                                className="w-full max-w-[120px] py-1.5 px-2 bg-red-600/20 hover:bg-red-500 border border-red-500/50 text-red-400 hover:text-white rounded text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+                                title="Es la misma persona. Descartar definitivamente."
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                Descartar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {renderPagination(localDuplicatesPage, localDuplicatesFiltered.length, setLocalDuplicatesPage)}
               </div>
             )}
           </div>
