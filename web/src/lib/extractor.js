@@ -8,30 +8,34 @@ import db from './db.js';
 
 const MODEL = "gpt-4o-mini";
 const PROMPT = `Vas a actuar como un experto extraedor de datos médicos.
-A continuación te proporcionaré texto, una imagen o fotogramas de un video que contienen una lista de pacientes, personas, ingresos médicos u hospitalizados.
-Tu objetivo es transcribir estrictamente todos los pacientes a un formato JSON.
+A continuación te proporcionaré texto pre-procesado, una imagen o fotogramas de un video que contienen una lista de pacientes, personas, ingresos médicos u hospitalizados.
+Tu objetivo es transcribir estrictamente todos los pacientes a los campos requeridos.
 
 Reglas obligatorias:
 1. Extrae únicamente: Nombres, Apellidos, Cédula (solo números, elimina V- o E-), Centro de Salud / Hospital, Edad y Sector / Zona.
-2. Si un dato NO está en la imagen o texto (por ejemplo, si la foto SOLO tiene Nombre y Edad), DEBES rellenar los campos faltantes con el valor de referencia "N/D". ¡No los dejes vacíos!
-3. El formato de salida debe ser exclusivamente JSON válido.
-4. El JSON debe tener esta estructura exacta:
-{
-  "pacientes": [
-    {
-      "nombre": "Nombre",
-      "apellido": "Apellido",
-      "cedula": "12345678",
-      "centro": "Hospital X",
-      "edad_sector": "45 - Norte"
-    }
-  ]
-}
-5. NO incluyas ninguna explicación, texto adicional, ni formato Markdown fuera del JSON.`;
+2. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con el valor de referencia "N/D". ¡No los dejes vacíos!`;
 
 function normalizeText(text) {
     if (!text || text === "N/D") return "";
     return text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, ' ');
+}
+
+function cleanPdfText(text) {
+    return text
+        .replace(/\n+/g, '\n') // Remove multiple newlines
+        .replace(/\s{2,}/g, ' ') // Remove multiple spaces
+        .trim();
+}
+
+// Helper for concurrent batch processing
+async function processInBatches(items, batchSize, processItem) {
+    let results = [];
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map(processItem));
+        results.push(...batchResults);
+    }
+    return results;
 }
 
 export async function processFiles(files) {
@@ -57,7 +61,6 @@ export async function processFiles(files) {
     let totalDuplicados = 0;
     let archivosSaltados = 0;
 
-    // Load existing patients for accurate normalized deduplication in memory
     const existingRecords = db.prepare('SELECT cedula, nombre, apellido FROM pacientes').all();
     const existingCedulas = new Set();
     const existingNombres = new Set();
@@ -72,8 +75,7 @@ export async function processFiles(files) {
     }
 
     const insertPaciente = db.prepare('INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector, batch_id) VALUES (?, ?, ?, ?, ?, ?)');
-    
-    const batchId = Date.now().toString(); // Use timestamp as batch_id
+    const batchId = Date.now().toString();
 
     for (const file of files) {
         try {
@@ -91,19 +93,20 @@ export async function processFiles(files) {
                 continue;
             }
 
-            let openAiTasks = []; // Array of message arrays
+            let openAiTasks = []; 
 
             if (ext === '.pdf') {
                 const data = await pdfParse(buffer);
-                const lines = data.text.split('\n');
-                const chunkSize = 50; // Process 50 lines at a time to prevent exceeding output token limit
+                const cleanedText = cleanPdfText(data.text);
+                const lines = cleanedText.split('\n');
+                const chunkSize = 50; 
                 
                 for (let i = 0; i < lines.length; i += chunkSize) {
                     const chunk = lines.slice(i, i + chunkSize).join('\n');
                     if (chunk.trim().length > 0) {
                         openAiTasks.push([{
                             type: "text",
-                            text: `Aquí tienes una parte del contenido del PDF:\n\n${chunk}`
+                            text: `Contenido PDF:\n\n${chunk}`
                         }]);
                     }
                 }
@@ -141,73 +144,104 @@ export async function processFiles(files) {
                 }
             }
 
-            // Process all tasks for this file
-            for (const taskMessages of openAiTasks) {
-                const finalMessages = [{ type: "text", text: PROMPT }, ...taskMessages];
-                
+            // Concurrent API Processing (Batches of 5)
+            const processChunk = async (taskMessages) => {
+                const finalMessages = [{ type: "system", text: PROMPT }, { role: "user", content: taskMessages }];
                 try {
                     const response = await openai.chat.completions.create({
                         model: MODEL,
-                        messages: [{ role: "user", content: finalMessages }],
-                        response_format: { type: "json_object" },
+                        messages: finalMessages,
+                        response_format: {
+                            type: "json_schema",
+                            json_schema: {
+                                name: "extremos_medicos",
+                                strict: true,
+                                schema: {
+                                    type: "object",
+                                    properties: {
+                                        pacientes: {
+                                            type: "array",
+                                            items: {
+                                                type: "object",
+                                                properties: {
+                                                    nombre: { type: "string" },
+                                                    apellido: { type: "string" },
+                                                    cedula: { type: "string" },
+                                                    centro: { type: "string" },
+                                                    edad_sector: { type: "string" }
+                                                },
+                                                required: ["nombre", "apellido", "cedula", "centro", "edad_sector"],
+                                                additionalProperties: false
+                                            }
+                                        }
+                                    },
+                                    required: ["pacientes"],
+                                    additionalProperties: false
+                                }
+                            }
+                        },
                         max_tokens: 4000,
                     });
 
-                    let textResult = response.choices[0].message.content;
-                    textResult = textResult.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    
-                    let parsedResult = JSON.parse(textResult);
-
-                    if (parsedResult && Array.isArray(parsedResult.pacientes)) {
-                        const insertMany = db.transaction((pacientes) => {
-                            for (const paciente of pacientes) {
-                                const { nombre, apellido, cedula, centro, edad_sector } = paciente;
-                                
-                                const safeN = (nombre || "N/D").trim();
-                                const safeA = (apellido || "N/D").trim();
-                                const safeC = (cedula || "N/D").replace(/\D/g, ''); 
-                                const safeCen = (centro || "N/D").trim();
-                                const safeE = (edad_sector || "N/D").trim();
-                                
-                                if (safeN === "N/D" && safeC === "" && safeA === "N/D") continue;
-
-                                const normN = normalizeText(safeN);
-                                const normA = normalizeText(safeA);
-                                const normC = safeC ? normalizeText(safeC) : "";
-
-                                let isDuplicate = false;
-                                
-                                if (normC && normC !== "") {
-                                    isDuplicate = existingCedulas.has(normC);
-                                } else if (normN) {
-                                    isDuplicate = existingNombres.has(`${normN}|${normA}`);
-                                }
-
-                                if (!isDuplicate) {
-                                    insertPaciente.run(safeN, safeA, safeC || "N/D", safeCen, safeE, batchId);
-                                    totalNuevos++;
-                                    
-                                    if (normC && normC !== "") existingCedulas.add(normC);
-                                    if (normN) existingNombres.add(`${normN}|${normA}`);
-                                    
-                                    pacientesExtraidos.push({
-                                        nombre: safeN,
-                                        apellido: safeA,
-                                        cedula: safeC || "N/D",
-                                        centro: safeCen,
-                                        edad_sector: safeE
-                                    });
-                                } else {
-                                    totalDuplicados++;
-                                }
-                            }
-                        });
-
-                        insertMany(parsedResult.pacientes);
-                    }
+                    let parsedResult = JSON.parse(response.choices[0].message.content);
+                    return parsedResult.pacientes || [];
                 } catch(e) {
                     console.error("Error processing chunk with OpenAI:", e);
+                    return [];
                 }
+            };
+
+            const allExtractedBatches = await processInBatches(openAiTasks, 5, processChunk);
+
+            // DB Insertion Transaction
+            const insertMany = db.transaction((allPacientes) => {
+                for (const paciente of allPacientes) {
+                    const { nombre, apellido, cedula, centro, edad_sector } = paciente;
+                    
+                    const safeN = (nombre || "N/D").trim();
+                    const safeA = (apellido || "N/D").trim();
+                    const safeC = (cedula || "N/D").replace(/\D/g, ''); 
+                    const safeCen = (centro || "N/D").trim();
+                    const safeE = (edad_sector || "N/D").trim();
+                    
+                    if (safeN === "N/D" && safeC === "" && safeA === "N/D") continue;
+
+                    const normN = normalizeText(safeN);
+                    const normA = normalizeText(safeA);
+                    const normC = safeC ? normalizeText(safeC) : "";
+
+                    let isDuplicate = false;
+                    
+                    if (normC && normC !== "") {
+                        isDuplicate = existingCedulas.has(normC);
+                    } else if (normN) {
+                        isDuplicate = existingNombres.has(`${normN}|${normA}`);
+                    }
+
+                    if (!isDuplicate) {
+                        insertPaciente.run(safeN, safeA, safeC || "N/D", safeCen, safeE, batchId);
+                        totalNuevos++;
+                        
+                        if (normC && normC !== "") existingCedulas.add(normC);
+                        if (normN) existingNombres.add(`${normN}|${normA}`);
+                        
+                        pacientesExtraidos.push({
+                            nombre: safeN,
+                            apellido: safeA,
+                            cedula: safeC || "N/D",
+                            centro: safeCen,
+                            edad_sector: safeE
+                        });
+                    } else {
+                        totalDuplicados++;
+                    }
+                }
+            });
+
+            // Flatten all patients extracted from all chunks and insert
+            const flattenedPacientes = allExtractedBatches.flat();
+            if (flattenedPacientes.length > 0) {
+                insertMany(flattenedPacientes);
             }
 
             processedFiles[fileHash] = true;
