@@ -157,20 +157,12 @@ export async function processFiles(files) {
                 let mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
                 const fileBuffer = fs.readFileSync(filePath);
                 
-                // Pre-procesamiento fotográfico avanzado con Sharp para maximizar el OCR
-                const enhancedBuffer = await sharp(fileBuffer)
-                    .grayscale()         // Elimina ruido de color y sombras amarillentas
-                    .normalize()         // Maximiza el contraste (blanco puro, letras negras fuertes)
-                    .threshold(128)      // Binarización extrema: convierte en blanco puro y negro puro
-                    .sharpen({ sigma: 1, m1: 1, m2: 2 }) // Endurece bordes borrosos
-                    .toBuffer();
-
-                const base64Image = enhancedBuffer.toString('base64');
+                // Pasar la imagen original en alta resolución a GPT-4 Vision (Evitar pre-procesamiento agresivo que destruye el texto)
+                const base64Image = fileBuffer.toString('base64');
                 
-                // Se envía directamente al modelo con detail: "auto" para ahorrar tokens
                 openAiTasks.push([{
                     type: "image_url",
-                    image_url: { url: `data:${mimeType};base64,${base64Image}` }
+                    image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
                 }]);
             } else {
                 console.log(`Extensión no soportada ignorada: ${ext}`);
