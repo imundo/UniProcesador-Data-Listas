@@ -122,10 +122,23 @@ export default function Home() {
 
     try {
       // Actúa como caché: solo actualizamos el estado local
-      const updatedPacientes = stats.nuevosPacientes.map(p => ({
-        ...p,
-        ...(type === 'centro' ? { centro: value } : { edad_sector: value })
-      }));
+      const updatedPacientes = stats.nuevosPacientes.map(p => {
+        let newEdadSector = value;
+        if (type === 'sector' && p.edad_sector) {
+          const parts = p.edad_sector.split(' · ');
+          if (parts.length > 1) {
+            newEdadSector = `${parts[0]} · ${value}`;
+          } else {
+            if (p.edad_sector !== value) {
+              newEdadSector = `${p.edad_sector} · ${value}`;
+            }
+          }
+        }
+        return {
+          ...p,
+          ...(type === 'centro' ? { centro: value } : { edad_sector: newEdadSector })
+        };
+      });
       setStats({ ...stats, nuevosPacientes: updatedPacientes });
       if (type === 'centro') setMassCentroValue("");
       else setMassSectorValue("");
