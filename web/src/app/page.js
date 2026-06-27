@@ -671,7 +671,7 @@ export default function Home() {
               <div className="mt-2 bg-neutral-950/60 rounded-2xl border border-green-500/30 overflow-hidden backdrop-blur-md flex flex-col">
                 <div className="px-4 py-3 border-b border-green-500/30 bg-green-500/10 flex flex-col gap-3">
                   <div className="flex flex-wrap justify-between items-center gap-4">
-                    <h5 className="text-sm font-semibold text-green-300 whitespace-nowrap">Nueva Persona</h5>
+                    <h5 className="text-sm font-semibold text-green-300 whitespace-nowrap">Nuevas Personas</h5>
                     <div className="flex items-center gap-3">
                       <input
                         type="text"
