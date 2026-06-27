@@ -146,7 +146,7 @@ export async function processFiles(files) {
 
             // Concurrent API Processing (Batches of 5)
             const processChunk = async (taskMessages) => {
-                const finalMessages = [{ type: "system", text: PROMPT }, { role: "user", content: taskMessages }];
+                const finalMessages = [{ role: "system", content: PROMPT }, { role: "user", content: taskMessages }];
                 try {
                     const response = await openai.chat.completions.create({
                         model: MODEL,
