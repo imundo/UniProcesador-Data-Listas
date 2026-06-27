@@ -8,14 +8,30 @@ import OpenAI from 'openai';
 const MODEL = "gpt-4o-mini";
 const PROMPT = `Vas a actuar como un experto extraedor de datos médicos.
 A continuación te proporcionaré texto, una imagen o fotogramas de un video que contienen una lista de pacientes, personas, ingresos médicos u hospitalizados.
-Tu objetivo es transcribir estrictamente todos los pacientes a un formato CSV.
+Tu objetivo es transcribir estrictamente todos los pacientes a un formato JSON.
 
 Reglas obligatorias:
 1. Extrae únicamente: Nombres, Apellidos, Cédula (solo números, elimina V- o E-), Centro de Salud / Hospital, Edad y Sector / Zona.
-2. Si un dato no está en la imagen, déjalo en blanco.
-3. El formato de salida debe ser exclusivamente CSV sin cabeceras.
-4. Cada línea debe tener el formato: Nombre,Apellido,Cedula,CentroMedico,Edad_Sector
-5. NO incluyas ninguna explicación, texto adicional, formato Markdown ni comillas. Solo los datos crudos separados por comas.`;
+2. Si un dato no está en la imagen o texto, déjalo como string vacío "".
+3. El formato de salida debe ser exclusivamente JSON válido.
+4. El JSON debe tener esta estructura exacta:
+{
+  "pacientes": [
+    {
+      "nombre": "Nombre",
+      "apellido": "Apellido",
+      "cedula": "12345678",
+      "centro": "Hospital X",
+      "edad_sector": "45 - Norte"
+    }
+  ]
+}
+5. NO incluyas ninguna explicación, texto adicional, ni formato Markdown fuera del JSON.`;
+
+function normalizeText(text) {
+    if (!text) return "";
+    return text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, ' ');
+}
 
 export async function processFiles(files) {
     const openai = new OpenAI({
@@ -41,7 +57,18 @@ export async function processFiles(files) {
     }
 
     const existingContent = fs.readFileSync(outputFile, 'utf8');
-    const existingLines = new Set(existingContent.split('\n').map(l => l.trim()).filter(l => l.length > 0));
+    const existingLinesRaw = existingContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const existingPatients = existingLinesRaw.slice(1).map(line => {
+        const parts = line.split(',');
+        return {
+            nombre: normalizeText(parts[0] || ""),
+            apellido: normalizeText(parts[1] || ""),
+            cedula: normalizeText(parts[2] || ""),
+            rawLine: line
+        };
+    });
+
+    let pacientesExtraidos = [];
 
     let totalNuevos = 0;
     let totalDuplicados = 0;
@@ -106,31 +133,77 @@ export async function processFiles(files) {
                 const response = await openai.chat.completions.create({
                     model: MODEL,
                     messages: [{ role: "user", content: contentMessages }],
+                    response_format: { type: "json_object" },
                     max_tokens: 2000,
                 });
 
                 let textResult = response.choices[0].message.content;
-                textResult = textResult.replace(/```csv/g, '').replace(/```/g, '').trim();
+                
+                let parsedResult;
+                try {
+                    parsedResult = JSON.parse(textResult);
+                } catch(e) {
+                    console.error("Error parsing JSON de OpenAI:", e);
+                    continue;
+                }
 
-                const csvLines = textResult.split('\n');
-                let validLines = [];
+                if (parsedResult && Array.isArray(parsedResult.pacientes)) {
+                    let validLines = [];
 
-                for (let i = 0; i < csvLines.length; i++) {
-                    const csvLine = csvLines[i].trim();
-                    if (csvLine.toLowerCase().includes('nombre,apellido,cedula')) continue;
-                    if (csvLine.length > 5) {
-                        if (!existingLines.has(csvLine)) {
+                    for (const paciente of parsedResult.pacientes) {
+                        const { nombre, apellido, cedula, centro, edad_sector } = paciente;
+                        
+                        // Validar campos que contengan comas y quitarlas para no romper el CSV simple
+                        const safeN = (nombre || "").replace(/,/g, '');
+                        const safeA = (apellido || "").replace(/,/g, '');
+                        const safeC = (cedula || "").replace(/,/g, '').replace(/\D/g, '');
+                        const safeCen = (centro || "").replace(/,/g, '');
+                        const safeE = (edad_sector || "").replace(/,/g, '');
+                        
+                        if (!safeN && !safeC) continue; // Paciente vacío
+
+                        const normN = normalizeText(safeN);
+                        const normA = normalizeText(safeA);
+                        const normC = normalizeText(safeC);
+
+                        // Lógica de Deduplicación Fuzzy
+                        const isDuplicate = existingPatients.some(ep => {
+                            if (normC && ep.cedula === normC) return true; // Cédula exacta
+                            if (!normC && !ep.cedula) {
+                                // Sin cédula: Coincidencia por nombre y apellido
+                                if (normN && normA && ep.nombre === normN && ep.apellido === normA) return true;
+                            }
+                            return false;
+                        });
+
+                        if (!isDuplicate) {
+                            const csvLine = `${safeN},${safeA},${safeC},${safeCen},${safeE}`;
                             validLines.push(csvLine);
-                            existingLines.add(csvLine);
+                            
+                            // Añadir a nuestra DB en memoria para este lote
+                            existingPatients.push({
+                                nombre: normN,
+                                apellido: normA,
+                                cedula: normC,
+                                rawLine: csvLine
+                            });
+
+                            pacientesExtraidos.push({
+                                nombre: safeN,
+                                apellido: safeA,
+                                cedula: safeC,
+                                centro: safeCen,
+                                edad_sector: safeE
+                            });
                         } else {
                             totalDuplicados++;
                         }
                     }
-                }
 
-                if (validLines.length > 0) {
-                    fs.appendFileSync(outputFile, validLines.join('\n') + '\n', 'utf8');
-                    totalNuevos += validLines.length;
+                    if (validLines.length > 0) {
+                        fs.appendFileSync(outputFile, validLines.join('\n') + '\n', 'utf8');
+                        totalNuevos += validLines.length;
+                    }
                 }
 
                 processedFiles[fileHash] = true;
@@ -164,5 +237,5 @@ export async function processFiles(files) {
     });
     fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
 
-    return { success: true, totalNuevos, totalDuplicados, archivosSaltados };
+    return { success: true, totalNuevos, totalDuplicados, archivosSaltados, nuevosPacientes: pacientesExtraidos };
 }
