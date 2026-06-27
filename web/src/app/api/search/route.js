@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db.js';
 
+function normalizeText(text) {
+    if (!text) return "";
+    return text.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
+
 async function searchSupabase(term) {
     try {
         const response = await fetch('https://ozuxfepfkvnxkywdsqxy.supabase.co/rest/v1/rpc/buscar_paciente', {
@@ -149,13 +155,21 @@ async function searchRedAyudaAPI(term) {
 
 async function searchLocalDb(term) {
     try {
-        const searchTerm = `%${term.trim()}%`;
-        const stmt = db.prepare(`
-            SELECT * FROM pacientes 
-            WHERE nombre LIKE ? OR apellido LIKE ? OR cedula LIKE ?
-            LIMIT 15
-        `);
-        const results = stmt.all(searchTerm, searchTerm, searchTerm);
+        const tokens = normalizeText(term).split(/\s+/).filter(t => t.length > 0);
+        if (tokens.length === 0) return [];
+        
+        let query = "SELECT * FROM pacientes WHERE 1=1";
+        const params = [];
+        
+        for (const t of tokens) {
+            query += " AND (nombre LIKE ? OR apellido LIKE ? OR cedula LIKE ?)";
+            const likeTerm = `%${t}%`;
+            params.push(likeTerm, likeTerm, likeTerm);
+        }
+        query += " LIMIT 50";
+        
+        const stmt = db.prepare(query);
+        const results = stmt.all(...params);
         
         return results.map(p => ({
             ...p,
@@ -197,12 +211,34 @@ export async function GET(req) {
         // Combinar resultados
         let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData];
         
-        // Limitar a los mejores 50 resultados para no saturar la UI pero mostrar más resultados
-        if (combinedResults.length > 50) {
-            combinedResults = combinedResults.slice(0, 50);
+        // Agrupar por similitud (nombre + apellido + cedula normalizados)
+        const groupedMap = new Map();
+        for (const p of combinedResults) {
+            const normNombre = normalizeText(p.nombre);
+            const normApellido = normalizeText(p.apellido);
+            const normCedula = normalizeText(p.cedula);
+            
+            const key = `${normNombre}|${normApellido}|${normCedula}`;
+            
+            if (groupedMap.has(key)) {
+                const existing = groupedMap.get(key);
+                if (!existing.sources.find(s => s.name === p.source)) {
+                    existing.sources.push({ name: p.source, url: p.sourceUrl });
+                }
+            } else {
+                p.sources = [{ name: p.source, url: p.sourceUrl }];
+                groupedMap.set(key, p);
+            }
+        }
+        
+        let groupedResults = Array.from(groupedMap.values());
+
+        // Limitar a los mejores 50 resultados para no saturar la UI
+        if (groupedResults.length > 50) {
+            groupedResults = groupedResults.slice(0, 50);
         }
 
-        return NextResponse.json(combinedResults);
+        return NextResponse.json(groupedResults);
     } catch (e) {
         console.error("Federated search fatal error:", e);
         return NextResponse.json({ error: "Search failed" }, { status: 500 });

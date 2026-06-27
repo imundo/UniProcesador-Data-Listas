@@ -516,19 +516,22 @@ export default function Home() {
           {emergencySearchResults.length > 0 && (
             <div className="flex flex-col gap-3 w-full">
               {emergencySearchResults.map((person, idx) => {
-                const isExternal = !!person.sourceUrl;
-                const badgeColor = person.source === 'HospitalesEnVenezuela.com' ? 'bg-blue-500/20 text-blue-400' :
-                                   person.source === 'RedSolidariaVenezuela.com' ? 'bg-red-500/20 text-red-400' :
-                                   person.source === 'DesaparecidosTerremotoVenezuela.com' ? 'bg-purple-500/20 text-purple-400' :
-                                   person.source === 'RedAyudaVenezuela.com' ? 'bg-amber-500/20 text-amber-400' :
-                                   'bg-emerald-500/20 text-emerald-400';
-                                   
-                const shareText = encodeURIComponent(`🚨 PERSONA LOCALIZADA\nNombre: ${person.nombre} ${person.apellido}\nCédula: ${person.cedula}\nUbicación: ${person.centro}\n${person.edad_sector ? `Sector/Nota: ${person.edad_sector}\n` : ''}Fuente: ${person.source}`);
+                const sourcesArray = person.sources || [{name: person.source, url: person.sourceUrl}];
+                const isDuplicated = sourcesArray.length > 1;
+                
+                const shareText = encodeURIComponent(`🚨 PERSONA LOCALIZADA\nNombre: ${person.nombre} ${person.apellido}\nCédula: ${person.cedula}\nUbicación: ${person.centro}\n${person.edad_sector ? `Sector/Nota: ${person.edad_sector}\n` : ''}Reportado en ${sourcesArray.length} plataforma(s).`);
                 
                 return (
                   <div key={idx} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-neutral-700 transition-colors">
                     <div className="flex-1">
-                      <h4 className="text-lg font-bold text-white">{person.nombre} {person.apellido}</h4>
+                      <div className="flex items-center gap-3">
+                        <h4 className="text-lg font-bold text-white">{person.nombre} {person.apellido}</h4>
+                        {isDuplicated && (
+                          <span className="text-[10px] bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded-full font-bold">
+                            DUPLICADO {sourcesArray.length} VECES
+                          </span>
+                        )}
+                      </div>
                       <p className="text-neutral-400 text-sm font-mono mt-1">CI: {person.cedula}</p>
                       <p className="text-blue-400 font-medium text-sm mt-1 flex items-center gap-1">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -537,9 +540,21 @@ export default function Home() {
                     </div>
                     
                     <div className="flex flex-col items-start sm:items-end gap-3 w-full sm:w-auto">
-                      <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full ${badgeColor}`}>
-                          {isExternal ? '🌐 ' : '🏢 '} {person.source}
-                      </span>
+                      <div className="flex flex-wrap gap-2 justify-end">
+                        {sourcesArray.map((src, sIdx) => {
+                          const isExternal = !!src.url;
+                          const badgeColor = src.name === 'HospitalesEnVenezuela.com' ? 'bg-blue-500/20 text-blue-400' :
+                                             src.name === 'RedSolidariaVenezuela.com' ? 'bg-red-500/20 text-red-400' :
+                                             src.name === 'DesaparecidosTerremotoVenezuela.com' ? 'bg-purple-500/20 text-purple-400' :
+                                             src.name === 'RedAyudaVenezuela.com' ? 'bg-amber-500/20 text-amber-400' :
+                                             'bg-emerald-500/20 text-emerald-400';
+                          return (
+                            <span key={sIdx} className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full ${badgeColor}`}>
+                                {isExternal ? '🌐 ' : '🏢 '} {src.name}
+                            </span>
+                          );
+                        })}
+                      </div>
                       <a
                         href={`https://wa.me/?text=${shareText}`}
                         target="_blank"
