@@ -10,7 +10,7 @@ export async function GET() {
             FROM pacientes 
             WHERE centro IS NOT NULL AND centro != '' AND centro != 'N/D' 
             GROUP BY centro 
-            HAVING COUNT(*) >= 100 
+            HAVING COUNT(*) > 5 
             ORDER BY COUNT(*) DESC, centro ASC
         `).all();
         const hospitals = rows.map(r => r.centro);

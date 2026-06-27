@@ -411,16 +411,31 @@ export default function Home() {
 
         {/* Header */}
         <header className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-2xl mb-2">
-            <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
+          <div className="inline-flex items-center justify-center p-2 bg-blue-500/10 rounded-2xl mb-2">
+            <span className="text-4xl" role="img" aria-label="Bandera de Venezuela">🇻🇪</span>
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Unificar Lista para Hospitales y Personas</h1>
           <p className="text-neutral-400 max-w-2xl mx-auto">
             Sube tus imágenes, videos y PDFs médicos. Nuestra IA extraerá automáticamente la información y la consolidará en una sola base de datos unificada sin duplicados. Con formato para ser subidos a portales como <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">https://hospitalesenvenezuela.com/</a>
           </p>
         </header>
+
+        {/* Nuestro Compromiso */}
+        <section className="bg-neutral-900/40 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-6 text-sm text-neutral-300 leading-relaxed text-center shadow-lg w-full max-w-4xl mx-auto">
+          <h2 className="text-lg font-bold text-white mb-3">Nuestro compromiso</h2>
+          <p className="mb-3">
+            Esta aplicación nació para ayudar a centralizar la información, reducir el trabajo manual y facilitar la actualización de los datos, permitiendo que los equipos dediquen más tiempo a las personas y menos tiempo a la transcripción.
+          </p>
+          <p className="mb-3">
+            Es un proyecto desarrollado de forma independiente, voluntaria y sin fines de lucro. Creemos que la tecnología puede marcar una diferencia cuando se pone al servicio de quienes la necesitan, y esperamos que esta herramienta contribuya a hacer ese trabajo un poco más fácil.
+          </p>
+          <p className="mb-3">
+            La aplicación utiliza Inteligencia Artificial para extraer y organizar la información de manera automática. Sin embargo, los resultados deben ser revisados y validados por el usuario antes de utilizarlos o publicarlos en otras plataformas, como hospitalesenvenezuela.com.
+          </p>
+          <p className="text-blue-300 font-medium">
+            Gracias por confiar en esta herramienta. Seguiremos mejorándola para que sea cada día más útil, rápida, sencilla y confiable.
+          </p>
+        </section>
 
         {/* Dashboard Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
@@ -444,7 +459,7 @@ export default function Home() {
             <div className="p-2 bg-purple-500/10 text-purple-400 rounded-xl mb-3 group-hover:scale-110 transition-transform">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
             </div>
-            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Centros Únicos</p>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Centros Médicos</p>
             <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{totalCentros.toLocaleString()}</p>
           </div>
 
