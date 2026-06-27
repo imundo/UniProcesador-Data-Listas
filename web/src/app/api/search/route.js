@@ -187,65 +187,68 @@ async function searchLocalDb(term) {
     }
 }
 
+export async function performSearch(term) {
+    if (!term || term.trim().length < 3) {
+        return [];
+    }
+
+    // Ejecutar las 5 búsquedas en paralelo (Búsqueda Federada)
+    const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes] = await Promise.allSettled([
+        searchLocalDb(term),
+        searchSupabase(term),
+        searchGoogleSheets(term),
+        searchDesaparecidosAPI(term),
+        searchRedAyudaAPI(term)
+    ]);
+
+    const localData = localRes.status === 'fulfilled' ? localRes.value : [];
+    const supabaseData = supabaseRes.status === 'fulfilled' ? supabaseRes.value : [];
+    const sheetsData = sheetsRes.status === 'fulfilled' ? sheetsRes.value : [];
+    const desaparecidosData = desaparecidosRes.status === 'fulfilled' ? desaparecidosRes.value : [];
+    const redAyudaData = redAyudaRes.status === 'fulfilled' ? redAyudaRes.value : [];
+
+    // Combinar resultados
+    let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData];
+    
+    // Agrupar por similitud (nombre + apellido + cedula normalizados)
+    const groupedMap = new Map();
+    for (const p of combinedResults) {
+        const normNombre = normalizeText(p.nombre);
+        const normApellido = normalizeText(p.apellido);
+        const normCedula = normalizeText(p.cedula);
+        
+        const key = `${normNombre}|${normApellido}|${normCedula}`;
+        
+        if (groupedMap.has(key)) {
+            const existing = groupedMap.get(key);
+            if (!existing.sources.find(s => s.name === p.source)) {
+                existing.sources.push({ name: p.source, url: p.sourceUrl });
+            }
+            if (!existing.estado && p.estado) {
+                existing.estado = p.estado;
+            }
+        } else {
+            p.sources = [{ name: p.source, url: p.sourceUrl }];
+            groupedMap.set(key, p);
+        }
+    }
+    
+    let groupedResults = Array.from(groupedMap.values());
+
+    // Limitar a los mejores 50 resultados para no saturar la UI
+    if (groupedResults.length > 50) {
+        groupedResults = groupedResults.slice(0, 50);
+    }
+
+    return groupedResults;
+}
+
 export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q');
 
-    if (!q || q.trim().length < 3) {
-        return NextResponse.json([]);
-    }
-
-    const term = q.trim();
-
     try {
-        // Ejecutar las 5 búsquedas en paralelo (Búsqueda Federada)
-        const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes] = await Promise.allSettled([
-            searchLocalDb(term),
-            searchSupabase(term),
-            searchGoogleSheets(term),
-            searchDesaparecidosAPI(term),
-            searchRedAyudaAPI(term)
-        ]);
-
-        const localData = localRes.status === 'fulfilled' ? localRes.value : [];
-        const supabaseData = supabaseRes.status === 'fulfilled' ? supabaseRes.value : [];
-        const sheetsData = sheetsRes.status === 'fulfilled' ? sheetsRes.value : [];
-        const desaparecidosData = desaparecidosRes.status === 'fulfilled' ? desaparecidosRes.value : [];
-        const redAyudaData = redAyudaRes.status === 'fulfilled' ? redAyudaRes.value : [];
-
-        // Combinar resultados
-        let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData];
-        
-        // Agrupar por similitud (nombre + apellido + cedula normalizados)
-        const groupedMap = new Map();
-        for (const p of combinedResults) {
-            const normNombre = normalizeText(p.nombre);
-            const normApellido = normalizeText(p.apellido);
-            const normCedula = normalizeText(p.cedula);
-            
-            const key = `${normNombre}|${normApellido}|${normCedula}`;
-            
-            if (groupedMap.has(key)) {
-                const existing = groupedMap.get(key);
-                if (!existing.sources.find(s => s.name === p.source)) {
-                    existing.sources.push({ name: p.source, url: p.sourceUrl });
-                }
-                if (!existing.estado && p.estado) {
-                    existing.estado = p.estado;
-                }
-            } else {
-                p.sources = [{ name: p.source, url: p.sourceUrl }];
-                groupedMap.set(key, p);
-            }
-        }
-        
-        let groupedResults = Array.from(groupedMap.values());
-
-        // Limitar a los mejores 50 resultados para no saturar la UI
-        if (groupedResults.length > 50) {
-            groupedResults = groupedResults.slice(0, 50);
-        }
-
+        const groupedResults = await performSearch(q);
         return NextResponse.json(groupedResults);
     } catch (e) {
         console.error("Federated search fatal error:", e);

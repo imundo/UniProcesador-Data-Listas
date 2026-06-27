@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { performSearch } from '@/app/api/search/route.js';
 
 // Se instanciará de forma lazy para evitar errores en build time
 let openai = null;
@@ -84,11 +85,7 @@ export async function POST(req) {
                     
                     let searchResults = [];
                     try {
-                        const baseUrl = new URL(req.url).origin;
-                        const searchRes = await fetch(`${baseUrl}/api/search?q=${encodeURIComponent(query)}`);
-                        if (searchRes.ok) {
-                            searchResults = await searchRes.json();
-                        }
+                        searchResults = await performSearch(query);
                     } catch (e) {
                         console.error("Internal search failed", e);
                     }
