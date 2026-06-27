@@ -749,7 +749,7 @@ export default function Home() {
                     {/* Swap Nombres/Apellidos */}
                     <button
                       onClick={handleSwapNames}
-                      className="bg-blue-600/50 hover:bg-blue-500 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors flex items-center gap-1.5 ml-auto"
+                      className="bg-blue-600/50 hover:bg-blue-500 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors flex items-center gap-1.5"
                       title="Intercambiar Nombres y Apellidos en todos los registros"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
