@@ -161,6 +161,7 @@ export async function processFiles(files) {
                 const enhancedBuffer = await sharp(fileBuffer)
                     .grayscale()         // Elimina ruido de color y sombras amarillentas
                     .normalize()         // Maximiza el contraste (blanco puro, letras negras fuertes)
+                    .threshold(128)      // Binarización extrema: convierte en blanco puro y negro puro
                     .sharpen({ sigma: 1, m1: 1, m2: 2 }) // Endurece bordes borrosos
                     .toBuffer();
 
@@ -253,9 +254,17 @@ export async function processFiles(files) {
                         }
                     }
                     
-                    const safeN = (nombre || "").trim();
-                    const safeA = (apellido || "").trim();
-                    const safeC = (cedula || "").replace(/\D/g, ''); 
+                    // Post-Validación Heurística:
+                    // 1. Nombres y Apellidos NO deben contener números (limpiarlos automáticamente)
+                    const safeN = (nombre || "").replace(/[0-9]/g, '').trim();
+                    const safeA = (apellido || "").replace(/[0-9]/g, '').trim();
+                    
+                    // 2. Cédula: Solo números, pero validar su longitud
+                    let safeC = (cedula || "").replace(/\D/g, ''); 
+                    if (safeC && (safeC.length < 6 || safeC.length > 8)) {
+                        safeC = ""; // Si no tiene sentido como cédula (ej. teléfono o basura OCR), se descarta
+                    }
+
                     const safeCen = (centro || "").trim();
                     const safeE = (edad_sector || "").trim();
                     
