@@ -101,7 +101,7 @@ export async function processFiles(files) {
                 const data = await pdfParse(buffer);
                 const cleanedText = cleanPdfText(data.text);
                 const lines = cleanedText.split('\n');
-                const chunkSize = 120; // Increased chunk size to reduce API calls
+                const chunkSize = 800; // Drastically increased to allow AI to see full columns if pdf-parse reads vertically
                 
                 for (let i = 0; i < lines.length; i += chunkSize) {
                     const chunk = lines.slice(i, i + chunkSize).join('\n');
@@ -206,8 +206,20 @@ export async function processFiles(files) {
                     const safeCen = (centro || "").trim();
                     const safeE = (edad_sector || "").trim();
                     
-                    if (safeN === "" && safeC === "" && safeA === "") continue;
-
+                    const hasName = safeN !== "" || safeA !== "";
+                    const hasCedula = safeC !== "";
+                    const hasExtra = safeCen !== "" || safeE !== "";
+                    
+                    // QUALITY FILTER:
+                    // - Name + Cedula is VALID
+                    // - Name + Extra (Centro/Edad) is VALID
+                    // - Cedula + Extra is VALID
+                    // - ONLY Name is INVALID
+                    // - ONLY Cedula is INVALID
+                    // - ONLY Extra is INVALID
+                    const isValidData = (hasName && hasCedula) || (hasName && hasExtra) || (hasCedula && hasExtra);
+                    
+                    if (!isValidData) continue;
                     const normN = normalizeText(safeN);
                     const normA = normalizeText(safeA);
                     const normC = safeC ? normalizeText(safeC) : "";
