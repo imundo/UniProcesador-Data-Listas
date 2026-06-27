@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+// Se instanciará de forma lazy para evitar errores en build time
+let openai = null;
 
 const SYSTEM_PROMPT = `Eres un asistente virtual profundamente empático, compasivo y cálido, diseñado para ayudar a personas que están buscando a sus seres queridos desaparecidos o pacientes en hospitales de Venezuela.
 Tu tono debe ser reconfortante, respetuoso y muy humano, entendiendo que el usuario puede estar pasando por un momento de gran angustia.
@@ -21,6 +19,12 @@ Instrucciones cuando uses la herramienta 'buscar_paciente':
 
 export async function POST(req) {
     try {
+        if (!openai) {
+            openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY || 'dummy_key_for_build'
+            });
+        }
+
         const body = await req.json();
         const { messages } = body;
 
