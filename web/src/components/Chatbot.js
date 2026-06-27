@@ -9,7 +9,18 @@ export default function Chatbot() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    // Mostrar tooltip después de 2 segundos de cargar la página para captar la atención
+    const timer = setTimeout(() => {
+      setShowTooltip(true);
+      // Ocultar después de 6 segundos
+      setTimeout(() => setShowTooltip(false), 6000);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,10 +66,23 @@ export default function Chatbot() {
 
   return (
     <>
+      {/* Tooltip Notification */}
+      {!isOpen && showTooltip && (
+        <div className="fixed bottom-24 right-6 w-48 bg-neutral-900/95 backdrop-blur-xl border border-neutral-700/50 rounded-2xl rounded-br-sm shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <p className="text-white text-sm font-medium leading-snug">
+            ¡Hola! 👋<br />¿En qué puedo ayudarte hoy?
+          </p>
+          <div className="absolute -bottom-2 right-4 w-4 h-4 bg-neutral-900/95 border-b border-r border-neutral-700/50 transform rotate-45"></div>
+        </div>
+      )}
+
       {/* Floating Action Button */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            setShowTooltip(false);
+          }}
           className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:scale-110 transition-transform flex items-center justify-center text-white z-50 group p-1"
           aria-label="Abrir asistente"
         >
@@ -76,7 +100,7 @@ export default function Chatbot() {
                 <img src="/bot-icon.png" alt="Asistente Bot" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="font-bold text-white leading-tight">Asistente Solidario</h3>
+                <h3 className="font-bold text-white leading-tight">Asistente Amigo</h3>
                 <p className="text-xs text-blue-300/80">En línea</p>
               </div>
             </div>
