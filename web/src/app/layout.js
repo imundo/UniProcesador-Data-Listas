@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Hecho con Amor",
+  title: "Buscador Multiorigen y Procesador de datos.",
   description: "Unificar Listas para Hospitales y Personas",
   icons: {
     icon: 'https://flagcdn.com/w80/ve.png',
