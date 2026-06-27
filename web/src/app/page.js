@@ -220,6 +220,14 @@ export default function Home() {
     }
   };
 
+  const handleSwapNames = () => {
+    if (!stats || !stats.nuevosPacientes) return;
+    const updated = stats.nuevosPacientes.map(p => {
+      return { ...p, nombre: p.apellido, apellido: p.nombre };
+    });
+    setStats({ ...stats, nuevosPacientes: updated });
+  };
+
   const handleFilesValidation = (newFiles) => {
     if (newFiles.length > 5) {
       alert("Solo puedes subir un máximo de 5 archivos a la vez.");
@@ -737,6 +745,16 @@ export default function Home() {
                         {isUpdatingSector ? "..." : "Aplicar"}
                       </button>
                     </div>
+
+                    {/* Swap Nombres/Apellidos */}
+                    <button
+                      onClick={handleSwapNames}
+                      className="bg-blue-600/50 hover:bg-blue-500 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors flex items-center gap-1.5 ml-auto"
+                      title="Intercambiar Nombres y Apellidos en todos los registros"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                      Intercambiar Nombre/Apellido
+                    </button>
                   </div>
                 </div>
                 <div className="overflow-x-auto max-h-60 overflow-y-auto custom-scrollbar flex-1">
