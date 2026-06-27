@@ -24,6 +24,10 @@ export default function Home() {
   const [isFetchingBatch, setIsFetchingBatch] = useState(false);
   const [showBatchPreview, setShowBatchPreview] = useState(false);
 
+  const [invalidsPreview, setInvalidsPreview] = useState(null);
+  const [isFetchingInvalids, setIsFetchingInvalids] = useState(false);
+  const [showInvalidsPreview, setShowInvalidsPreview] = useState(false);
+
   const [isUploadingToPortal, setIsUploadingToPortal] = useState(false);
   const [portalResponse, setPortalResponse] = useState(null);
 
@@ -37,12 +41,14 @@ export default function Home() {
   const [localSearch, setLocalSearch] = useState("");
   const [globalSearch, setGlobalSearch] = useState("");
   const [batchSearch, setBatchSearch] = useState("");
+  const [invalidsSearch, setInvalidsSearch] = useState("");
 
   // Pagination States
   const [localPage, setLocalPage] = useState(1);
   const [globalPage, setGlobalPage] = useState(1);
   const [batchPage, setBatchPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
+  const [invalidsPage, setInvalidsPage] = useState(1);
 
   const itemsPerPage = 100;
   const historyItemsPerPage = 10;
@@ -66,6 +72,21 @@ export default function Home() {
       console.error(err);
     } finally {
       setIsFetchingGlobal(false);
+    }
+  };
+
+  const fetchInvalidsPreview = async () => {
+    setIsFetchingInvalids(true);
+    try {
+      const res = await fetch("/api/invalids");
+      const data = await res.json();
+      setInvalidsPreview(data);
+      setShowInvalidsPreview(true);
+      setInvalidsPage(1);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsFetchingInvalids(false);
     }
   };
 
@@ -627,6 +648,14 @@ export default function Home() {
               </a>
 
               <button
+                onClick={fetchInvalidsPreview}
+                disabled={isFetchingInvalids}
+                className="w-full py-3 px-4 bg-red-900/40 hover:bg-red-800/60 text-red-300 border border-red-700/50 font-semibold rounded-xl transition-all flex items-center justify-center gap-3 backdrop-blur-md"
+              >
+                {isFetchingInvalids ? "Cargando..." : "Ver Registros Incompletos (No Enviados)"}
+              </button>
+
+              <button
                 onClick={() => handleUploadToPortal(history[0]?.id, false)}
                 disabled={isUploadingToPortal || !history || history.length === 0}
                 className="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(234,88,12,0.3)] hover:shadow-[0_0_30px_rgba(234,88,12,0.5)] flex items-center justify-center gap-3 disabled:opacity-50"
@@ -1150,6 +1179,96 @@ export default function Home() {
                 Aceptar y Continuar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invalids Preview Modal */}
+      {showInvalidsPreview && invalidsPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-neutral-900 border border-red-500/30 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            <div className="p-6 border-b border-neutral-800 flex justify-between items-center bg-neutral-950">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center border border-red-500/30">
+                  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Registros Incompletos</h3>
+                  <p className="text-sm text-red-400/80">Total: {invalidsPreview.total} pacientes sin enviar al portal</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <input 
+                  type="text" 
+                  placeholder="Buscar en incompletos..." 
+                  value={invalidsSearch}
+                  onChange={(e) => { setInvalidsSearch(e.target.value); setInvalidsPage(1); }}
+                  className="px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 w-64"
+                />
+                <button 
+                  onClick={() => setShowInvalidsPreview(false)}
+                  className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-0 custom-scrollbar flex flex-col">
+              {(() => {
+                const invalidsFiltered = invalidsPreview?.pacientes?.filter(p => 
+                  `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro} ${p.edad_sector}`.toLowerCase().includes(invalidsSearch.toLowerCase())
+                ) || [];
+                const invalidsItemsPerPage = 100;
+                const invalidsCurrent = invalidsFiltered.slice((invalidsPage - 1) * invalidsItemsPerPage, invalidsPage * invalidsItemsPerPage);
+                
+                return invalidsFiltered.length === 0 ? (
+                  <div className="p-12 text-center text-neutral-500 flex-1">No se encontraron pacientes incompletos.</div>
+                ) : (
+                  <div className="flex-1">
+                    <table className="w-full text-left text-sm text-neutral-300">
+                      <thead className="bg-neutral-950/80 text-neutral-400 uppercase text-xs font-semibold sticky top-0 backdrop-blur-md shadow-sm z-10">
+                        <tr>
+                          <th className="px-6 py-4">Nombre Completo</th>
+                          <th className="px-6 py-4">Cédula</th>
+                          <th className="px-6 py-4">Centro Médico</th>
+                          <th className="px-6 py-4">Edad / Sector</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-800/60">
+                        {invalidsCurrent.map((p, idx) => {
+                          const missingNombre = !p.nombre || p.nombre.trim() === '';
+                          const missingApellido = !p.apellido || p.apellido.trim() === '';
+                          const missingCedula = !p.cedula || p.cedula.trim() === '';
+                          const missingCentro = !p.centro || p.centro.trim() === '' || p.centro === 'N/D';
+                          
+                          return (
+                            <tr key={idx} className="hover:bg-red-500/5 transition-colors">
+                              <td className="px-6 py-3 font-medium text-white">
+                                <span className={missingNombre ? "text-red-500 font-bold" : ""}>{p.nombre || "[FALTA]"}</span>{" "}
+                                <span className={missingApellido ? "text-red-500 font-bold" : ""}>{p.apellido || "[FALTA]"}</span>
+                              </td>
+                              <td className={`px-6 py-3 font-mono ${missingCedula ? "text-red-500 font-bold" : "text-green-300"}`}>{p.cedula || '[FALTA]'}</td>
+                              <td className={`px-6 py-3 ${missingCentro ? "text-red-500 font-bold" : "opacity-80"}`}>{p.centro || '[FALTA]'}</td>
+                              <td className="px-6 py-3 opacity-80">{p.edad_sector}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
+            </div>
+            
+            {(() => {
+                const invalidsFiltered = invalidsPreview?.pacientes?.filter(p => 
+                  `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro} ${p.edad_sector}`.toLowerCase().includes(invalidsSearch.toLowerCase())
+                ) || [];
+                return renderPagination(invalidsPage, invalidsFiltered.length, setInvalidsPage);
+            })()}
           </div>
         </div>
       )}
