@@ -18,6 +18,7 @@ export default function Home() {
   const [showBatchPreview, setShowBatchPreview] = useState(false);
   
   const [isUploadingToPortal, setIsUploadingToPortal] = useState(false);
+  const [portalResponse, setPortalResponse] = useState(null);
   
   const [hospitals, setHospitals] = useState([]);
 
@@ -170,7 +171,7 @@ export default function Home() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Error desconocido");
-      alert(`¡Éxito! Se enviaron ${data.count} registros a hospitalesenvenezuela.com.\nRespuesta del servidor: ${JSON.stringify(data.supabaseResponse)}`);
+      setPortalResponse(data);
     } catch (error) {
       console.error("Error subiendo al portal:", error);
       alert(`Error al enviar los datos al portal: ${error.message}`);
@@ -635,6 +636,54 @@ export default function Home() {
               )}
             </div>
             {renderPagination(batchPage, batchFiltered.length, setBatchPage)}
+          </div>
+        </div>
+      )}
+
+      {/* Portal Response Modal */}
+      {portalResponse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in">
+          <div className="bg-neutral-900 border border-orange-500/30 rounded-3xl shadow-[0_0_50px_rgba(234,88,12,0.15)] w-full max-w-lg overflow-hidden animate-in zoom-in-95 backdrop-blur-xl">
+            <div className="p-8 text-center bg-gradient-to-b from-orange-500/10 to-transparent">
+              <div className="mx-auto w-16 h-16 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center mb-6 border border-orange-500/30 shadow-[0_0_30px_rgba(234,88,12,0.3)]">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-extrabold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent mb-2">Transmisión Exitosa</h2>
+              <p className="text-neutral-400 text-sm">
+                Conexión segura establecida con la plataforma asociada:<br/>
+                <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300 underline underline-offset-2 transition-colors font-medium">hospitalesenvenezuela.com</a>
+              </p>
+            </div>
+            
+            <div className="px-8 pb-8">
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-neutral-950/50 rounded-2xl p-4 border border-green-500/20 flex flex-col items-center justify-center text-center">
+                  <span className="text-3xl font-black text-green-400 mb-1">{portalResponse.supabaseResponse?.insertados || 0}</span>
+                  <span className="text-xs text-green-400/70 font-semibold uppercase tracking-wider">Insertados</span>
+                </div>
+                <div className="bg-neutral-950/50 rounded-2xl p-4 border border-blue-500/20 flex flex-col items-center justify-center text-center">
+                  <span className="text-3xl font-black text-blue-400 mb-1">{portalResponse.supabaseResponse?.duplicados || 0}</span>
+                  <span className="text-xs text-blue-400/70 font-semibold uppercase tracking-wider">Duplicados</span>
+                </div>
+                <div className="bg-neutral-950/50 rounded-2xl p-4 border border-red-500/20 flex flex-col items-center justify-center text-center">
+                  <span className="text-3xl font-black text-red-400 mb-1">{portalResponse.supabaseResponse?.invalidos || 0}</span>
+                  <span className="text-xs text-red-400/70 font-semibold uppercase tracking-wider">Inválidos</span>
+                </div>
+                <div className="bg-neutral-950/50 rounded-2xl p-4 border border-neutral-700/50 flex flex-col items-center justify-center text-center">
+                  <span className="text-3xl font-black text-white mb-1">{portalResponse.supabaseResponse?.total || 0}</span>
+                  <span className="text-xs text-neutral-400 font-semibold uppercase tracking-wider">Procesados</span>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => setPortalResponse(null)}
+                className="w-full py-4 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl transition-all shadow-sm"
+              >
+                Aceptar y Continuar
+              </button>
+            </div>
           </div>
         </div>
       )}
