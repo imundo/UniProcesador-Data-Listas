@@ -479,6 +479,7 @@ export default function Home() {
                     Subir al Portal
                   </button>
                 </div>
+                </div>
                 <div className="overflow-x-auto max-h-60 overflow-y-auto custom-scrollbar flex-1">
                   <table className="w-full text-left text-xs text-neutral-300">
                     <thead className="bg-neutral-950/90 text-neutral-400 uppercase font-semibold sticky top-0 backdrop-blur-md z-10 shadow-sm">
