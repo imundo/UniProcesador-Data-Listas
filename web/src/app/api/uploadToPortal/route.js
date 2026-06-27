@@ -5,15 +5,29 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
     try {
-        const { batchId, global } = await req.json();
+        const { batchId, global, pacientes } = await req.json();
 
         let rows = [];
         if (global) {
             rows = db.prepare("SELECT * FROM pacientes ORDER BY id ASC").all();
+        } else if (pacientes && pacientes.length > 0) {
+            // Guardado diferido: Insertamos en SQLite lo que venía en caché del frontend
+            const insertPaciente = db.prepare(`
+                INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector, batch_id) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            `);
+            
+            db.transaction((pacs) => {
+                for (const p of pacs) {
+                    insertPaciente.run(p.nombre || "", p.apellido || "", p.cedula || "", p.centro || "", p.edad_sector || "", batchId);
+                }
+            })(pacientes);
+            
+            rows = db.prepare("SELECT * FROM pacientes WHERE batch_id = ?").all(batchId);
         } else if (batchId) {
             rows = db.prepare("SELECT * FROM pacientes WHERE batch_id = ?").all(batchId);
         } else {
-            return NextResponse.json({ error: "No batchId or global flag provided" }, { status: 400 });
+            return NextResponse.json({ error: "No batchId, global flag, or pacientes provided" }, { status: 400 });
         }
 
         if (rows.length === 0) {

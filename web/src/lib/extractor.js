@@ -238,9 +238,9 @@ export async function processFiles(files) {
                     }
 
                     if (!isDuplicate) {
-                        insertPaciente.run(safeN, safeA, safeC, safeCen, safeE, batchId);
                         totalNuevos++;
                         
+                        // Guardar en el set TEMPORAL en memoria para no duplicarlos dentro del mismo lote
                         if (normC && normC !== "") existingCedulas.add(normC);
                         if (normN) existingNombres.add(`${normN}|${normA}`);
                         

@@ -121,21 +121,14 @@ export default function Home() {
     else setIsUpdatingSector(true);
 
     try {
-      const res = await fetch("/api/massUpdateCentro", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ batchId: stats.batchId, type, value })
-      });
-      if (res.ok) {
-        // Mute local state to reflect changes instantly
-        const updatedPacientes = stats.nuevosPacientes.map(p => ({
-          ...p,
-          ...(type === 'centro' ? { centro: value } : { edad_sector: value })
-        }));
-        setStats({ ...stats, nuevosPacientes: updatedPacientes });
-        if (type === 'centro') setMassCentroValue("");
-        else setMassSectorValue("");
-      }
+      // Actúa como caché: solo actualizamos el estado local
+      const updatedPacientes = stats.nuevosPacientes.map(p => ({
+        ...p,
+        ...(type === 'centro' ? { centro: value } : { edad_sector: value })
+      }));
+      setStats({ ...stats, nuevosPacientes: updatedPacientes });
+      if (type === 'centro') setMassCentroValue("");
+      else setMassSectorValue("");
     } catch(e) {
       console.error(e);
     } finally {
@@ -213,8 +206,6 @@ export default function Home() {
       });
       const data = await response.json();
       setStats(data);
-      fetchHistory(); // Refresh history
-      fetchHospitals(); // Refresh hospitals
       setFiles([]); // Clear selection
     } catch (error) {
       console.error("Error al procesar", error);
@@ -227,14 +218,25 @@ export default function Home() {
   const handleUploadToPortal = async (batchId = null, global = false) => {
     setIsUploadingToPortal(true);
     try {
+      const payload = { batchId, global };
+      // Si no es global, enviamos los pacientes cacheados localmente para que se guarden y suban
+      if (!global && stats?.nuevosPacientes) {
+          payload.pacientes = stats.nuevosPacientes;
+      }
       const response = await fetch("/api/uploadToPortal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ batchId, global }),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Error desconocido");
       setPortalResponse(data);
+      
+      // Ya se guardaron en BD, refrescamos el historial
+      fetchHistory();
+      fetchHospitals();
+      
+      // Opcional: podríamos limpiar el preview (stats) aquí, pero dejarlo visible con el portalResponse está bien
     } catch (error) {
       console.error("Error subiendo al portal:", error);
       alert(`Error al enviar los datos al portal: ${error.message}`);
