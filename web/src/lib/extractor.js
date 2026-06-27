@@ -117,8 +117,18 @@ export async function processFiles(files) {
             }
 
             if (extractedText !== null) {
+                // Filtro Local de Texto: Requerir que haya números o palabras clave. Si no, se descarta.
+                const hasNumbers = /\d{2,}/.test(extractedText);
+                const hasKeywords = /\b(cedula|paciente|nombre|edad|sector|centro|hospital|clinica|ambulatorio)\b/i.test(extractedText);
+                
+                if (!hasNumbers && !hasKeywords) {
+                    console.log(`Archivo de texto descartado por el pre-filtro (Sin formato médico): ${file.name}`);
+                    archivosSaltados++;
+                    continue;
+                }
+
                 const lines = extractedText.split('\n');
-                const chunkSize = 800; // Drastically increased to allow AI to see full columns if pdf-parse reads vertically
+                const chunkSize = 800;
                 
                 for (let i = 0; i < lines.length; i += chunkSize) {
                     const chunk = lines.slice(i, i + chunkSize).join('\n');
@@ -130,21 +140,37 @@ export async function processFiles(files) {
                     }
                 }
             } else if (['.jpg', '.jpeg', '.png'].includes(ext)) {
-                let filesToProcess = [filePath];
-
-                let imageMessages = [];
-                for (const frameFile of filesToProcess) {
-                    let mimeType = frameFile.endsWith('.png') ? 'image/png' : 'image/jpeg';
-                    const base64Image = fs.readFileSync(frameFile).toString('base64');
-                    imageMessages.push({
-                        type: "image_url",
-                        image_url: { url: `data:${mimeType};base64,${base64Image}` }
-                    });
-                }
+                let mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
+                const base64Image = fs.readFileSync(filePath).toString('base64');
                 
-                if (imageMessages.length > 0) {
-                    openAiTasks.push(imageMessages);
+                // Pre-Filtro Visual Ultra-Ligero (detail: low)
+                try {
+                    const filterResponse = await openai.chat.completions.create({
+                        model: "gpt-4o-mini",
+                        messages: [
+                            { role: "system", content: "Responde estrictamente SI o NO." },
+                            { role: "user", content: [
+                                { type: "text", text: "¿Esta imagen parece contener una lista de personas, datos, tablas o registros?" },
+                                { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "low" } }
+                            ]}
+                        ],
+                        max_tokens: 10
+                    });
+                    
+                    const isRelevant = filterResponse.choices[0].message.content.trim().toUpperCase();
+                    if (!isRelevant.includes("SI")) {
+                        console.log(`Imagen descartada por el pre-filtro visual (Basura/Selfie): ${file.name}`);
+                        archivosSaltados++;
+                        continue;
+                    }
+                } catch(e) {
+                    console.error("Error en el pre-filtro visual, saltando filtro:", e);
                 }
+
+                openAiTasks.push([{
+                    type: "image_url",
+                    image_url: { url: `data:${mimeType};base64,${base64Image}` }
+                }]);
             } else {
                 console.log(`Extensión no soportada ignorada: ${ext}`);
                 archivosSaltados++;
