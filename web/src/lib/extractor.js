@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 import { execSync } from 'child_process';
 import OpenAI from 'openai';
@@ -99,7 +101,7 @@ export async function processFiles(files) {
                 const data = await pdfParse(buffer);
                 const cleanedText = cleanPdfText(data.text);
                 const lines = cleanedText.split('\n');
-                const chunkSize = 50; 
+                const chunkSize = 120; // Increased chunk size to reduce API calls
                 
                 for (let i = 0; i < lines.length; i += chunkSize) {
                     const chunk = lines.slice(i, i + chunkSize).join('\n');
@@ -180,7 +182,7 @@ export async function processFiles(files) {
                                 }
                             }
                         },
-                        max_tokens: 4000,
+                        max_tokens: 16000,
                     });
 
                     let parsedResult = JSON.parse(response.choices[0].message.content);
@@ -191,7 +193,7 @@ export async function processFiles(files) {
                 }
             };
 
-            const allExtractedBatches = await processInBatches(openAiTasks, 5, processChunk);
+            const allExtractedBatches = await processInBatches(openAiTasks, 10, processChunk);
 
             // DB Insertion Transaction
             const insertMany = db.transaction((allPacientes) => {
