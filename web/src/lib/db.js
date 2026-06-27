@@ -26,6 +26,18 @@ db.exec(`
   )
 `);
 
+// Migración: añadir batch_id si no existe
+try {
+    const tableInfo = db.pragma("table_info(pacientes)");
+    const hasBatchId = tableInfo.some(col => col.name === 'batch_id');
+    if (!hasBatchId) {
+        db.exec("ALTER TABLE pacientes ADD COLUMN batch_id TEXT");
+    }
+} catch(e) {
+    console.error("Migration error:", e);
+}
+
+
 // Migrar desde CSV si existe y la DB está vacía
 const row = db.prepare("SELECT COUNT(*) as count FROM pacientes").get();
 if (row.count === 0) {

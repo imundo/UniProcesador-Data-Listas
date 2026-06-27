@@ -13,8 +13,15 @@ export default function Home() {
   const [isFetchingGlobal, setIsFetchingGlobal] = useState(false);
   const [showGlobalPreview, setShowGlobalPreview] = useState(false);
   
+  const [batchPreview, setBatchPreview] = useState(null);
+  const [isFetchingBatch, setIsFetchingBatch] = useState(false);
+  const [showBatchPreview, setShowBatchPreview] = useState(false);
+  
+  const [hospitals, setHospitals] = useState([]);
+
   const [localSearch, setLocalSearch] = useState("");
   const [globalSearch, setGlobalSearch] = useState("");
+  const [batchSearch, setBatchSearch] = useState("");
   
   const fileInputRef = useRef(null);
 
@@ -42,8 +49,33 @@ export default function Home() {
     }
   };
 
+  const fetchHospitals = async () => {
+    try {
+      const res = await fetch("/api/hospitals");
+      const data = await res.json();
+      setHospitals(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchBatchPreview = async (batchId) => {
+    setIsFetchingBatch(true);
+    try {
+      const res = await fetch(`/api/batch?id=${batchId}`);
+      const data = await res.json();
+      setBatchPreview(data);
+      setShowBatchPreview(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsFetchingBatch(false);
+    }
+  };
+
   useEffect(() => {
     fetchHistory();
+    fetchHospitals();
   }, []);
 
   const handleDragOver = (e) => {
@@ -107,6 +139,7 @@ export default function Home() {
       const data = await response.json();
       setStats(data);
       fetchHistory(); // Refresh history
+      fetchHospitals(); // Refresh hospitals
       setFiles([]); // Clear selection
     } catch (error) {
       console.error("Error al procesar", error);
@@ -285,6 +318,27 @@ export default function Home() {
           </div>
         )}
 
+        {/* Hospitals Recognized Section */}
+        {hospitals && hospitals.length > 0 && (
+          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 shadow-xl">
+            <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent mb-4">Centros Médicos Reconocidos</h2>
+            <div className="flex flex-wrap gap-2">
+              {hospitals.map((hospital, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => {
+                    setGlobalSearch(hospital);
+                    fetchGlobalPreview();
+                  }}
+                  className="px-3 py-1.5 bg-white/5 hover:bg-blue-500/20 border border-white/10 hover:border-blue-500/50 rounded-full text-sm text-neutral-300 hover:text-white transition-all backdrop-blur-sm"
+                >
+                  {hospital}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* History Table */}
         <div className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden mt-4 shadow-xl">
           <div className="p-6 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-sm">
@@ -304,6 +358,7 @@ export default function Home() {
                     <th className="px-6 py-4">Archivos Subidos</th>
                     <th className="px-6 py-4">Nuevos Pacientes</th>
                     <th className="px-6 py-4">Duplicados Omitidos</th>
+                    <th className="px-6 py-4 text-right">Preview</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60">
@@ -322,6 +377,11 @@ export default function Home() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-orange-400 font-medium px-2 py-1 bg-orange-500/10 rounded-md">{item.duplicatesIgnored}</span> / <span className="text-blue-400 px-2 py-1 bg-blue-500/10 rounded-md" title="Archivos saltados por Hash MD5">{item.filesSkippedByHash} hashes</span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => fetchBatchPreview(item.id)} className="p-2 bg-neutral-800 hover:bg-blue-600 rounded-full text-neutral-400 hover:text-white transition-colors shadow-sm" title="Ver registros de esta carga">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -384,6 +444,67 @@ export default function Home() {
                       <tr key={idx} className="hover:bg-white/5 transition-colors">
                         <td className="px-6 py-3 font-medium text-white">{p.nombre} {p.apellido}</td>
                         <td className="px-6 py-3 font-mono text-blue-300">{p.cedula || '-'}</td>
+                        <td className="px-6 py-3 opacity-80">{p.centro}</td>
+                        <td className="px-6 py-3 opacity-80">{p.edad_sector}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      {/* Batch Preview Modal */}
+      {showBatchPreview && batchPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-neutral-900/90 border border-neutral-700 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 backdrop-blur-xl">
+            <div className="p-6 border-b border-neutral-700 flex justify-between items-center bg-neutral-900/90 backdrop-blur-md">
+              <div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-400 to-green-400 bg-clip-text text-transparent">Preview de Carga</h2>
+                <p className="text-sm text-neutral-400 mt-1">Mostrando los {batchPreview.totalNuevos} registros de este lote.</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input 
+                    type="text" 
+                    placeholder="Filtrar pacientes..." 
+                    className="bg-black/50 border border-neutral-700 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-green-500 placeholder-neutral-500 w-64 transition-colors"
+                    value={batchSearch}
+                    onChange={(e) => setBatchSearch(e.target.value)}
+                  />
+                </div>
+                <button 
+                  onClick={() => setShowBatchPreview(false)}
+                  className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-full transition-colors text-neutral-400 hover:text-white"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
+              {batchPreview.nuevosPacientes.length === 0 ? (
+                <div className="p-12 text-center text-neutral-500">No se extrajeron pacientes en este lote.</div>
+              ) : (
+                <table className="w-full text-left text-sm text-neutral-300">
+                  <thead className="bg-neutral-950/80 text-neutral-400 uppercase text-xs font-semibold sticky top-0 backdrop-blur-md shadow-sm z-10">
+                    <tr>
+                      <th className="px-6 py-4">Nombre Completo</th>
+                      <th className="px-6 py-4">Cédula</th>
+                      <th className="px-6 py-4">Centro Médico</th>
+                      <th className="px-6 py-4">Edad / Sector</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800/60">
+                    {batchPreview.nuevosPacientes.filter(p => 
+                        `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(batchSearch.toLowerCase())
+                    ).map((p, idx) => (
+                      <tr key={idx} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-3 font-medium text-white">{p.nombre} {p.apellido}</td>
+                        <td className="px-6 py-3 font-mono text-green-300">{p.cedula || '-'}</td>
                         <td className="px-6 py-3 opacity-80">{p.centro}</td>
                         <td className="px-6 py-3 opacity-80">{p.edad_sector}</td>
                       </tr>

@@ -39,7 +39,6 @@ export async function processFiles(files) {
         apiKey: process.env.OPENAI_API_KEY
     });
 
-    // Crear carpetas necesarias
     const tempDir = path.join(process.cwd(), 'temp_processing');
     const dataDir = path.join(process.cwd(), 'data');
     const processedFilesPath = path.join(dataDir, 'procesados.json');
@@ -72,11 +71,12 @@ export async function processFiles(files) {
         if (nn) existingNombres.add(`${nn}|${na}`);
     }
 
-    const insertPaciente = db.prepare('INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector) VALUES (?, ?, ?, ?, ?)');
+    const insertPaciente = db.prepare('INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector, batch_id) VALUES (?, ?, ?, ?, ?, ?)');
+    
+    const batchId = Date.now().toString(); // Use timestamp as batch_id
 
     for (const file of files) {
         try {
-            // Guardar temporalmente el archivo subido
             const buffer = Buffer.from(await file.arrayBuffer());
             const ext = path.extname(file.name).toLowerCase();
             const filePath = path.join(tempDir, `${Date.now()}_${file.name}`);
@@ -91,114 +91,126 @@ export async function processFiles(files) {
                 continue;
             }
 
-            let contentMessages = [{ type: "text", text: PROMPT }];
-            let filesToProcess = [];
+            let openAiTasks = []; // Array of message arrays
 
             if (ext === '.pdf') {
                 const data = await pdfParse(buffer);
-                contentMessages.push({
-                    type: "text",
-                    text: `Aquí tienes el contenido del PDF:\n\n${data.text}`
-                });
-            } else if (ext === '.mp4') {
-                const frameBaseName = `frame_${Date.now()}`;
-                const outputPathPattern = path.join(tempDir, `${frameBaseName}_%d.jpg`);
-                try {
-                    const ffmpegCmd = process.platform === 'win32' ? '..\\ffmpeg.exe' : 'ffmpeg';
-                    execSync(`${ffmpegCmd} -i "${filePath}" -vf "fps=1" -vframes 3 "${outputPathPattern}" -y`, { stdio: 'pipe' });
-                    for (let i = 1; i <= 3; i++) {
-                        const framePath = path.join(tempDir, `${frameBaseName}_${i}.jpg`);
-                        if (fs.existsSync(framePath)) filesToProcess.push(framePath);
+                const lines = data.text.split('\n');
+                const chunkSize = 150; // Process 150 lines at a time
+                
+                for (let i = 0; i < lines.length; i += chunkSize) {
+                    const chunk = lines.slice(i, i + chunkSize).join('\n');
+                    if (chunk.trim().length > 0) {
+                        openAiTasks.push([{
+                            type: "text",
+                            text: `Aquí tienes una parte del contenido del PDF:\n\n${chunk}`
+                        }]);
                     }
-                } catch (e) {
-                    console.error("Error ffmpeg:", e.message);
                 }
             } else {
-                filesToProcess = [filePath];
-            }
+                let filesToProcess = [];
+                if (ext === '.mp4') {
+                    const frameBaseName = `frame_${Date.now()}`;
+                    const outputPathPattern = path.join(tempDir, `${frameBaseName}_%d.jpg`);
+                    try {
+                        const ffmpegCmd = process.platform === 'win32' ? '..\\ffmpeg.exe' : 'ffmpeg';
+                        execSync(`${ffmpegCmd} -i "${filePath}" -vf "fps=1" -vframes 3 "${outputPathPattern}" -y`, { stdio: 'pipe' });
+                        for (let i = 1; i <= 3; i++) {
+                            const framePath = path.join(tempDir, `${frameBaseName}_${i}.jpg`);
+                            if (fs.existsSync(framePath)) filesToProcess.push(framePath);
+                        }
+                    } catch (e) {
+                        console.error("Error ffmpeg:", e.message);
+                    }
+                } else {
+                    filesToProcess = [filePath];
+                }
 
-            if (ext !== '.pdf') {
+                let imageMessages = [];
                 for (const frameFile of filesToProcess) {
                     let mimeType = frameFile.endsWith('.png') ? 'image/png' : 'image/jpeg';
                     const base64Image = fs.readFileSync(frameFile).toString('base64');
-                    contentMessages.push({
+                    imageMessages.push({
                         type: "image_url",
                         image_url: { url: `data:${mimeType};base64,${base64Image}` }
                     });
                 }
+                
+                if (imageMessages.length > 0) {
+                    openAiTasks.push(imageMessages);
+                }
             }
 
-            if (contentMessages.length > 1) { 
-                const response = await openai.chat.completions.create({
-                    model: MODEL,
-                    messages: [{ role: "user", content: contentMessages }],
-                    response_format: { type: "json_object" },
-                    max_tokens: 4000,
-                });
-
-                let textResult = response.choices[0].message.content;
-                // Strip markdown in case the AI wraps it despite json_object
-                textResult = textResult.replace(/```json/gi, '').replace(/```/g, '').trim();
+            // Process all tasks for this file
+            for (const taskMessages of openAiTasks) {
+                const finalMessages = [{ type: "text", text: PROMPT }, ...taskMessages];
                 
-                let parsedResult;
                 try {
-                    parsedResult = JSON.parse(textResult);
-                } catch(e) {
-                    console.error("Error parsing JSON de OpenAI:", e);
-                    continue;
-                }
-
-                if (parsedResult && Array.isArray(parsedResult.pacientes)) {
-                    // Transacción para optimizar inserts masivos
-                    const insertMany = db.transaction((pacientes) => {
-                        for (const paciente of pacientes) {
-                            const { nombre, apellido, cedula, centro, edad_sector } = paciente;
-                            
-                            const safeN = (nombre || "N/D").trim();
-                            const safeA = (apellido || "N/D").trim();
-                            const safeC = (cedula || "N/D").replace(/\D/g, ''); // Solo números en cédula
-                            const safeCen = (centro || "N/D").trim();
-                            const safeE = (edad_sector || "N/D").trim();
-                            
-                            if (safeN === "N/D" && safeC === "" && safeA === "N/D") continue; // Completamente Inválido
-
-                            const normN = normalizeText(safeN);
-                            const normA = normalizeText(safeA);
-                            const normC = safeC ? normalizeText(safeC) : "";
-
-                            let isDuplicate = false;
-                            
-                            if (normC && normC !== "") {
-                                isDuplicate = existingCedulas.has(normC);
-                            } else if (normN) {
-                                isDuplicate = existingNombres.has(`${normN}|${normA}`);
-                            }
-
-                            if (!isDuplicate) {
-                                insertPaciente.run(safeN, safeA, safeC || "N/D", safeCen, safeE);
-                                totalNuevos++;
-                                
-                                if (normC && normC !== "") existingCedulas.add(normC);
-                                if (normN) existingNombres.add(`${normN}|${normA}`);
-                                
-                                pacientesExtraidos.push({
-                                    nombre: safeN,
-                                    apellido: safeA,
-                                    cedula: safeC || "N/D",
-                                    centro: safeCen,
-                                    edad_sector: safeE
-                                });
-                            } else {
-                                totalDuplicados++;
-                            }
-                        }
+                    const response = await openai.chat.completions.create({
+                        model: MODEL,
+                        messages: [{ role: "user", content: finalMessages }],
+                        response_format: { type: "json_object" },
+                        max_tokens: 4000,
                     });
 
-                    insertMany(parsedResult.pacientes);
-                }
+                    let textResult = response.choices[0].message.content;
+                    textResult = textResult.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    
+                    let parsedResult = JSON.parse(textResult);
 
-                processedFiles[fileHash] = true;
+                    if (parsedResult && Array.isArray(parsedResult.pacientes)) {
+                        const insertMany = db.transaction((pacientes) => {
+                            for (const paciente of pacientes) {
+                                const { nombre, apellido, cedula, centro, edad_sector } = paciente;
+                                
+                                const safeN = (nombre || "N/D").trim();
+                                const safeA = (apellido || "N/D").trim();
+                                const safeC = (cedula || "N/D").replace(/\D/g, ''); 
+                                const safeCen = (centro || "N/D").trim();
+                                const safeE = (edad_sector || "N/D").trim();
+                                
+                                if (safeN === "N/D" && safeC === "" && safeA === "N/D") continue;
+
+                                const normN = normalizeText(safeN);
+                                const normA = normalizeText(safeA);
+                                const normC = safeC ? normalizeText(safeC) : "";
+
+                                let isDuplicate = false;
+                                
+                                if (normC && normC !== "") {
+                                    isDuplicate = existingCedulas.has(normC);
+                                } else if (normN) {
+                                    isDuplicate = existingNombres.has(`${normN}|${normA}`);
+                                }
+
+                                if (!isDuplicate) {
+                                    insertPaciente.run(safeN, safeA, safeC || "N/D", safeCen, safeE, batchId);
+                                    totalNuevos++;
+                                    
+                                    if (normC && normC !== "") existingCedulas.add(normC);
+                                    if (normN) existingNombres.add(`${normN}|${normA}`);
+                                    
+                                    pacientesExtraidos.push({
+                                        nombre: safeN,
+                                        apellido: safeA,
+                                        cedula: safeC || "N/D",
+                                        centro: safeCen,
+                                        edad_sector: safeE
+                                    });
+                                } else {
+                                    totalDuplicados++;
+                                }
+                            }
+                        });
+
+                        insertMany(parsedResult.pacientes);
+                    }
+                } catch(e) {
+                    console.error("Error processing chunk with OpenAI:", e);
+                }
             }
+
+            processedFiles[fileHash] = true;
         } catch (error) {
             console.error(`Error procesando archivo ${file.name}:`, error);
         }
@@ -211,7 +223,7 @@ export async function processFiles(files) {
         history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
     }
     history.unshift({
-        id: Date.now(),
+        id: batchId,
         date: new Date().toISOString(),
         filesUploaded: files.length,
         newPatients: totalNuevos,
