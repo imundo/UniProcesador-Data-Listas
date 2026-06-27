@@ -744,6 +744,7 @@ export default function Home() {
                     <thead className="bg-neutral-950/90 text-neutral-400 uppercase font-semibold sticky top-0 backdrop-blur-md z-10 shadow-sm">
                       <tr>
                         <th className="px-4 py-3">Nombre</th>
+                        <th className="px-4 py-3">Apellido</th>
                         <th className="px-4 py-3">Cédula</th>
                         <th className="px-4 py-3">Centro</th>
                         <th className="px-4 py-3">Edad/Sector</th>
@@ -758,6 +759,14 @@ export default function Home() {
                               value={p.nombre || ''}
                               onChange={(e) => handleEditPaciente(p._id, 'nombre', e.target.value)}
                               placeholder="Nombre"
+                            />
+                          </td>
+                          <td className="px-2 py-1">
+                            <input 
+                              className="bg-transparent border border-transparent focus:border-green-500/50 hover:border-neutral-700 rounded outline-none w-full text-white font-medium transition-colors px-2 py-1"
+                              value={p.apellido || ''}
+                              onChange={(e) => handleEditPaciente(p._id, 'apellido', e.target.value)}
+                              placeholder="Apellido"
                             />
                           </td>
                           <td className="px-2 py-1">
