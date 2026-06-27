@@ -1,0 +1,240 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+
+export default function Home() {
+  const [files, setFiles] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [stats, setStats] = useState(null);
+  
+  const fileInputRef = useRef(null);
+
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch("/api/history");
+      const data = await res.json();
+      setHistory(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFiles(Array.from(e.target.files));
+    }
+  };
+
+  const processFiles = async () => {
+    if (files.length === 0) return;
+    setIsProcessing(true);
+    setStats(null);
+    
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append("files", file);
+    });
+
+    try {
+      const response = await fetch("/api/process", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      setStats(data);
+      fetchHistory(); // Refresh history
+      setFiles([]); // Clear selection
+    } catch (error) {
+      console.error("Error al procesar", error);
+      alert("Hubo un error procesando los archivos.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-white font-sans p-8 flex flex-col items-center">
+      <div className="w-full max-w-4xl flex flex-col gap-8">
+        
+        {/* Header */}
+        <header className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-2xl mb-2">
+            <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight">Unificador Data Listas</h1>
+          <p className="text-neutral-400 max-w-2xl mx-auto">
+            Sube tus imágenes, videos y PDFs médicos. Nuestra IA extraerá automáticamente la información y la consolidará en una sola base de datos unificada sin duplicados.
+          </p>
+        </header>
+
+        {/* Action Center (Drag & Drop + Download) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Upload Card */}
+          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            
+            <div 
+              className={`relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-colors
+                ${isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-neutral-700 hover:border-neutral-500'}
+                ${isProcessing ? 'opacity-50 pointer-events-none' : ''}
+              `}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".jpg,.jpeg,.png,.mp4,.pdf" />
+              
+              <svg className={`w-12 h-12 mb-4 transition-colors ${isDragging ? 'text-blue-400' : 'text-neutral-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <h3 className="font-medium text-lg mb-1">Subir Archivos</h3>
+              <p className="text-sm text-neutral-400">Arrastra archivos aquí o haz clic para explorar</p>
+              <p className="text-xs text-neutral-500 mt-2">Soporta JPG, PNG, MP4 y PDF (Max 10MB c/u)</p>
+            </div>
+
+            {files.length > 0 && (
+              <div className="mt-4 flex flex-col gap-3 relative z-10">
+                <div className="text-sm text-neutral-300 font-medium">{files.length} archivos seleccionados</div>
+                <button 
+                  onClick={processFiles}
+                  disabled={isProcessing}
+                  className="w-full py-3 px-4 bg-white text-black font-semibold rounded-xl hover:bg-neutral-200 transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                  {isProcessing ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Procesando con IA...
+                    </>
+                  ) : "Procesar Archivos"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Database Info Card */}
+          <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/20 border border-blue-500/20 rounded-3xl p-6 flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-4 border border-blue-500/30">
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Base de Datos Global</h2>
+              <p className="text-blue-200/60 text-sm">
+                La plantilla CSV unificada sigue creciendo. Todos los datos están deduplicados y limpios.
+              </p>
+            </div>
+            
+            <a 
+              href="/api/download"
+              className="mt-6 w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] flex items-center justify-center gap-3"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Descargar CSV Global
+            </a>
+          </div>
+        </div>
+
+        {/* Stats Notification */}
+        {stats && (
+          <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-2xl flex items-start gap-4 animate-in slide-in-from-bottom-4 fade-in">
+            <div className="mt-1">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-semibold text-green-300">¡Proceso Completado Exitosamente!</h4>
+              <p className="text-sm mt-1 opacity-90">Se añadieron <b>{stats.totalNuevos}</b> pacientes nuevos al CSV.</p>
+              {(stats.totalDuplicados > 0 || stats.archivosSaltados > 0) && (
+                <p className="text-xs mt-2 opacity-70">
+                  Protección activa: {stats.totalDuplicados} duplicados ignorados en base de datos. {stats.archivosSaltados} archivos omitidos por MD5 Hash para ahorrar tokens.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* History Table */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden mt-4">
+          <div className="p-6 border-b border-neutral-800">
+            <h2 className="text-xl font-bold">Histórico de Procesamiento</h2>
+          </div>
+          
+          <div className="overflow-x-auto">
+            {history.length === 0 ? (
+              <div className="p-8 text-center text-neutral-500">
+                No hay historial de procesamientos aún.
+              </div>
+            ) : (
+              <table className="w-full text-left text-sm text-neutral-400">
+                <thead className="bg-neutral-950/50 text-neutral-300 uppercase text-xs font-semibold">
+                  <tr>
+                    <th className="px-6 py-4">Fecha y Hora</th>
+                    <th className="px-6 py-4">Archivos Subidos</th>
+                    <th className="px-6 py-4">Nuevos Pacientes</th>
+                    <th className="px-6 py-4">Duplicados Omitidos</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-800">
+                  {history.map((item) => (
+                    <tr key={item.id} className="hover:bg-neutral-800/50 transition-colors">
+                      <td className="px-6 py-4 text-neutral-200">
+                        {new Date(item.date).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-800 text-xs font-medium">
+                          {item.filesUploaded} archivo(s)
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-green-400 font-medium">+{item.newPatients}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-orange-400">{item.duplicatesIgnored}</span> / <span className="text-blue-400" title="Archivos saltados por Hash MD5">{item.filesSkippedByHash} hashes</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
