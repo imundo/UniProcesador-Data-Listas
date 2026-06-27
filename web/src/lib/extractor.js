@@ -79,9 +79,9 @@ export async function processFiles(files) {
     let totalDuplicados = 0;
     let archivosSaltados = 0;
 
-    const existingRecords = db.prepare('SELECT cedula, nombre, apellido FROM pacientes').all();
+    const existingRecords = db.prepare('SELECT cedula, nombre, apellido, centro FROM pacientes').all();
     const existingCedulas = new Set();
-    const existingNombres = new Set();
+    const existingNombresYCentros = new Set();
     
     for (const rec of existingRecords) {
         const nc = normalizeText(rec.cedula);
@@ -89,7 +89,8 @@ export async function processFiles(files) {
         
         const nn = normalizeText(rec.nombre);
         const na = normalizeText(rec.apellido);
-        if (nn) existingNombres.add(`${nn}|${na}`);
+        const ncen = normalizeText(rec.centro);
+        if (nn) existingNombresYCentros.add(`${nn}|${na}|${ncen}`);
     }
 
     const insertPaciente = db.prepare('INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector, batch_id) VALUES (?, ?, ?, ?, ?, ?)');
@@ -281,12 +282,14 @@ export async function processFiles(files) {
                     const normA = normalizeText(safeA);
                     const normC = safeC ? normalizeText(safeC) : "";
 
+                    const normCen = safeCen ? normalizeText(safeCen) : "";
+
                     let isDuplicate = false;
                     
                     if (normC && normC !== "") {
                         isDuplicate = existingCedulas.has(normC);
                     } else if (normN) {
-                        isDuplicate = existingNombres.has(`${normN}|${normA}`);
+                        isDuplicate = existingNombresYCentros.has(`${normN}|${normA}|${normCen}`);
                     }
 
                     if (!isDuplicate) {
@@ -294,7 +297,7 @@ export async function processFiles(files) {
                         
                         // Guardar en el set TEMPORAL en memoria para no duplicarlos dentro del mismo lote
                         if (normC && normC !== "") existingCedulas.add(normC);
-                        if (normN) existingNombres.add(`${normN}|${normA}`);
+                        if (normN) existingNombresYCentros.add(`${normN}|${normA}|${normCen}`);
                         
                         pacientesExtraidos.push({
                             nombre: safeN,
