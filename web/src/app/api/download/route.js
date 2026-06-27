@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db.js';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const pacientes = db.prepare('SELECT nombre, apellido, cedula, centro, edad_sector FROM pacientes ORDER BY id ASC').all();

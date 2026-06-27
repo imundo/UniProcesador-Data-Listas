@@ -9,7 +9,7 @@ if (!fs.existsSync(dataDir)) {
 }
 
 const dbPath = path.join(dataDir, 'pacientes.db');
-const db = new Database(dbPath);
+const db = new Database(dbPath, { timeout: 8000 });
 
 db.pragma('journal_mode = WAL'); // Mejor rendimiento y concurrencia
 

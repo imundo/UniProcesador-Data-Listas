@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db.js';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const row = db.prepare("SELECT COUNT(*) as count FROM pacientes").get();
