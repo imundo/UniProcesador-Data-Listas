@@ -112,24 +112,8 @@ export async function processFiles(files) {
                         }]);
                     }
                 }
-            } else {
-                let filesToProcess = [];
-                if (ext === '.mp4') {
-                    const frameBaseName = `frame_${Date.now()}`;
-                    const outputPathPattern = path.join(tempDir, `${frameBaseName}_%d.jpg`);
-                    try {
-                        const ffmpegCmd = process.platform === 'win32' ? '..\\ffmpeg.exe' : 'ffmpeg';
-                        execSync(`${ffmpegCmd} -i "${filePath}" -vf "fps=1" -vframes 3 "${outputPathPattern}" -y`, { stdio: 'pipe' });
-                        for (let i = 1; i <= 3; i++) {
-                            const framePath = path.join(tempDir, `${frameBaseName}_${i}.jpg`);
-                            if (fs.existsSync(framePath)) filesToProcess.push(framePath);
-                        }
-                    } catch (e) {
-                        console.error("Error ffmpeg:", e.message);
-                    }
-                } else {
-                    filesToProcess = [filePath];
-                }
+            } else if (['.jpg', '.jpeg', '.png'].includes(ext)) {
+                let filesToProcess = [filePath];
 
                 let imageMessages = [];
                 for (const frameFile of filesToProcess) {
@@ -144,6 +128,10 @@ export async function processFiles(files) {
                 if (imageMessages.length > 0) {
                     openAiTasks.push(imageMessages);
                 }
+            } else {
+                console.log(`Extensión no soportada ignorada: ${ext}`);
+                archivosSaltados++;
+                continue;
             }
 
             // Concurrent API Processing (Batches of 5)

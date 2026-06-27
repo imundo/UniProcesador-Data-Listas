@@ -119,6 +119,17 @@ export default function Home() {
         alert(`El archivo ${file.name} supera el límite de 2MB.`);
         return false;
       }
+      
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      // Also check extension as fallback for some OS
+      const ext = file.name.toLowerCase().slice((file.name.lastIndexOf(".") - 1 >>> 0) + 2);
+      const validExts = ['jpg', 'jpeg', 'png', 'pdf'];
+      
+      if (!validTypes.includes(file.type) && !validExts.includes(ext)) {
+        alert(`El archivo ${file.name} no es válido. Solo se permiten PDF e Imágenes (JPG, PNG). Videos y otros formatos fueron deshabilitados por estabilidad y costo.`);
+        return false;
+      }
+      
       return true;
     });
 
@@ -277,14 +288,14 @@ export default function Home() {
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
             >
-              <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".jpg,.jpeg,.png,.mp4,.pdf" />
+              <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".jpg,.jpeg,.png,.pdf" />
               
               <svg className={`w-12 h-12 mb-4 transition-colors ${isDragging ? 'text-blue-400' : 'text-neutral-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               <h3 className="font-medium text-lg mb-1">Subir Archivos</h3>
               <p className="text-sm text-neutral-400">Arrastra archivos aquí o haz clic para explorar</p>
-              <p className="text-xs text-neutral-500 mt-2">Max 5 archivos a la vez. Soporta JPG, PNG, MP4 y PDF (Max 2MB c/u)</p>
+              <p className="text-xs text-neutral-500 mt-2">Max 5 archivos a la vez. Soporta JPG, PNG y PDF (Max 2MB c/u)</p>
             </div>
 
             {files.length > 0 && (
