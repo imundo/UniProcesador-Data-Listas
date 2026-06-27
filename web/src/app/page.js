@@ -308,6 +308,11 @@ export default function Home() {
 
   const historyCurrent = history.slice((historyPage - 1) * historyItemsPerPage, historyPage * historyItemsPerPage);
 
+  // Dashboard Metrics
+  const totalPacientesLeidos = history.reduce((acc, curr) => acc + (curr.newPatients || 0), 0);
+  const totalOmitidos = history.reduce((acc, curr) => acc + (curr.duplicatesIgnored || 0) + (curr.filesSkippedByHash || 0), 0);
+  const totalCentros = hospitals.length;
+
   return (
     <div 
       className="min-h-screen text-white font-sans flex flex-col items-center relative"
@@ -329,6 +334,41 @@ export default function Home() {
             Sube tus imágenes, videos y PDFs médicos. Nuestra IA extraerá automáticamente la información y la consolidará en una sola base de datos unificada sin duplicados. Con formato para ser subidos a portales como <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">https://hospitalesenvenezuela.com/</a>
           </p>
         </header>
+
+        {/* Dashboard Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+          <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
+            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl mb-3 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Pacientes Leídos</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">{totalPacientesLeidos.toLocaleString()}</p>
+          </div>
+
+          <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
+            <div className="p-2 bg-blue-500/10 text-blue-400 rounded-xl mb-3 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </div>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Sincronizados</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{totalPacientesLeidos.toLocaleString()}</p>
+          </div>
+
+          <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
+            <div className="p-2 bg-purple-500/10 text-purple-400 rounded-xl mb-3 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            </div>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Centros Únicos</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{totalCentros.toLocaleString()}</p>
+          </div>
+
+          <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
+            <div className="p-2 bg-red-500/10 text-red-400 rounded-xl mb-3 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </div>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Datos Omitidos</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">{totalOmitidos.toLocaleString()}</p>
+          </div>
+        </div>
 
         {/* Action Center (Drag & Drop + Download) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
