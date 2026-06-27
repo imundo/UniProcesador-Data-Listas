@@ -143,29 +143,9 @@ export async function processFiles(files) {
                 let mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
                 const base64Image = fs.readFileSync(filePath).toString('base64');
                 
-                // Pre-Filtro Visual Ultra-Ligero (detail: low)
-                try {
-                    const filterResponse = await openai.chat.completions.create({
-                        model: "gpt-4o-mini",
-                        messages: [
-                            { role: "system", content: "Responde estrictamente SI o NO." },
-                            { role: "user", content: [
-                                { type: "text", text: "¿Esta imagen parece contener una lista de personas, datos, tablas o registros?" },
-                                { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "low" } }
-                            ]}
-                        ],
-                        max_tokens: 10
-                    });
-                    
-                    const isRelevant = filterResponse.choices[0].message.content.trim().toUpperCase();
-                    if (!isRelevant.includes("SI")) {
-                        console.log(`Imagen descartada por el pre-filtro visual (Basura/Selfie): ${file.name}`);
-                        archivosSaltados++;
-                        continue;
-                    }
-                } catch(e) {
-                    console.error("Error en el pre-filtro visual, saltando filtro:", e);
-                }
+                // Se removió el pre-filtro visual porque en baja resolución "detail: low" 
+                // la IA no podía leer letras borrosas y descartaba imágenes válidas.
+                // Todas las imágenes pasan directo al modelo de extracción de alto detalle.
 
                 openAiTasks.push([{
                     type: "image_url",
