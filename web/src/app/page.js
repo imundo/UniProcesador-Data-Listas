@@ -414,9 +414,9 @@ export default function Home() {
           <div className="inline-flex items-center justify-center p-2 bg-transparent rounded-2xl mb-2">
             <img src="https://flagcdn.com/w80/ve.png" alt="Bandera de Venezuela" className="w-12 drop-shadow-md rounded-[4px]" />
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Unificar listas para hospitales y personas.</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Unificar listas para hospitales y personas</h1>
           <p className="text-neutral-400 max-w-2xl mx-auto">
-            Sube tus imágenes, videos y PDFs de Lista de pacientes o personas. Nuestra IA extraerá automáticamente la información y la consolidará en una sola base de datos unificada sin duplicados. Con formato para ser subidos a portales como <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">https://hospitalesenvenezuela.com/</a>
+            Sube tus imágenes, videos y PDFs de listas de pacientes. Nuestra IA extraerá automáticamente la información y la consolidará en una sola base de datos unificada sin duplicados. Con formato para ser subidos a portales como <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">https://hospitalesenvenezuela.com/</a>
           </p>
         </header>
 
@@ -611,19 +611,19 @@ export default function Home() {
               <button
                 onClick={fetchGlobalPreview}
                 disabled={isFetchingGlobal}
-                className="w-full py-4 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 font-semibold rounded-xl transition-all flex items-center justify-center gap-3 backdrop-blur-md"
+                className="w-full py-4 px-4 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 font-semibold rounded-xl transition-all flex items-center justify-center gap-3 backdrop-blur-md"
               >
-                {isFetchingGlobal ? "Cargando..." : "Ver Lista Completa de Personas"}
+                {isFetchingGlobal ? "Cargando..." : "Ver Listas Completas de Personas"}
               </button>
 
               <a
                 href="/api/download"
-                className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] flex items-center justify-center gap-3"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] flex items-center justify-center gap-3"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Descargar CSV Lista Completa de Personas
+                <span className="text-center leading-tight">Descargar CSV Listas Completas de Personas</span>
               </a>
 
               <button
