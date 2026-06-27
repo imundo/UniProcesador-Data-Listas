@@ -5,7 +5,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const rows = db.prepare("SELECT DISTINCT centro FROM pacientes WHERE centro IS NOT NULL AND centro != '' AND centro != 'N/D' ORDER BY centro ASC").all();
+        const rows = db.prepare(`
+            SELECT centro 
+            FROM pacientes 
+            WHERE centro IS NOT NULL AND centro != '' AND centro != 'N/D' 
+            GROUP BY centro 
+            HAVING COUNT(*) >= 100 
+            ORDER BY COUNT(*) DESC, centro ASC
+        `).all();
         const hospitals = rows.map(r => r.centro);
         return NextResponse.json(hospitals);
     } catch (error) {
