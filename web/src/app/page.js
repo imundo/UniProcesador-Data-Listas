@@ -845,7 +845,7 @@ export default function Home() {
                   <tr>
                     <th className="px-6 py-4">Fecha y Hora</th>
                     <th className="px-6 py-4">Archivos Subidos</th>
-                    <th className="px-6 py-4">Nuevos Pacientes</th>
+                    <th className="px-6 py-4">Nuevas Personas</th>
                     <th className="px-6 py-4">Duplicados Omitidos</th>
                     <th className="px-6 py-4 text-right">Preview</th>
                   </tr>
