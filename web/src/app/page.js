@@ -13,6 +13,9 @@ export default function Home() {
   const [isFetchingGlobal, setIsFetchingGlobal] = useState(false);
   const [showGlobalPreview, setShowGlobalPreview] = useState(false);
   
+  const [localSearch, setLocalSearch] = useState("");
+  const [globalSearch, setGlobalSearch] = useState("");
+  
   const fileInputRef = useRef(null);
 
   const fetchGlobalPreview = async () => {
@@ -95,8 +98,13 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white font-sans p-8 flex flex-col items-center">
-      <div className="w-full max-w-4xl flex flex-col gap-8">
+    <div 
+      className="min-h-screen text-white font-sans flex flex-col items-center relative"
+      style={{ backgroundImage: "url('/venezuela-bg.png')", backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center' }}
+    >
+      <div className="absolute inset-0 bg-neutral-950/85 backdrop-blur-[2px] z-0" />
+      
+      <div className="w-full max-w-4xl flex flex-col gap-8 p-8 relative z-10">
         
         {/* Header */}
         <header className="text-center space-y-4">
@@ -218,13 +226,20 @@ export default function Home() {
 
             {/* Preview Subida */}
             {stats.nuevosPacientes && stats.nuevosPacientes.length > 0 && (
-              <div className="mt-2 bg-neutral-950/40 rounded-2xl border border-green-500/20 overflow-hidden">
-                <div className="px-4 py-3 border-b border-green-500/20 bg-green-500/5">
+              <div className="mt-2 bg-neutral-950/60 rounded-2xl border border-green-500/30 overflow-hidden backdrop-blur-md">
+                <div className="px-4 py-3 border-b border-green-500/30 bg-green-500/10 flex justify-between items-center gap-4">
                   <h5 className="text-sm font-semibold text-green-300">Vista Previa de Nuevos Ingresos</h5>
+                  <input 
+                    type="text" 
+                    placeholder="Buscar..." 
+                    className="bg-black/40 border border-green-500/30 rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-green-400 placeholder-neutral-500 w-40"
+                    value={localSearch}
+                    onChange={(e) => setLocalSearch(e.target.value)}
+                  />
                 </div>
                 <div className="overflow-x-auto max-h-60 overflow-y-auto custom-scrollbar">
                   <table className="w-full text-left text-xs text-neutral-300">
-                    <thead className="bg-neutral-900/50 text-neutral-400 uppercase font-semibold sticky top-0 backdrop-blur-md">
+                    <thead className="bg-neutral-950/90 text-neutral-400 uppercase font-semibold sticky top-0 backdrop-blur-md z-10 shadow-sm">
                       <tr>
                         <th className="px-4 py-3">Nombre</th>
                         <th className="px-4 py-3">Cédula</th>
@@ -233,7 +248,9 @@ export default function Home() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-800/50">
-                      {stats.nuevosPacientes.map((p, idx) => (
+                      {stats.nuevosPacientes.filter(p => 
+                        `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(localSearch.toLowerCase())
+                      ).map((p, idx) => (
                         <tr key={idx} className="hover:bg-white/5 transition-colors">
                           <td className="px-4 py-2 font-medium text-white">{p.nombre} {p.apellido}</td>
                           <td className="px-4 py-2 font-mono text-green-200">{p.cedula || 'N/A'}</td>
@@ -300,18 +317,32 @@ export default function Home() {
       {/* Global Preview Modal */}
       {showGlobalPreview && globalPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-700 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95">
-            <div className="p-6 border-b border-neutral-800 flex justify-between items-center bg-neutral-900/90 backdrop-blur-md">
+          <div className="bg-neutral-900/90 border border-neutral-700 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 backdrop-blur-xl">
+            <div className="p-6 border-b border-neutral-700 flex justify-between items-center bg-neutral-900/90 backdrop-blur-md">
               <div>
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Base de Datos Global</h2>
                 <p className="text-sm text-neutral-400 mt-1">Mostrando los últimos {globalPreview.showing} de {globalPreview.total} registros totales.</p>
               </div>
-              <button 
-                onClick={() => setShowGlobalPreview(false)}
-                className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-full transition-colors text-neutral-400 hover:text-white"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input 
+                    type="text" 
+                    placeholder="Filtrar base de datos..." 
+                    className="bg-black/50 border border-neutral-700 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 placeholder-neutral-500 w-64 transition-colors"
+                    value={globalSearch}
+                    onChange={(e) => setGlobalSearch(e.target.value)}
+                  />
+                </div>
+                <button 
+                  onClick={() => setShowGlobalPreview(false)}
+                  className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-full transition-colors text-neutral-400 hover:text-white"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
             </div>
             
             <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
@@ -319,7 +350,7 @@ export default function Home() {
                 <div className="p-12 text-center text-neutral-500">La base de datos está vacía.</div>
               ) : (
                 <table className="w-full text-left text-sm text-neutral-300">
-                  <thead className="bg-neutral-950/80 text-neutral-400 uppercase text-xs font-semibold sticky top-0 backdrop-blur-md shadow-sm">
+                  <thead className="bg-neutral-950/80 text-neutral-400 uppercase text-xs font-semibold sticky top-0 backdrop-blur-md shadow-sm z-10">
                     <tr>
                       <th className="px-6 py-4">Nombre Completo</th>
                       <th className="px-6 py-4">Cédula</th>
@@ -328,7 +359,9 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-800/60">
-                    {globalPreview.pacientes.map((p, idx) => (
+                    {globalPreview.pacientes.filter(p => 
+                        `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(globalSearch.toLowerCase())
+                    ).map((p, idx) => (
                       <tr key={idx} className="hover:bg-white/5 transition-colors">
                         <td className="px-6 py-3 font-medium text-white">{p.nombre} {p.apellido}</td>
                         <td className="px-6 py-3 font-mono text-blue-300">{p.cedula || '-'}</td>

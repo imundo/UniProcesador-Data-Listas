@@ -1,25 +1,33 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import db from '../../../../lib/db.js';
 
 export async function GET() {
-    const dataDir = path.join(process.cwd(), 'data');
-    const outputFile = path.join(dataDir, 'plantilla_pacientes.csv');
-
     try {
-        if (!fs.existsSync(outputFile)) {
-            return NextResponse.json({ error: "CSV no encontrado" }, { status: 404 });
+        const pacientes = db.prepare('SELECT nombre, apellido, cedula, centro, edad_sector FROM pacientes ORDER BY id ASC').all();
+        
+        let csvContent = "nombre,apellido,cedula,centro,edad_sector\n";
+        
+        for (const p of pacientes) {
+            // Reemplazar comas dentro de los campos para no romper el formato CSV simple
+            const safeN = (p.nombre || "").replace(/,/g, '');
+            const safeA = (p.apellido || "").replace(/,/g, '');
+            const safeC = (p.cedula || "").replace(/,/g, '');
+            const safeCen = (p.centro || "").replace(/,/g, '');
+            const safeE = (p.edad_sector || "").replace(/,/g, '');
+            
+            csvContent += `${safeN},${safeA},${safeC},${safeCen},${safeE}\n`;
         }
-        
-        const fileBuffer = fs.readFileSync(outputFile);
-        
-        return new NextResponse(fileBuffer, {
-            headers: {
-                'Content-Disposition': 'attachment; filename="plantilla_pacientes.csv"',
-                'Content-Type': 'text/csv',
-            }
+
+        const headers = new Headers();
+        headers.set('Content-Type', 'text/csv; charset=utf-8');
+        headers.set('Content-Disposition', `attachment; filename="plantilla_pacientes.csv"`);
+
+        return new NextResponse(csvContent, {
+            status: 200,
+            headers,
         });
     } catch (error) {
+        console.error("API Download Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
