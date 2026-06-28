@@ -886,7 +886,7 @@ export default function Home() {
                 const duration = Math.max(30, filtered.length * 6); // 6 segundos por tarjeta para que vaya lento y fluido
 
                 return (
-                  <div className="flex hover:[animation-play-state:paused] gap-4 py-4 px-4" style={{ width: 'max-content', animation: `scroll ${duration}s linear infinite` }}>
+                  <div className="flex hover:[animation-play-state:paused_!important] gap-4 py-4 px-4" style={{ width: 'max-content', animation: `scroll ${duration}s linear infinite` }}>
                     {[...filtered, ...filtered].map((match, idx) => {
                       const scoreColor = match.match_score >= 80 ? 'from-emerald-500 to-teal-500' : match.match_score >= 60 ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500';
                       const borderColor = match.match_score >= 80 ? 'border-emerald-500/30 hover:border-emerald-400/60' : match.match_score >= 60 ? 'border-yellow-500/30 hover:border-yellow-400/60' : 'border-orange-500/30 hover:border-orange-400/60';
@@ -919,11 +919,21 @@ export default function Home() {
                           {/* Sources */}
                           <div className="flex flex-wrap items-center justify-between gap-1 mt-3">
                             <div className="flex flex-wrap gap-1">
-                              {sources.map((src, si) => (
-                                <span key={si} className="text-[8px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 border border-neutral-700/50">
-                                  {typeof src === 'string' ? src.replace('.com', '') : (src.name || '').replace('.com', '')}
-                                </span>
-                              ))}
+                              {sources.map((src, si) => {
+                                const sourceName = typeof src === 'string' ? src : (src.name || '');
+                                const sourceUrl = typeof src === 'object' && src.url ? src.url : '#';
+                                return (
+                                  <a 
+                                    key={si} 
+                                    href={sourceUrl}
+                                    target={sourceUrl !== '#' ? "_blank" : undefined}
+                                    rel="noopener noreferrer"
+                                    className="text-[8px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white border border-neutral-700/50 transition-colors cursor-pointer"
+                                  >
+                                    {sourceName.replace('.com', '')}
+                                  </a>
+                                );
+                              })}
                             </div>
                             {match.status === 'recognized' ? (
                               <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 px-2 py-1 rounded">
