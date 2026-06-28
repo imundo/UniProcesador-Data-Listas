@@ -5,6 +5,8 @@ import path from 'path';
 export const dynamic = 'force-dynamic';
 
 let extractionProcess = null;
+let lastExitCode = null;
+let lastError = null;
 
 export async function GET(req) {
     const { searchParams } = new URL(req.url);
@@ -31,9 +33,25 @@ export async function GET(req) {
                 cwd: process.cwd()
             });
             
+            lastExitCode = null;
+            lastError = null;
+
+            extractionProcess.stdout.on('data', (data) => console.log('[SEED]', data.toString()));
+            
+            let stderrOutput = '';
+            extractionProcess.stderr.on('data', (data) => {
+                console.error('[SEED ERROR]', data.toString());
+                stderrOutput += data.toString();
+            });
+
             extractionProcess.unref(); // Allow the parent process to exit independently
 
-            extractionProcess.on('exit', () => {
+            extractionProcess.on('exit', (code) => {
+                console.log('[SEED] Process exited with code', code);
+                lastExitCode = code;
+                if (code !== 0) {
+                    lastError = stderrOutput;
+                }
                 extractionProcess = null;
             });
 
@@ -55,6 +73,8 @@ export async function GET(req) {
 
         return NextResponse.json({
             status: extractionProcess ? 'running' : 'idle',
+            last_exit_code: lastExitCode,
+            last_error: lastError,
             total_extraido: totalRow.count,
             por_origen: origins
         });
