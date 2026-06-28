@@ -97,6 +97,7 @@ export default function Home() {
   const [isEmergencySearching, setIsEmergencySearching] = useState(false);
 
   // Cross-Match States
+  const [isCrossMatchLoading, setIsCrossMatchLoading] = useState(false);
   const [crossMatchResults, setCrossMatchResults] = useState([]);
   const [crossMatchFilter, setCrossMatchFilter] = useState(40);
   const [crossMatchTextFilter, setCrossMatchTextFilter] = useState('');
