@@ -863,8 +863,6 @@ export default function Home() {
                   return filtered.length;
                 })()} coincidencias | {crossMatchRecognizedCount} reconocidas</span>
               </div>
-            </div>
-
             {/* Horizontal Roller/Ticker */}
             <div className="relative overflow-hidden rounded-2xl border border-neutral-800/50 bg-neutral-950/40 backdrop-blur-md">
               <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-neutral-950 to-transparent z-10 pointer-events-none" />
