@@ -595,8 +595,12 @@ export default function Home() {
   const historyCurrent = history.slice((historyPage - 1) * historyItemsPerPage, historyPage * historyItemsPerPage);
 
   // Dashboard Metrics
-  const totalPersonasRegistradas = history.reduce((acc, curr) => acc + (curr.newPatients || 0), 0);
-  const totalPersonasLeidas = history.reduce((acc, curr) => acc + (curr.newPatients || 0) + (curr.duplicatesIgnored || 0), 0);
+  const baseRegistradas = history.reduce((acc, curr) => acc + (curr.newPatients || 0), 0);
+  const baseLeidas = history.reduce((acc, curr) => acc + (curr.newPatients || 0) + (curr.duplicatesIgnored || 0), 0);
+  const externalDataCount = stats?.externalCount || 0;
+
+  const totalPersonasRegistradas = baseRegistradas + externalDataCount;
+  const totalPersonasLeidas = baseLeidas + externalDataCount;
   const totalArchivosProcesados = history.reduce((acc, curr) => acc + (curr.filesUploaded || 0), 0);
   const totalCentros = hospitals.length;
 
