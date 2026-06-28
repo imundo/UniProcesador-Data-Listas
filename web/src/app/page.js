@@ -822,23 +822,6 @@ export default function Home() {
                   <p className="text-xs text-neutral-400 font-medium">Pacientes locales encontrados en portales de desaparecidos</p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={async () => {
-                    try {
-                      await fetch('/api/crossmatch', { method: 'POST' });
-                      alert('Sincronización forzada iniciada. Recarga la página en unos minutos.');
-                    } catch (e) {
-                      alert('Error al forzar sincronización.');
-                    }
-                  }}
-                  className="text-xs font-bold px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center gap-1 shadow-lg shadow-blue-500/20"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                  Forzar Sincronización
-                </button>
-              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mb-3">

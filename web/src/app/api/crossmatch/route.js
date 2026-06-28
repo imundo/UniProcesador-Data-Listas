@@ -316,8 +316,22 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get('mode') || 'results';
     const minScore = parseInt(searchParams.get('minScore') || '40');
+    const forceSync = searchParams.get('force_sync');
 
     try {
+        if (forceSync === 'true' || forceSync === '1') {
+            if (crossMatchJobState.status === 'running') {
+                return NextResponse.json({ error: 'Ya hay un cruce en ejecución', progress: crossMatchJobState }, { status: 409 });
+            }
+            
+            runCrossMatch().catch(e => {
+                console.error("[CrossMatch] Manual trigger error:", e);
+                crossMatchJobState.status = 'idle';
+            });
+            
+            return NextResponse.json({ success: true, message: 'Cruce forzado iniciado en segundo plano. Los resultados se actualizarán en los próximos minutos.' });
+        }
+
         if (mode === 'progress') {
             return NextResponse.json({
                 status: crossMatchJobState.status,
