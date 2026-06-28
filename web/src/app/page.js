@@ -794,29 +794,38 @@ export default function Home() {
                 <span className="text-center leading-tight">Descargar CSV Listas Completas de Personas</span>
               </a>
 
-              <button
-                onClick={fetchInvalidsPreview}
-                disabled={isFetchingInvalids}
-                className="w-full py-3 px-4 bg-red-900/40 hover:bg-red-800/60 text-red-300 border border-red-500/50 font-semibold rounded-xl transition-all flex flex-col items-center justify-center gap-1 backdrop-blur-md shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] group relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 w-full mt-2 relative">
+                <button
+                  onClick={fetchInvalidsPreview}
+                  disabled={isFetchingInvalids}
+                  className="w-full py-3 px-4 bg-red-950/40 hover:bg-red-900/60 text-red-300 border-2 border-red-500/50 hover:border-red-400 font-semibold rounded-xl transition-all flex items-center justify-center gap-3 backdrop-blur-md shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] group relative overflow-hidden ring-2 ring-red-500/20 ring-offset-2 ring-offset-neutral-950"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                   {isFetchingInvalids ? (
                     <svg className="animate-spin h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   ) : (
-                    <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    <svg className="w-5 h-5 text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                   )}
-                  <span>{isFetchingInvalids ? "Cargando..." : "Ver Registros Incompletos (No Enviados)"}</span>
+                  <span className="tracking-wide relative z-10">{isFetchingInvalids ? "Cargando..." : "Ver Registros Incompletos (No Enviados)"}</span>
+                </button>
+                
+                {/* Premium Hint Box */}
+                <div className="relative mt-1 px-4 py-3 bg-red-950/20 backdrop-blur-sm border border-red-900/30 rounded-xl flex items-start gap-3 shadow-inner">
+                  <div className="mt-0.5 p-1 bg-red-500/10 rounded-full shrink-0">
+                    <svg className="w-4 h-4 text-red-400/80" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+                    </svg>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-red-200/80 font-medium">
+                    Aquí se encuentran las personas que <strong className="text-red-300 font-semibold">no fueron sincronizadas</strong> al portal debido a la falta de datos críticos para el sistema: <span className="text-white bg-red-900/40 px-1.5 py-0.5 rounded border border-red-800/50">Cédula</span>, <span className="text-white bg-red-900/40 px-1.5 py-0.5 rounded border border-red-800/50">Centro</span> o <span className="text-white bg-red-900/40 px-1.5 py-0.5 rounded border border-red-800/50">Nombre</span>.
+                  </p>
                 </div>
-                <span className="text-[10px] opacity-80 font-normal leading-tight text-center max-w-[90%] mt-1">
-                  Aquí se encuentran las personas que no fueron sincronizadas al portal por falta de <b>Cédula</b>, <b>Centro</b> o <b>Nombre</b> (filtros principales).
-                </span>
-              </button>
+              </div>
 
               <button
                 onClick={() => handleUploadToPortal(history[0]?.id, false)}
