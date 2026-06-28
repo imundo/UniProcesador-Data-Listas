@@ -37,6 +37,34 @@ function getDb() {
         lon REAL,
         last_checked DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS cross_matches (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        paciente_id INTEGER,
+        nombre_local TEXT,
+        apellido_local TEXT,
+        cedula_local TEXT,
+        nombre_externo TEXT,
+        apellido_externo TEXT,
+        cedula_externo TEXT,
+        centro_externo TEXT,
+        edad_externo TEXT,
+        estado_externo TEXT,
+        match_score REAL,
+        sources TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (paciente_id) REFERENCES pacientes(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS cross_match_status (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        status TEXT DEFAULT 'idle',
+        progress INTEGER DEFAULT 0,
+        total INTEGER DEFAULT 0,
+        matches_found INTEGER DEFAULT 0,
+        started_at DATETIME,
+        completed_at DATETIME
+      );
     `);
 
     // Migración: añadir batch_id y estatus si no existen

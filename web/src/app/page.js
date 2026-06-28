@@ -96,6 +96,13 @@ export default function Home() {
   const [emergencySearchResults, setEmergencySearchResults] = useState([]);
   const [isEmergencySearching, setIsEmergencySearching] = useState(false);
 
+  // Cross-Match States
+  const [crossMatchResults, setCrossMatchResults] = useState([]);
+  const [crossMatchStatus, setCrossMatchStatus] = useState({ status: 'idle', progress: 0, total: 0, matchesFound: 0, percentage: 0 });
+  const [crossMatchFilter, setCrossMatchFilter] = useState(40);
+  const [isCrossMatchLoading, setIsCrossMatchLoading] = useState(false);
+  const crossMatchIntervalRef = useRef(null);
+
   const fileInputRef = useRef(null);
 
   const fetchGlobalPreview = async () => {
@@ -197,9 +204,56 @@ export default function Home() {
   }, [emergencySearchQuery]);
 
 
+  // Fetch cross-match results on mount
+  const fetchCrossMatchResults = async (minScore = 40) => {
+    try {
+      const res = await fetch(`/api/crossmatch?mode=results&minScore=${minScore}`);
+      const data = await res.json();
+      if (data.matches) setCrossMatchResults(data.matches);
+      if (data.status) setCrossMatchStatus(prev => ({ ...prev, ...data.status, status: data.status.status }));
+    } catch (e) { console.error('CrossMatch fetch error:', e); }
+  };
+
+  const startCrossMatch = async () => {
+    setIsCrossMatchLoading(true);
+    try {
+      const res = await fetch('/api/crossmatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const data = await res.json();
+      if (res.ok) {
+        setCrossMatchStatus({ status: 'running', progress: 0, total: 0, matchesFound: 0, percentage: 0 });
+        // Start polling for progress
+        if (crossMatchIntervalRef.current) clearInterval(crossMatchIntervalRef.current);
+        crossMatchIntervalRef.current = setInterval(async () => {
+          try {
+            const pRes = await fetch('/api/crossmatch?mode=progress');
+            const pData = await pRes.json();
+            setCrossMatchStatus(pData);
+            if (pData.status === 'completed' || pData.status === 'error') {
+              clearInterval(crossMatchIntervalRef.current);
+              crossMatchIntervalRef.current = null;
+              setIsCrossMatchLoading(false);
+              fetchCrossMatchResults(crossMatchFilter);
+            }
+          } catch (e) { /* ignore polling errors */ }
+        }, 3000);
+      } else {
+        alert(data.error || 'Error al iniciar el cruce');
+        setIsCrossMatchLoading(false);
+      }
+    } catch (e) {
+      console.error(e);
+      setIsCrossMatchLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchHistory();
     fetchHospitals();
+    fetchCrossMatchResults();
+  }, []);
+
+  useEffect(() => {
+    return () => { if (crossMatchIntervalRef.current) clearInterval(crossMatchIntervalRef.current); };
   }, []);
 
   useEffect(() => {
@@ -747,6 +801,89 @@ export default function Home() {
           )}
         </div>
 
+        {/* === CROSS-MATCH ROLLER === */}
+        {crossMatchResults.length > 0 && (
+          <div className="w-full">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/10 text-amber-400 rounded-xl">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Cruce Inteligente</h3>
+                  <p className="text-[10px] text-neutral-400">Pacientes locales encontrados en portales de desaparecidos</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-neutral-500 font-bold uppercase">Filtrar:</span>
+                {[40, 60, 80].map(s => (
+                  <button key={s} onClick={() => { setCrossMatchFilter(s); fetchCrossMatchResults(s); }}
+                    className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider border transition-all ${
+                      crossMatchFilter === s 
+                        ? (s >= 80 ? 'bg-emerald-500/30 text-emerald-300 border-emerald-500/50' : s >= 60 ? 'bg-yellow-500/30 text-yellow-300 border-yellow-500/50' : 'bg-orange-500/30 text-orange-300 border-orange-500/50')
+                        : 'bg-neutral-800/50 text-neutral-500 border-neutral-700/50 hover:bg-neutral-700/50'
+                    }`}>
+                    {s}%+
+                  </button>
+                ))}
+                <span className="text-[10px] text-neutral-500 ml-1">{crossMatchResults.length} coincidencias</span>
+              </div>
+            </div>
+
+            {/* Horizontal Roller/Ticker */}
+            <div className="relative overflow-hidden rounded-2xl border border-neutral-800/50 bg-neutral-950/40 backdrop-blur-md">
+              <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-neutral-950 to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-neutral-950 to-transparent z-10 pointer-events-none" />
+              
+              <div className="flex animate-[scroll_60s_linear_infinite] hover:[animation-play-state:paused] gap-4 py-4 px-4" style={{ width: 'max-content' }}>
+                {[...crossMatchResults, ...crossMatchResults].map((match, idx) => {
+                  const scoreColor = match.match_score >= 80 ? 'from-emerald-500 to-teal-500' : match.match_score >= 60 ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500';
+                  const borderColor = match.match_score >= 80 ? 'border-emerald-500/30 hover:border-emerald-400/60' : match.match_score >= 60 ? 'border-yellow-500/30 hover:border-yellow-400/60' : 'border-orange-500/30 hover:border-orange-400/60';
+                  const glowColor = match.match_score >= 80 ? 'shadow-[0_0_15px_rgba(16,185,129,0.15)]' : match.match_score >= 60 ? 'shadow-[0_0_15px_rgba(234,179,8,0.15)]' : 'shadow-[0_0_15px_rgba(249,115,22,0.15)]';
+                  const sources = match.sources || [];
+                  return (
+                    <div key={`${match.id}-${idx}`} className={`flex-shrink-0 w-[320px] bg-neutral-900/80 backdrop-blur-md rounded-xl border ${borderColor} ${glowColor} p-4 cursor-default transition-all hover:scale-[1.02] group`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          {/* Score Circle */}
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="relative w-10 h-10 shrink-0">
+                              <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="2" className="text-neutral-800" />
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeWidth="2.5" strokeDasharray={`${match.match_score}, 100`} className={`stroke-current ${match.match_score >= 80 ? 'text-emerald-400' : match.match_score >= 60 ? 'text-yellow-400' : 'text-orange-400'}`} strokeLinecap="round" />
+                              </svg>
+                              <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-black bg-gradient-to-r ${scoreColor} bg-clip-text text-transparent`}>{match.match_score}%</span>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-white truncate">{match.nombre_local} {match.apellido_local}</p>
+                              <p className="text-[10px] text-neutral-500 truncate">🏥 Paciente local {match.cedula_local ? `• CI: ${match.cedula_local}` : ''}</p>
+                            </div>
+                          </div>
+                          {/* External match */}
+                          <div className="bg-neutral-800/50 rounded-lg px-3 py-2 border border-neutral-700/30">
+                            <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mb-1">Coincide con:</p>
+                            <p className="text-xs font-semibold text-amber-300 truncate">{match.nombre_externo} {match.apellido_externo}</p>
+                            {match.centro_externo && <p className="text-[10px] text-neutral-500 truncate mt-0.5">📍 {match.centro_externo}</p>}
+                            {match.estado_externo && <p className="text-[10px] text-neutral-500 mt-0.5">Estado: {match.estado_externo}</p>}
+                          </div>
+                          {/* Sources */}
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {sources.map((src, si) => (
+                              <span key={si} className="text-[8px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 border border-neutral-700/50">
+                                {typeof src === 'string' ? src.replace('.com', '') : (src.name || '').replace('.com', '')}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Action Center (Drag & Drop + Download) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -890,6 +1027,46 @@ export default function Home() {
                   <span className="text-[10px] opacity-75 font-normal leading-tight">Solo enviará tu última carga para no saturar el servidor</span>
                 </div>
               </button>
+
+              {/* Cross-Match Button */}
+              <div className="mt-3 pt-3 border-t border-neutral-800/50">
+                <button
+                  onClick={startCrossMatch}
+                  disabled={isCrossMatchLoading}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-amber-600/20 to-orange-600/20 hover:from-amber-600/30 hover:to-orange-600/30 text-amber-300 border border-amber-500/30 hover:border-amber-400/50 font-semibold rounded-xl transition-all flex items-center justify-center gap-3 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.15)] hover:shadow-[0_0_25px_rgba(245,158,11,0.3)] disabled:opacity-50 group"
+                >
+                  {isCrossMatchLoading ? (
+                    <svg className="animate-spin h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  )}
+                  <div className="flex flex-col items-start text-left">
+                    <span>{isCrossMatchLoading ? `Cruzando... ${crossMatchStatus.percentage || 0}%` : 'Iniciar Cruce Inteligente'}</span>
+                    <span className="text-[10px] opacity-75 font-normal leading-tight">
+                      {isCrossMatchLoading 
+                        ? `${crossMatchStatus.progress}/${crossMatchStatus.total} pacientes · ${crossMatchStatus.matchesFound} coincidencias`
+                        : 'Cruza tu base de pacientes contra portales de desaparecidos'
+                      }
+                    </span>
+                  </div>
+                </button>
+                {isCrossMatchLoading && (
+                  <div className="mt-2 w-full bg-neutral-800 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(245,158,11,0.5)]" 
+                      style={{ width: `${crossMatchStatus.percentage || 0}%` }} 
+                    />
+                  </div>
+                )}
+                {!isCrossMatchLoading && crossMatchResults.length > 0 && (
+                  <p className="text-[10px] text-amber-400/60 text-center mt-2">
+                    Último cruce: {crossMatchResults.length} coincidencias encontradas
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
