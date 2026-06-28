@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db.js';
-import { spawn } from 'child_process';
 import path from 'path';
 
 export const dynamic = 'force-dynamic';
@@ -26,8 +25,11 @@ export async function GET(req) {
                 return NextResponse.json({ message: 'La extracción ya está en ejecución.', status: 'running' });
             }
 
-            const scriptPath = path.join(process.cwd(), 'scripts', 'seed_extraccion.js');
-            extractionProcess = spawn('node', [scriptPath], {
+            const cp = require('child_process');
+            const cwd = process.cwd();
+            const scriptPath = cwd + '/scripts/seed_extraccion.js';
+            
+            extractionProcess = cp.spawn('node', [scriptPath], {
                 stdio: 'ignore', // Run in background completely detached
                 detached: true
             });
