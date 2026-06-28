@@ -417,30 +417,66 @@ export async function performSearch(term) {
     // Combinar resultados de todas las fuentes
     let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData];
     
-    // Agrupar por similitud (nombre + apellido + cedula normalizados)
-    const groupedMap = new Map();
+    // Agrupar por similitud (cédula o tokens de nombre)
+    const groupedResults = [];
+    
+    const getTokens = (nombre, apellido) => {
+        const full = normalizeText(`${nombre || ''} ${apellido || ''}`).toLowerCase().trim();
+        return full.split(/\s+/).filter(w => w.length > 2);
+    };
+
+    const isSamePerson = (p1, p2) => {
+        if (p1.cedula && p2.cedula && p1.cedula === p2.cedula) return true;
+        
+        const tokens1 = getTokens(p1.nombre, p1.apellido);
+        const tokens2 = getTokens(p2.nombre, p2.apellido);
+        
+        const full1 = tokens1.join(' ');
+        const full2 = tokens2.join(' ');
+        
+        if (full1 === full2 && full1.length > 0) return true;
+        
+        if (tokens1.length >= 2 && tokens1.every(t => tokens2.includes(t))) return true;
+        if (tokens2.length >= 2 && tokens2.every(t => tokens1.includes(t))) return true;
+        
+        return false;
+    };
+
     for (const p of combinedResults) {
-        const normNombre = normalizeText(p.nombre);
-        const normApellido = normalizeText(p.apellido);
-        const normCedula = normalizeText(p.cedula);
+        let foundMatch = false;
         
-        const key = `${normNombre}|${normApellido}|${normCedula}`;
+        // Asignar sources initial si no existe
+        if (!p.sources) p.sources = [{ name: p.source, url: p.sourceUrl }];
         
-        if (groupedMap.has(key)) {
-            const existing = groupedMap.get(key);
-            if (!existing.sources.find(s => s.name === p.source)) {
-                existing.sources.push({ name: p.source, url: p.sourceUrl });
+        for (const existing of groupedResults) {
+            if (isSamePerson(existing, p)) {
+                foundMatch = true;
+                
+                // Conservar el nombre más largo/completo
+                const lenExisting = `${existing.nombre} ${existing.apellido}`.length;
+                const lenP = `${p.nombre} ${p.apellido}`.length;
+                if (lenP > lenExisting) {
+                    existing.nombre = p.nombre;
+                    existing.apellido = p.apellido;
+                }
+                
+                // Añadir source si no existe
+                if (!existing.sources.find(s => s.name === p.source)) {
+                    existing.sources.push({ name: p.source, url: p.sourceUrl });
+                }
+                
+                // Priorizar estados que no sean genéricos o vacíos
+                if (!existing.estado || (existing.estado.toLowerCase().trim() === 'active' && p.estado && p.estado.toLowerCase().trim() !== 'active')) {
+                    existing.estado = p.estado;
+                }
+                break;
             }
-            if (!existing.estado && p.estado) {
-                existing.estado = p.estado;
-            }
-        } else {
-            p.sources = [{ name: p.source, url: p.sourceUrl }];
-            groupedMap.set(key, p);
+        }
+        
+        if (!foundMatch) {
+            groupedResults.push(p);
         }
     }
-    
-    let groupedResults = Array.from(groupedMap.values());
 
     // Limitar a los mejores 50 resultados para no saturar la UI
     if (groupedResults.length > 50) {

@@ -612,16 +612,30 @@ export default function Home() {
                         )}
                       </div>
                       <p className="text-neutral-400 text-sm font-mono mt-1">CI: {person.cedula}</p>
-                      <p className="text-blue-400 font-medium text-sm mt-1 flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        {person.centro}
-                      </p>
-                      {person.estado && (
-                        <p className="text-orange-400 font-medium text-sm mt-1 flex items-center gap-1 uppercase tracking-wider">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                          Estado: {person.estado}
+                      
+                      {person.centro && (
+                        <p className="text-blue-400 font-medium text-sm mt-1 flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                          {person.centro}
                         </p>
                       )}
+
+                      {person.estado && person.estado.toLowerCase().trim() !== 'active' && (
+                        <p className="text-orange-400 font-medium text-sm mt-1 flex items-center gap-1 uppercase tracking-wider">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                          ESTADO: {person.estado}
+                        </p>
+                      )}
+                      
+                      <div className="mt-3 flex flex-wrap gap-2 items-center">
+                        <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mr-1">Encontrado en:</span>
+                        {sourcesArray.map((src, i) => (
+                           <span key={i} className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md bg-neutral-800/80 text-neutral-300 border border-neutral-700/50 flex items-center gap-1.5 shadow-sm">
+                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                             {src.name.replace('.com', '').replace('.help', '')}
+                           </span>
+                        ))}
+                      </div>
                     </div>
                     
                     <div className="flex flex-col items-start sm:items-end gap-3 w-full sm:w-auto">
