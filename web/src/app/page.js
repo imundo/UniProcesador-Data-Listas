@@ -520,7 +520,8 @@ export default function Home() {
   const historyCurrent = history.slice((historyPage - 1) * historyItemsPerPage, historyPage * historyItemsPerPage);
 
   // Dashboard Metrics
-  const totalPacientesLeidos = history.reduce((acc, curr) => acc + (curr.newPatients || 0), 0);
+  const totalPersonasRegistradas = history.reduce((acc, curr) => acc + (curr.newPatients || 0), 0);
+  const totalPersonasLeidas = history.reduce((acc, curr) => acc + (curr.newPatients || 0) + (curr.duplicatesIgnored || 0), 0);
   const totalArchivosProcesados = history.reduce((acc, curr) => acc + (curr.filesUploaded || 0), 0);
   const totalCentros = hospitals.length;
 
@@ -552,7 +553,7 @@ export default function Home() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Personas Leídas</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">{totalPacientesLeidos.toLocaleString()}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">{totalPersonasLeidas.toLocaleString()}</p>
           </div>
 
           <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
@@ -560,7 +561,7 @@ export default function Home() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             </div>
             <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Personas Registradas</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{totalPacientesLeidos.toLocaleString()}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{totalPersonasRegistradas.toLocaleString()}</p>
           </div>
 
           <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
