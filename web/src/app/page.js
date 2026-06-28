@@ -206,6 +206,18 @@ export default function Home() {
   }, [emergencySearchQuery]);
 
 
+  const startCrossMatch = async () => {
+    setIsCrossMatchLoading(true);
+    try {
+      await fetch('/api/crossmatch', { method: 'POST' });
+      fetchCrossMatchResults(crossMatchFilter);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsCrossMatchLoading(false);
+    }
+  };
+
   // Fetch cross-match results on mount
   const fetchCrossMatchResults = async (minScore = 40) => {
     try {
