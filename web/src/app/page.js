@@ -258,6 +258,38 @@ export default function Home() {
     });
   };
 
+  const handleMergeDuplicate = (id) => {
+    if (!stats || !stats.pacientesDuplicados) return;
+    const dupToMerge = stats.pacientesDuplicados.find(p => p._id === id);
+    if (!dupToMerge) return;
+    
+    // Logic: Combine Lado A (nuevo) with Lado B (existente).
+    // Take the most complete data for each field.
+    const combined = {
+      ...dupToMerge.nuevo,
+      nombre: (dupToMerge.nuevo.nombre?.length >= (dupToMerge.existente?.nombre?.length || 0)) ? dupToMerge.nuevo.nombre : dupToMerge.existente.nombre,
+      apellido: (dupToMerge.nuevo.apellido?.length >= (dupToMerge.existente?.apellido?.length || 0)) ? dupToMerge.nuevo.apellido : dupToMerge.existente.apellido,
+      cedula: dupToMerge.nuevo.cedula || dupToMerge.existente?.cedula,
+      centro: (dupToMerge.nuevo.centro?.length >= (dupToMerge.existente?.centro?.length || 0)) ? dupToMerge.nuevo.centro : dupToMerge.existente.centro,
+      // For edad/sector we can just use nuevo, or combine.
+      edad: dupToMerge.nuevo.edad || dupToMerge.existente?.edad || '',
+      sector: dupToMerge.nuevo.sector || dupToMerge.existente?.sector || '',
+      isMerged: true, // Flag it as merged for the backend
+      mergeId: dupToMerge.existente?.id // ID of the existing record to UPDATE in SQLite
+    };
+
+    const updatedDuplicates = stats.pacientesDuplicados.filter(p => p._id !== id);
+    const updatedNuevos = [...(stats.nuevosPacientes || []), combined];
+    
+    setStats({
+      ...stats,
+      pacientesDuplicados: updatedDuplicates,
+      nuevosPacientes: updatedNuevos,
+      totalDuplicados: updatedDuplicates.length,
+      totalNuevos: updatedNuevos.length
+    });
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -278,20 +310,9 @@ export default function Home() {
     try {
       // Actúa como caché: solo actualizamos el estado local
       const updatedPacientes = stats.nuevosPacientes.map(p => {
-        let newEdadSector = value;
-        if (type === 'sector' && p.edad_sector) {
-          const parts = p.edad_sector.split(' · ');
-          if (parts.length > 1) {
-            newEdadSector = `${parts[0]} · ${value}`;
-          } else {
-            if (p.edad_sector !== value) {
-              newEdadSector = `${p.edad_sector} · ${value}`;
-            }
-          }
-        }
         return {
           ...p,
-          ...(type === 'centro' ? { centro: value } : { edad_sector: newEdadSector })
+          ...(type === 'centro' ? { centro: value } : { sector: value })
         };
       });
       setStats({ ...stats, nuevosPacientes: updatedPacientes });
@@ -929,7 +950,8 @@ export default function Home() {
                         <th className="px-4 py-3">Apellido</th>
                         <th className="px-4 py-3">Cédula</th>
                         <th className="px-4 py-3">Centro</th>
-                        <th className="px-4 py-3">Edad/Sector</th>
+                        <th className="px-4 py-3">Edad</th>
+                        <th className="px-4 py-3">Sector</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-800/50">
@@ -967,13 +989,21 @@ export default function Home() {
                               placeholder="Centro"
                             />
                           </td>
+                          <td className="px-2 py-1">
+                            <input 
+                              className="bg-transparent border border-transparent focus:border-green-500/50 hover:border-neutral-700 rounded outline-none w-full opacity-80 focus:opacity-100 transition-colors px-2 py-1"
+                              value={p.edad || ''}
+                              onChange={(e) => handleEditPaciente(p._id, 'edad', e.target.value)}
+                              placeholder="Edad"
+                            />
+                          </td>
                           <td className="px-2 py-1 relative">
                             <div className="flex items-center gap-2">
                               <input 
                                 className="bg-transparent border border-transparent focus:border-green-500/50 hover:border-neutral-700 rounded outline-none w-full opacity-80 focus:opacity-100 transition-colors px-2 py-1"
-                                value={p.edad_sector || ''}
-                                onChange={(e) => handleEditPaciente(p._id, 'edad_sector', e.target.value)}
-                                placeholder="Edad/Sector"
+                                value={p.sector || ''}
+                                onChange={(e) => handleEditPaciente(p._id, 'sector', e.target.value)}
+                                placeholder="Sector"
                               />
                               <button 
                                 onClick={() => handleDeletePaciente(p._id)}
@@ -1031,7 +1061,7 @@ export default function Home() {
                               <span className="font-bold text-white">{p.nuevo.nombre} {p.nuevo.apellido}</span>
                               <span className="text-yellow-200 font-mono text-[10px]">CI: {p.nuevo.cedula || 'S/N'}</span>
                               <span className="text-neutral-400">🏥 {p.nuevo.centro || 'S/N'}</span>
-                              <span className="text-neutral-500 italic">{p.nuevo.edad_sector}</span>
+                              <span className="text-neutral-500 italic">{p.nuevo.edad} {p.nuevo.sector ? `- ${p.nuevo.sector}` : ''} {p.nuevo.edad_sector ? `(${p.nuevo.edad_sector})` : ''}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3 align-top">
@@ -1039,7 +1069,7 @@ export default function Home() {
                               <span className="font-bold text-neutral-300">{p.existente?.nombre} {p.existente?.apellido}</span>
                               <span className="text-neutral-400 font-mono text-[10px]">CI: {p.existente?.cedula || 'S/N'}</span>
                               <span className="text-neutral-400">🏥 {p.existente?.centro || 'S/N'}</span>
-                              <span className="text-neutral-500 italic">{p.existente?.edad_sector}</span>
+                              <span className="text-neutral-500 italic">{p.existente?.edad} {p.existente?.sector ? `- ${p.existente?.sector}` : ''} {p.existente?.edad_sector ? `(${p.existente?.edad_sector})` : ''}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3 align-middle text-center">
@@ -1051,6 +1081,14 @@ export default function Home() {
                               >
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                                 Aprobar
+                              </button>
+                              <button
+                                onClick={() => handleMergeDuplicate(p._id)}
+                                className="w-full max-w-[120px] py-1.5 px-2 bg-blue-600/20 hover:bg-blue-500 border border-blue-500/50 text-blue-400 hover:text-white rounded text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+                                title="Es la misma persona. Combinar datos nuevos con el existente."
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                                Fusionar
                               </button>
                               <button
                                 onClick={() => handleDiscardDuplicate(p._id)}

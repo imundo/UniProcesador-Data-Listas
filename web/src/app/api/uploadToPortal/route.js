@@ -19,10 +19,24 @@ export async function POST(req) {
                 INSERT INTO pacientes (nombre, apellido, cedula, centro, edad_sector, batch_id, estatus) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             `);
+            const updatePaciente = db.prepare(`
+                UPDATE pacientes SET nombre = ?, apellido = ?, cedula = ?, centro = ?, edad_sector = ?, estatus = ?, batch_id = ? WHERE id = ?
+            `);
             
             db.transaction((pacs) => {
                 for (const p of pacs) {
-                    insertPaciente.run(p.nombre || "", p.apellido || "", p.cedula || "", p.centro || "", p.edad_sector || "", batchId, p.estatus || 'Válido');
+                    const safeE = (p.edad || "").trim();
+                    const safeS = (p.sector || "").trim();
+                    let combinedEdadSector = p.edad_sector || "";
+                    if (safeE || safeS) {
+                        combinedEdadSector = `${safeE} ${safeS !== '' ? '- ' + safeS : ''}`.trim().replace(/-$/, '').trim();
+                    }
+
+                    if (p.isMerged && p.mergeId) {
+                        updatePaciente.run(p.nombre || "", p.apellido || "", p.cedula || "", p.centro || "", combinedEdadSector, p.estatus || 'Válido', batchId, p.mergeId);
+                    } else {
+                        insertPaciente.run(p.nombre || "", p.apellido || "", p.cedula || "", p.centro || "", combinedEdadSector, batchId, p.estatus || 'Válido');
+                    }
                 }
             })(pacientes);
             

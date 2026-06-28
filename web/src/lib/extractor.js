@@ -18,20 +18,21 @@ A continuación te proporcionaré texto pre-procesado, una imagen o fotogramas d
 Tu objetivo es transcribir estrictamente todos los pacientes a los campos requeridos.
 
 Reglas obligatorias:
-1. Extrae únicamente: Nombres (todos los nombres de la persona), Apellidos (todos los apellidos), Cédula, Centro de Salud / Hospital, Edad y Sector / Zona.
-2. Cédula: Puede aparecer bajo sinónimos como "C.I", "ID", "Identificación", "Doc", "Pasaporte". Corrige errores obvios de lectura óptica (OCR), por ejemplo, si ves una letra 'O' o 'o' en medio de números, cámbiala a '0'. Si ves una 'l' o 'I' entre números, cámbiala a '1'. Mantén el prefijo V- o E- si existe. NO CORTES ni elimines números.
-3. Orden de Nombres y Apellidos: Si la lista está en formato "Apellido, Nombre" o claramente invierte el orden natural, asegúrate de colocar los apellidos en el campo "apellido" y los nombres en el campo "nombre".
-4. Si un dato NO está en la imagen o texto, DEBES rellenar los campos faltantes con un string vacío "". ¡No los dejes nulos ni escribas N/D!
+1. Extrae únicamente: Nombres, Apellidos, Cédula, Centro de Salud, Edad y Sector.
+2. Cédula: Puede aparecer bajo sinónimos como "C.I", "ID", "Identificación". Corrige errores obvios de OCR (ej: O u o por 0, l o I por 1). Mantén el prefijo V- o E-. La cédula debe tener entre 6 y 9 dígitos. SI VES UN NÚMERO LARGO O UN RUT, ES CÉDULA, NUNCA EDAD.
+3. Edad: DEBE SER UN NÚMERO ENTRE 1 Y 120. Ignora fechas como 12.12.311 o números exagerados como 900. Extrae solo el número (ej: si dice "17 años", extrae "17").
+4. Orden de Nombres y Apellidos: Si la lista invierte el orden (Apellido, Nombre), colócalos correctamente en sus campos.
+5. Si un dato NO está en la imagen, DEBES rellenar el campo con un string vacío "". ¡No los dejes nulos ni escribas N/D!
 
-EJEMPLOS DE EXTRACCIÓN (FEW-SHOT TRAINING):
+EJEMPLOS DE EXTRACCIÓN:
 - Input sucio: "Maria del Carmen perez de lopez, ci: V- 12.3O4.567 (nota: usó una letra O mayúscula y puntos), Hosp. central."
-- Salida Esperada: {"nombre": "Maria del Carmen", "apellido": "Perez de Lopez", "cedula": "V-12304567", "centro": "Hospital Central", "edad_sector": ""}
+- Salida Esperada: {"nombre": "Maria del Carmen", "apellido": "Perez de Lopez", "cedula": "V-12304567", "centro": "Hospital Central", "edad": "", "sector": ""}
 - Input sucio: "Rodriguez Gomez, Juan Carlos, Identificación: E- 84.456, 45 Años, Pctare"
-- Salida Esperada: {"nombre": "Juan Carlos", "apellido": "Rodriguez Gomez", "cedula": "E-84456", "centro": "", "edad_sector": "45 Años - Pctare"}
-- Input sucio: "Gomez Suarez Pedro Luis, Hospital JM de los Rios, ID l4.567.89O"
-- Salida Esperada: {"nombre": "Pedro Luis", "apellido": "Gomez Suarez", "cedula": "14567890", "centro": "Hospital JM de los Rios", "edad_sector": ""}
-- Input sucio: "Jose Fernandez, Doc 1543O686, Caracas"
-- Salida Esperada: {"nombre": "Jose", "apellido": "Fernandez", "cedula": "15430686", "centro": "Caracas", "edad_sector": ""}`;
+- Salida Esperada: {"nombre": "Juan Carlos", "apellido": "Rodriguez Gomez", "cedula": "E-84456", "centro": "", "edad": "45", "sector": "Pctare"}
+- Input sucio: "Gomez Suarez Pedro Luis, Hospital JM de los Rios, ID l4.567.89O, 17 años"
+- Salida Esperada: {"nombre": "Pedro Luis", "apellido": "Gomez Suarez", "cedula": "14567890", "centro": "Hospital JM de los Rios", "edad": "17", "sector": ""}
+- Input sucio: "Jose Fernandez, Doc 1543O686, Caracas, 12.12.311 edad 41 años"
+- Salida Esperada: {"nombre": "Jose", "apellido": "Fernandez", "cedula": "15430686", "centro": "Caracas", "edad": "41", "sector": ""}`;
 
 function normalizeText(text) {
     if (!text || text === "N/D" || text === "") return "";
@@ -198,9 +199,10 @@ export async function processFiles(files) {
                                                     apellido: { type: "string" },
                                                     cedula: { type: "string" },
                                                     centro: { type: "string" },
-                                                    edad_sector: { type: "string" }
+                                                    edad: { type: "string" },
+                                                    sector: { type: "string" }
                                                 },
-                                                required: ["nombre", "apellido", "cedula", "centro", "edad_sector"],
+                                                required: ["nombre", "apellido", "cedula", "centro", "edad", "sector"],
                                                 additionalProperties: false
                                             }
                                         }
@@ -240,7 +242,7 @@ export async function processFiles(files) {
             // DB Insertion Transaction (Actually just formatting and caching now)
             const insertMany = db.transaction((allPacientes) => {
                 for (const paciente of allPacientes) {
-                    const { nombre, apellido, cedula, edad_sector } = paciente;
+                    const { nombre, apellido, cedula, edad, sector } = paciente;
                     let { centro } = paciente;
                     
                     if (centro && centro.trim() !== '') {
@@ -262,11 +264,13 @@ export async function processFiles(files) {
                     }
 
                     const safeCen = (centro || "").trim();
-                    const safeE = (edad_sector || "").trim();
+                    const safeE = (edad || "").trim();
+                    const safeS = (sector || "").trim();
+                    const combinedEdadSector = `${safeE} ${safeS !== '' ? '- ' + safeS : ''}`.trim().replace(/-$/, '').trim();
                     
                     const hasName = safeN !== "" || safeA !== "";
                     const hasCedula = safeC !== "";
-                    const hasExtra = safeCen !== "" || safeE !== "";
+                    const hasExtra = safeCen !== "" || combinedEdadSector !== "";
                     
                     // QUALITY FILTER:
                     // - Name + Cedula is VALID
@@ -308,7 +312,9 @@ export async function processFiles(files) {
                         apellido: safeA,
                         cedula: safeC,
                         centro: safeCen,
-                        edad_sector: safeE,
+                        edad: safeE,
+                        sector: safeS,
+                        edad_sector: combinedEdadSector, // Mantenemos por compatibilidad DB
                         estatus: estatus
                     };
 
