@@ -99,6 +99,7 @@ export default function Home() {
   // Cross-Match States
   const [crossMatchResults, setCrossMatchResults] = useState([]);
   const [crossMatchFilter, setCrossMatchFilter] = useState(40);
+  const [crossMatchTextFilter, setCrossMatchTextFilter] = useState('');
   const [recognizeModal, setRecognizeModal] = useState(null); // holds the match being recognized
   const [recognizeForm, setRecognizeForm] = useState({ nombre: '', email: '', telefono: '' });
   const [isRecognizing, setIsRecognizing] = useState(false);
@@ -821,8 +822,20 @@ export default function Home() {
                   <p className="text-[10px] text-neutral-400">Pacientes locales encontrados en portales de desaparecidos</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-neutral-500 font-bold uppercase">Filtrar:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Filtrar por nombre o CI..."
+                    value={crossMatchTextFilter}
+                    onChange={(e) => setCrossMatchTextFilter(e.target.value)}
+                    className="bg-neutral-900 border border-neutral-700/50 rounded-lg px-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500/50"
+                  />
+                  {crossMatchTextFilter && (
+                    <button onClick={() => setCrossMatchTextFilter('')} className="absolute right-2 top-1.5 text-neutral-500 hover:text-white">✕</button>
+                  )}
+                </div>
+                <span className="text-[10px] text-neutral-500 font-bold uppercase ml-2">Confianza:</span>
                 {[40, 60, 80].map(s => (
                   <button key={s} onClick={() => { setCrossMatchFilter(s); fetchCrossMatchResults(s); }}
                     className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider border transition-all ${
@@ -832,7 +845,21 @@ export default function Home() {
                     }`}>
                     {s}%+
                   </button>
-                <span className="text-[10px] text-neutral-500 ml-1">{crossMatchResults.length} coincidencias | {crossMatchRecognizedCount} reconocidas</span>
+                ))}
+                <span className="text-[10px] text-neutral-500 ml-2">{(() => {
+                  const filtered = crossMatchResults.filter(match => {
+                    if (!crossMatchTextFilter) return true;
+                    const term = crossMatchTextFilter.toLowerCase();
+                    return (
+                      (match.nombre_local && match.nombre_local.toLowerCase().includes(term)) ||
+                      (match.apellido_local && match.apellido_local.toLowerCase().includes(term)) ||
+                      (match.cedula_local && match.cedula_local.toLowerCase().includes(term)) ||
+                      (match.nombre_externo && match.nombre_externo.toLowerCase().includes(term)) ||
+                      (match.apellido_externo && match.apellido_externo.toLowerCase().includes(term))
+                    );
+                  });
+                  return filtered.length;
+                })()} coincidencias | {crossMatchRecognizedCount} reconocidas</span>
               </div>
             </div>
 
@@ -841,17 +868,34 @@ export default function Home() {
               <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-neutral-950 to-transparent z-10 pointer-events-none" />
               <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-neutral-950 to-transparent z-10 pointer-events-none" />
               
-              <div className="flex animate-[scroll_60s_linear_infinite] hover:[animation-play-state:paused] gap-4 py-4 px-4" style={{ width: 'max-content' }}>
-                {[...crossMatchResults, ...crossMatchResults].map((match, idx) => {
-                  const scoreColor = match.match_score >= 80 ? 'from-emerald-500 to-teal-500' : match.match_score >= 60 ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500';
-                  const borderColor = match.match_score >= 80 ? 'border-emerald-500/30 hover:border-emerald-400/60' : match.match_score >= 60 ? 'border-yellow-500/30 hover:border-yellow-400/60' : 'border-orange-500/30 hover:border-orange-400/60';
-                  const glowColor = match.match_score >= 80 ? 'shadow-[0_0_15px_rgba(16,185,129,0.15)]' : match.match_score >= 60 ? 'shadow-[0_0_15px_rgba(234,179,8,0.15)]' : 'shadow-[0_0_15px_rgba(249,115,22,0.15)]';
-                  const sources = match.sources || [];
+              {(() => {
+                const filtered = crossMatchResults.filter(match => {
+                  if (!crossMatchTextFilter) return true;
+                  const term = crossMatchTextFilter.toLowerCase();
                   return (
-                    <div key={`${match.id}-${idx}`} className={`flex-shrink-0 w-[320px] bg-neutral-900/80 backdrop-blur-md rounded-xl border ${borderColor} ${glowColor} p-4 cursor-default transition-all hover:scale-[1.02] group`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          {/* Score Circle */}
+                    (match.nombre_local && match.nombre_local.toLowerCase().includes(term)) ||
+                    (match.apellido_local && match.apellido_local.toLowerCase().includes(term)) ||
+                    (match.cedula_local && match.cedula_local.toLowerCase().includes(term)) ||
+                    (match.nombre_externo && match.nombre_externo.toLowerCase().includes(term)) ||
+                    (match.apellido_externo && match.apellido_externo.toLowerCase().includes(term))
+                  );
+                });
+                
+                if (filtered.length === 0) return <div className="text-center text-xs text-neutral-500 py-6 w-full z-20 relative">No hay coincidencias con este filtro.</div>;
+
+                const duration = Math.max(30, filtered.length * 6); // 6 segundos por tarjeta para que vaya lento y fluido
+
+                return (
+                  <div className="flex hover:[animation-play-state:paused] gap-4 py-4 px-4" style={{ width: 'max-content', animation: `scroll ${duration}s linear infinite` }}>
+                    {[...filtered, ...filtered].map((match, idx) => {
+                      const scoreColor = match.match_score >= 80 ? 'from-emerald-500 to-teal-500' : match.match_score >= 60 ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500';
+                      const borderColor = match.match_score >= 80 ? 'border-emerald-500/30 hover:border-emerald-400/60' : match.match_score >= 60 ? 'border-yellow-500/30 hover:border-yellow-400/60' : 'border-orange-500/30 hover:border-orange-400/60';
+                      const glowColor = match.match_score >= 80 ? 'shadow-[0_0_15px_rgba(16,185,129,0.15)]' : match.match_score >= 60 ? 'shadow-[0_0_15px_rgba(234,179,8,0.15)]' : 'shadow-[0_0_15px_rgba(249,115,22,0.15)]';
+                      const sources = match.sources || [];
+                      return (
+                        <div key={`${match.id}-${idx}`} className={`flex-shrink-0 w-[320px] bg-neutral-900/80 backdrop-blur-md rounded-xl border ${borderColor} ${glowColor} p-4 cursor-default transition-all hover:scale-[1.02] group`}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="relative w-10 h-10 shrink-0">
                               <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
@@ -881,12 +925,18 @@ export default function Home() {
                                 </span>
                               ))}
                             </div>
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); setRecognizeModal(match); }}
-                              className="text-[10px] font-bold bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 border border-indigo-500/50 px-2 py-1 rounded transition-colors"
-                            >
-                              ¡Lo conozco!
-                            </button>
+                            {match.status === 'recognized' ? (
+                              <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 px-2 py-1 rounded">
+                                ✅ Reconocido
+                              </span>
+                            ) : (
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setRecognizeModal(match); }}
+                                className="text-[10px] font-bold bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 border border-indigo-500/50 px-2 py-1 rounded transition-colors"
+                              >
+                                ¡Lo conozco!
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -894,6 +944,43 @@ export default function Home() {
                   );
                 })}
               </div>
+            );
+          })()}
+            </div>
+            
+            {/* Stats Footer for Roller */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 bg-neutral-900/50 border border-neutral-800 rounded-xl p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] animate-pulse"></span>
+                  {crossMatchResults.length} Coincidencias Totales
+                </div>
+                <div className="w-px h-4 bg-neutral-800"></div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                  {crossMatchResults.filter(m => m.status === 'recognized').length} Reconocidos
+                </div>
+              </div>
+              <button
+                onClick={startCrossMatch}
+                disabled={isCrossMatchLoading}
+                className="text-[10px] font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {isCrossMatchLoading ? (
+                  <>
+                    <svg className="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sincronizando...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    Sincronizar Ahora
+                  </>
+                )}
+              </button>
             </div>
           </div>
         )}
@@ -1794,6 +1881,6 @@ export default function Home() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

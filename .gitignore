@@ -6,3 +6,4 @@ ffmpeg.exe
 plantilla_pacientes.csv
 procesados.json
 procesar/
+web/data/pacientes.db* 
