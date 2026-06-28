@@ -286,16 +286,37 @@ export async function processFiles(files) {
 
             // DB Insertion Transaction (Actually just formatting and caching now)
             const insertMany = db.transaction((allPacientes) => {
-                // Intra-batch Deduplication to remove overlap artifacts from slicing
+                // Intra-batch Deduplication & Merging to remove overlap artifacts
                 let uniquePacientes = [];
-                let seenInBatch = new Set();
                 for (let p of allPacientes) {
                     let n = normalizeText(p.nombre);
                     let a = normalizeText(p.apellido);
                     let c = normalizeText(p.cedula);
-                    let key = `${n}|${a}|${c}`;
-                    if (key !== "||" && !seenInBatch.has(key)) {
-                        seenInBatch.add(key);
+                    
+                    if (!n && !a && !c) continue; // Skip completely empty rows
+                    
+                    let existingIdx = uniquePacientes.findIndex(ep => {
+                        let en = normalizeText(ep.nombre);
+                        let ea = normalizeText(ep.apellido);
+                        let ec = normalizeText(ep.cedula);
+                        
+                        // Si tienen la misma cédula (y no está vacía), es la misma persona
+                        if (c && ec && c === ec) return true;
+                        // Si tienen el mismo nombre y apellido (fuzziness básico), es la misma persona
+                        if (n && a && en && ea && n === en && a === ea) return true;
+                        return false;
+                    });
+
+                    if (existingIdx >= 0) {
+                        // Merge: conservar los campos que estén vacíos en el registro existente
+                        let ep = uniquePacientes[existingIdx];
+                        if (!ep.cedula && p.cedula) ep.cedula = p.cedula;
+                        if (!ep.edad && p.edad) ep.edad = p.edad;
+                        if (!ep.centro && p.centro) ep.centro = p.centro;
+                        if (!ep.sector && p.sector) ep.sector = p.sector;
+                        if (!ep.nombre && p.nombre) ep.nombre = p.nombre;
+                        if (!ep.apellido && p.apellido) ep.apellido = p.apellido;
+                    } else {
                         uniquePacientes.push(p);
                     }
                 }
