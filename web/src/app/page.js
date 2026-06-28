@@ -8,6 +8,41 @@ const MapView = dynamic(() => import('@/components/MapView'), {
   loading: () => <div className="w-full h-[500px] rounded-3xl bg-neutral-900 border border-neutral-800 animate-pulse"></div>
 });
 
+const SEARCH_SOURCES = [
+  "🏢 Consultando Base Local...",
+  "🌐 Conectando con HospitalesEnVenezuela.com...",
+  "🌐 Revisando RedSolidariaVenezuela.com...",
+  "🌐 Buscando en DesaparecidosTerremotoVenezuela...",
+  "🌐 Consultando RedAyudaVenezuela.com...",
+  "🌐 Escaneando DesaparecidosVenezuela.com...",
+  "🌐 Consultando Reencuentro.help...",
+  "🌐 Buscando en SOSVenezuela2026.com..."
+];
+
+function MultiSourceLoader() {
+  const [sourceIdx, setSourceIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSourceIdx((prev) => (prev + 1) % SEARCH_SOURCES.length);
+    }, 450); // Cambia cada 450ms para un efecto rápido de escaneo
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="pr-4 flex items-center gap-3">
+      <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 transition-opacity duration-200">
+        {SEARCH_SOURCES[sourceIdx]}
+      </span>
+      <div className="flex items-center gap-1.5">
+        <div className="w-2 h-2 bg-blue-500 rounded-full animate-[bounce_1s_infinite_-0.4s] shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+        <div className="w-2 h-2 bg-purple-500 rounded-full animate-[bounce_1s_infinite_-0.2s] shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[bounce_1s_infinite_0s] shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -552,11 +587,7 @@ export default function Home() {
                 value={emergencySearchQuery}
                 onChange={(e) => setEmergencySearchQuery(e.target.value)}
               />
-              {isEmergencySearching && (
-                <div className="pr-4">
-                  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
+              {isEmergencySearching && <MultiSourceLoader />}
             </div>
           </div>
 
