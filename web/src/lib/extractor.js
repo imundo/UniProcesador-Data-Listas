@@ -17,9 +17,14 @@ const PROMPT = `Vas a actuar como un experto extraedor de datos médicos.
 A continuación te proporcionaré texto pre-procesado, una imagen o fotogramas de un video que contienen una lista de pacientes, personas, ingresos médicos u hospitalizados.
 Tu objetivo es transcribir estrictamente todos los pacientes a los campos requeridos.
 
+¡MUY IMPORTANTE! Si el documento es una imagen de una tabla densa (como Excel):
+- Realiza un barrido exhaustivo de izquierda a derecha, fila por fila.
+- ES CRÍTICO que NO omitas NINGUNA fila. Cada fila que ves es una persona diferente que debe ser extraída obligatoriamente.
+- No te detengas hasta llegar al final de la tabla/documento.
+
 Reglas obligatorias:
 1. Extrae únicamente: Nombres, Apellidos, Cédula, Centro de Salud, Edad y Sector.
-2. Cédula: Puede aparecer bajo sinónimos como "C.I", "ID", "Identificación". Corrige errores obvios de OCR (ej: O u o por 0, l o I por 1). Mantén el prefijo V- o E-. La cédula debe tener entre 6 y 9 dígitos. SI VES UN NÚMERO LARGO O UN RUT, ES CÉDULA, NUNCA EDAD.
+2. Cédula: Puede aparecer bajo sinónimos como "C.I", "ID", "Identificación". Corrige errores obvios de OCR (ej: O u o por 0, l o I por 1). Mantén el prefijo V- o E-. La cédula debe tener entre 6 y 11 dígitos. SI VES UN NÚMERO LARGO O UN RUT, ES CÉDULA, NUNCA EDAD.
 3. Edad: DEBE SER UN NÚMERO ENTRE 1 Y 120. Ignora fechas como 12.12.311 o números exagerados como 900. Extrae solo el número (ej: si dice "17 años", extrae "17").
 4. Orden de Nombres y Apellidos: Si la lista invierte el orden (Apellido, Nombre), colócalos correctamente en sus campos.
 5. Si un dato NO está en la imagen, DEBES rellenar el campo con un string vacío "". ¡No los dejes nulos ni escribas N/D!
@@ -162,13 +167,53 @@ export async function processFiles(files) {
                 let mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
                 const fileBuffer = fs.readFileSync(filePath);
                 
-                // Pasar la imagen original en alta resolución a GPT-4 Vision (Evitar pre-procesamiento agresivo que destruye el texto)
-                const base64Image = fileBuffer.toString('base64');
-                
-                openAiTasks.push([{
-                    type: "image_url",
-                    image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
-                }]);
+                try {
+                    const metadata = await sharp(fileBuffer).metadata();
+                    
+                    // Smart Image Slicing para Listas (Tablas densas)
+                    // Si la imagen es más alta que ancha y tiene altura significativa
+                    if (metadata.height && metadata.width && metadata.height > 800 && (metadata.height / metadata.width) > 1.2) {
+                        console.log(`[Smart Slicing] Imagen alta detectada (${metadata.width}x${metadata.height}). Cortando en pedazos para gpt-4o-mini...`);
+                        
+                        const slices = 3; // Cortar en 3 pedazos
+                        const sliceHeight = Math.ceil(metadata.height / slices);
+                        const overlap = 80; // 80 píxeles de solapamiento
+                        
+                        for (let j = 0; j < slices; j++) {
+                            let top = j * sliceHeight - (j > 0 ? overlap : 0);
+                            if (top < 0) top = 0;
+                            let height = sliceHeight + (j > 0 ? overlap : 0) + (j < slices - 1 ? overlap : 0);
+                            if (top + height > metadata.height) {
+                                height = metadata.height - top;
+                            }
+                            
+                            const sliceBuffer = await sharp(fileBuffer)
+                                .extract({ left: 0, top: Math.floor(top), width: metadata.width, height: Math.floor(height) })
+                                .toBuffer();
+                                
+                            const base64Slice = sliceBuffer.toString('base64');
+                            openAiTasks.push([{
+                                type: "image_url",
+                                image_url: { url: `data:${mimeType};base64,${base64Slice}`, detail: "high" }
+                            }]);
+                        }
+                    } else {
+                        // Imagen normal, pasar entera
+                        const base64Image = fileBuffer.toString('base64');
+                        openAiTasks.push([{
+                            type: "image_url",
+                            image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
+                        }]);
+                    }
+                } catch (sharpError) {
+                    console.error("Error al procesar imagen con sharp:", sharpError);
+                    // Fallback a imagen completa
+                    const base64Image = fileBuffer.toString('base64');
+                    openAiTasks.push([{
+                        type: "image_url",
+                        image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
+                    }]);
+                }
             } else {
                 console.log(`Extensión no soportada ignorada: ${ext}`);
                 archivosSaltados++;
@@ -257,10 +302,10 @@ export async function processFiles(files) {
                     const safeN = (nombre || "").replace(/[0-9]/g, '').trim();
                     const safeA = (apellido || "").replace(/[0-9]/g, '').trim();
                     
-                    // 2. Cédula: Solo números, pero validar su longitud
+                    // 2. Cédula: Solo números, pero validar su longitud (flexibilizado para no borrar pasaportes o números con ruido)
                     let safeC = (cedula || "").replace(/\D/g, ''); 
-                    if (safeC && (safeC.length < 6 || safeC.length > 8)) {
-                        safeC = ""; // Si no tiene sentido como cédula (ej. teléfono o basura OCR), se descarta
+                    if (safeC && (safeC.length < 5 || safeC.length > 11)) {
+                        safeC = ""; // Si no tiene sentido como cédula (ej. teléfono o basura OCR extrema), se descarta
                     }
 
                     const safeCen = (centro || "").trim();
