@@ -21,6 +21,8 @@ Tu objetivo es transcribir estrictamente todos los pacientes a los campos requer
 - Realiza un barrido exhaustivo de izquierda a derecha, fila por fila.
 - ES CRÍTICO que NO omitas NINGUNA fila. Cada fila que ves es una persona diferente que debe ser extraída obligatoriamente.
 - No te detengas hasta llegar al final de la tabla/documento.
+- PRECAUCIÓN: Podrías estar viendo un recorte (slice) de la tabla original, por lo que quizás no veas los encabezados de las columnas.
+- GUÍA DE COLUMNAS: Por lo general, los textos largos son Nombres y Apellidos. Los números largos (más de 6 dígitos) son Cédulas. Los números cortos (1, 2 o 3 dígitos) son SIEMPRE la Edad. NO mezcles la Cédula con la Edad.
 
 Reglas obligatorias:
 1. Extrae únicamente: Nombres, Apellidos, Cédula, Centro de Salud, Edad y Sector.
@@ -173,11 +175,13 @@ export async function processFiles(files) {
                     // Smart Image Slicing para Listas (Tablas densas)
                     // Si la imagen es más alta que ancha y tiene altura significativa
                     if (metadata.height && metadata.width && metadata.height > 800 && (metadata.height / metadata.width) > 1.2) {
-                        console.log(`[Smart Slicing] Imagen alta detectada (${metadata.width}x${metadata.height}). Cortando en pedazos para gpt-4o-mini...`);
+                        // Calcular número de rebanadas para que cada una tenga máximo ~350px de altura
+                        // Esto garantiza que gpt-4o-mini solo vea ~8-12 filas por imagen y no se confunda.
+                        const slices = Math.max(3, Math.ceil(metadata.height / 350)); 
+                        console.log(`[Smart Slicing] Imagen alta detectada (${metadata.width}x${metadata.height}). Cortando en ${slices} pedazos para gpt-4o-mini...`);
                         
-                        const slices = 3; // Cortar en 3 pedazos
                         const sliceHeight = Math.ceil(metadata.height / slices);
-                        const overlap = 80; // 80 píxeles de solapamiento
+                        const overlap = 60; // 60 píxeles de solapamiento para no cortar texto
                         
                         for (let j = 0; j < slices; j++) {
                             let top = j * sliceHeight - (j > 0 ? overlap : 0);
