@@ -70,6 +70,20 @@ function getDb() {
         started_at DATETIME,
         completed_at DATETIME
       );
+
+      CREATE TABLE IF NOT EXISTS registros_externos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT,
+        apellido TEXT,
+        cedula TEXT,
+        centro TEXT,
+        edad_sector TEXT,
+        estado TEXT,
+        origen TEXT,
+        fuente_url TEXT,
+        creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(nombre, apellido, cedula, origen)
+      );
     `);
 
     // Migración: añadir batch_id y estatus si no existen

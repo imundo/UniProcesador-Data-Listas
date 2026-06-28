@@ -493,6 +493,46 @@ export async function performSearch(term) {
     // Combinar resultados de todas las fuentes
     let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData, ...nodoAyudaData];
     
+    // --- PASSIVE SCRAPING (Base de Datos Sombra) ---
+    // Guardar los resultados externos asíncronamente en nuestra BD para alimentar el portal
+    const externalResults = [...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData, ...nodoAyudaData];
+    if (externalResults.length > 0) {
+        // Ejecutar de forma no bloqueante (no usar await)
+        setTimeout(() => {
+            try {
+                const insertStmt = db.prepare(`
+                    INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, fuente_url)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(nombre, apellido, cedula, origen) DO UPDATE SET
+                    centro=excluded.centro,
+                    estado=excluded.estado,
+                    edad_sector=excluded.edad_sector,
+                    fuente_url=excluded.fuente_url,
+                    creado_en=CURRENT_TIMESTAMP
+                `);
+                
+                const insertMany = db.transaction((records) => {
+                    for (const r of records) {
+                        insertStmt.run(
+                            r.nombre || '', 
+                            r.apellido || '', 
+                            r.cedula || '', 
+                            r.centro || '', 
+                            r.edad_sector || '', 
+                            r.estado || '', 
+                            r.source || 'Desconocido', 
+                            r.sourceUrl || ''
+                        );
+                    }
+                });
+                insertMany(externalResults);
+            } catch(e) {
+                console.error("Passive Scraping Error:", e);
+            }
+        }, 0);
+    }
+    // -----------------------------------------------
+    
     // Agrupar por similitud (cédula o tokens de nombre)
     let groupedResults = [];
     
