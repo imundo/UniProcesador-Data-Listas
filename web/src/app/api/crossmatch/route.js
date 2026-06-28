@@ -168,8 +168,7 @@ async function runCrossMatch() {
                 for (const ext of externalResults) {
                     const score = calculateMatchScore(paciente, ext);
                     if (score >= 40) {
-                        const sources = (ext.sources || [{name: ext.source, url: ext.sourceUrl}])
-                            .filter(s => !EXCLUDED_SOURCES.includes(s.name));
+                        const sources = (ext.sources || [{name: ext.source, url: ext.sourceUrl}]);
                         
                         if (sources.length === 0) continue;
 
