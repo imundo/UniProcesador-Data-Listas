@@ -164,24 +164,36 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const abortController = new AbortController();
+    
     const delayDebounceFn = setTimeout(async () => {
       if (emergencySearchQuery.trim().length >= 3) {
         setIsEmergencySearching(true);
         try {
-          const res = await fetch(`/api/search?q=${encodeURIComponent(emergencySearchQuery)}`);
+          const res = await fetch(`/api/search?q=${encodeURIComponent(emergencySearchQuery)}`, {
+            signal: abortController.signal
+          });
           const data = await res.json();
           setEmergencySearchResults(data);
         } catch(e) {
-          console.error(e);
+          if (e.name !== 'AbortError') {
+            console.error(e);
+          }
         } finally {
-          setIsEmergencySearching(false);
+          // Only stop loading if we haven't aborted (meaning this is the latest request)
+          if (!abortController.signal.aborted) {
+            setIsEmergencySearching(false);
+          }
         }
       } else {
         setEmergencySearchResults([]);
       }
     }, 500);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      clearTimeout(delayDebounceFn);
+      abortController.abort(); // Cancelar la petición anterior si el usuario sigue escribiendo
+    };
   }, [emergencySearchQuery]);
 
 

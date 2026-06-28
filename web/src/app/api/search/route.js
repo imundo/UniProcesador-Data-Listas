@@ -15,6 +15,29 @@ function withTimeout(promise, ms = 4000) {
     ]);
 }
 
+// Cache en memoria para búsquedas repetidas
+const cache = new Map();
+const CACHE_TTL = 30 * 1000; // 30 segundos (suficiente pararáfagas de tráfico sin entregar datos muy desactualizados)
+
+function getFromCache(key) {
+    const item = cache.get(key);
+    if (!item) return null;
+    if (Date.now() > item.expiry) {
+        cache.delete(key);
+        return null;
+    }
+    return item.value;
+}
+
+function setToCache(key, value) {
+    // Evitar que la memoria crezca infinitamente, limpiamos el caché si hay más de 500 búsquedas distintas
+    if (cache.size > 500) cache.clear(); 
+    cache.set(key, {
+        value,
+        expiry: Date.now() + CACHE_TTL
+    });
+}
+
 async function searchSupabase(term) {
     try {
         const response = await fetch('https://ozuxfepfkvnxkywdsqxy.supabase.co/rest/v1/rpc/buscar_paciente', {
@@ -499,9 +522,31 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q');
 
+    if (!q || q.trim().length < 3) {
+        return NextResponse.json([]);
+    }
+
+    const normalizedQuery = q.toLowerCase().trim();
+
+    // 1. Intentar servir desde Caché
+    const cachedData = getFromCache(normalizedQuery);
+    if (cachedData) {
+        // Añadimos un pequeño header o console log para depurar
+        return NextResponse.json(cachedData, {
+            headers: { 'X-Cache': 'HIT' }
+        });
+    }
+
     try {
+        // 2. Si no hay caché, buscar en vivo
         const groupedResults = await performSearch(q);
-        return NextResponse.json(groupedResults);
+        
+        // 3. Guardar en caché el resultado (incluso si está vacío, para evitar saturación por búsquedas inútiles)
+        setToCache(normalizedQuery, groupedResults);
+        
+        return NextResponse.json(groupedResults, {
+            headers: { 'X-Cache': 'MISS' }
+        });
     } catch (e) {
         console.error("Federated search fatal error:", e);
         return NextResponse.json({ error: "Search failed" }, { status: 500 });
