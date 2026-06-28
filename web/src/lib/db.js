@@ -52,6 +52,11 @@ function getDb() {
         estado_externo TEXT,
         match_score REAL,
         sources TEXT,
+        status TEXT DEFAULT 'pending',
+        recognized_by_name TEXT,
+        recognized_by_email TEXT,
+        recognized_by_phone TEXT,
+        recognized_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (paciente_id) REFERENCES pacientes(id)
       );
@@ -80,6 +85,24 @@ function getDb() {
         }
     } catch(e) {
         console.error("Migration error:", e);
+    }
+
+    // Migración: añadir campos de reconocimiento a cross_matches si no existen
+    try {
+        const cmInfo = db.pragma("table_info(cross_matches)");
+        if (cmInfo.length > 0) {
+            const hasStatus = cmInfo.some(col => col.name === 'status');
+            if (!hasStatus) db.exec("ALTER TABLE cross_matches ADD COLUMN status TEXT DEFAULT 'pending'");
+            const hasRecName = cmInfo.some(col => col.name === 'recognized_by_name');
+            if (!hasRecName) {
+                db.exec("ALTER TABLE cross_matches ADD COLUMN recognized_by_name TEXT");
+                db.exec("ALTER TABLE cross_matches ADD COLUMN recognized_by_email TEXT");
+                db.exec("ALTER TABLE cross_matches ADD COLUMN recognized_by_phone TEXT");
+                db.exec("ALTER TABLE cross_matches ADD COLUMN recognized_at DATETIME");
+            }
+        }
+    } catch(e) {
+        console.error("Cross-match migration error:", e);
     }
 
     // Migrar desde CSV si existe y la DB está vacía

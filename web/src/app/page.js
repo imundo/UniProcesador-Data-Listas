@@ -98,10 +98,11 @@ export default function Home() {
 
   // Cross-Match States
   const [crossMatchResults, setCrossMatchResults] = useState([]);
-  const [crossMatchStatus, setCrossMatchStatus] = useState({ status: 'idle', progress: 0, total: 0, matchesFound: 0, percentage: 0 });
   const [crossMatchFilter, setCrossMatchFilter] = useState(40);
-  const [isCrossMatchLoading, setIsCrossMatchLoading] = useState(false);
-  const crossMatchIntervalRef = useRef(null);
+  const [recognizeModal, setRecognizeModal] = useState(null); // holds the match being recognized
+  const [recognizeForm, setRecognizeForm] = useState({ nombre: '', email: '', telefono: '' });
+  const [isRecognizing, setIsRecognizing] = useState(false);
+  const [crossMatchRecognizedCount, setCrossMatchRecognizedCount] = useState(0);
 
   const fileInputRef = useRef(null);
 
@@ -210,39 +211,42 @@ export default function Home() {
       const res = await fetch(`/api/crossmatch?mode=results&minScore=${minScore}`);
       const data = await res.json();
       if (data.matches) setCrossMatchResults(data.matches);
-      if (data.status) setCrossMatchStatus(prev => ({ ...prev, ...data.status, status: data.status.status }));
+      if (data.recognizedCount !== undefined) setCrossMatchRecognizedCount(data.recognizedCount);
     } catch (e) { console.error('CrossMatch fetch error:', e); }
   };
 
-  const startCrossMatch = async () => {
-    setIsCrossMatchLoading(true);
+  const handleRecognizeSubmit = async (e) => {
+    e.preventDefault();
+    if (!recognizeForm.nombre || !recognizeForm.email) {
+      alert("Por favor, ingresa tu nombre y correo.");
+      return;
+    }
+    setIsRecognizing(true);
     try {
-      const res = await fetch('/api/crossmatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-      const data = await res.json();
+      const res = await fetch('/api/crossmatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'recognize',
+          matchId: recognizeModal.id,
+          nombre: recognizeForm.nombre,
+          email: recognizeForm.email,
+          telefono: recognizeForm.telefono
+        })
+      });
       if (res.ok) {
-        setCrossMatchStatus({ status: 'running', progress: 0, total: 0, matchesFound: 0, percentage: 0 });
-        // Start polling for progress
-        if (crossMatchIntervalRef.current) clearInterval(crossMatchIntervalRef.current);
-        crossMatchIntervalRef.current = setInterval(async () => {
-          try {
-            const pRes = await fetch('/api/crossmatch?mode=progress');
-            const pData = await pRes.json();
-            setCrossMatchStatus(pData);
-            if (pData.status === 'completed' || pData.status === 'error') {
-              clearInterval(crossMatchIntervalRef.current);
-              crossMatchIntervalRef.current = null;
-              setIsCrossMatchLoading(false);
-              fetchCrossMatchResults(crossMatchFilter);
-            }
-          } catch (e) { /* ignore polling errors */ }
-        }, 3000);
+        setRecognizeModal(null);
+        setRecognizeForm({ nombre: '', email: '', telefono: '' });
+        fetchCrossMatchResults(crossMatchFilter);
       } else {
-        alert(data.error || 'Error al iniciar el cruce');
-        setIsCrossMatchLoading(false);
+        const data = await res.json();
+        alert(data.error || "Error al registrar el reconocimiento.");
       }
     } catch (e) {
       console.error(e);
-      setIsCrossMatchLoading(false);
+      alert("Error de red.");
+    } finally {
+      setIsRecognizing(false);
     }
   };
 
@@ -253,8 +257,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    return () => { if (crossMatchIntervalRef.current) clearInterval(crossMatchIntervalRef.current); };
-  }, []);
+    const fetchInterval = setInterval(() => {
+      fetchCrossMatchResults(crossMatchFilter);
+    }, 60000); // Polling cada minuto para que se refresque solo si el backend hace la sincronización
+    return () => clearInterval(fetchInterval);
+  }, [crossMatchFilter]);
 
   useEffect(() => {
     let interval;
@@ -825,8 +832,7 @@ export default function Home() {
                     }`}>
                     {s}%+
                   </button>
-                ))}
-                <span className="text-[10px] text-neutral-500 ml-1">{crossMatchResults.length} coincidencias</span>
+                <span className="text-[10px] text-neutral-500 ml-1">{crossMatchResults.length} coincidencias | {crossMatchRecognizedCount} reconocidas</span>
               </div>
             </div>
 
@@ -867,12 +873,20 @@ export default function Home() {
                             {match.estado_externo && <p className="text-[10px] text-neutral-500 mt-0.5">Estado: {match.estado_externo}</p>}
                           </div>
                           {/* Sources */}
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {sources.map((src, si) => (
-                              <span key={si} className="text-[8px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 border border-neutral-700/50">
-                                {typeof src === 'string' ? src.replace('.com', '') : (src.name || '').replace('.com', '')}
-                              </span>
-                            ))}
+                          <div className="flex flex-wrap items-center justify-between gap-1 mt-3">
+                            <div className="flex flex-wrap gap-1">
+                              {sources.map((src, si) => (
+                                <span key={si} className="text-[8px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 border border-neutral-700/50">
+                                  {typeof src === 'string' ? src.replace('.com', '') : (src.name || '').replace('.com', '')}
+                                </span>
+                              ))}
+                            </div>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setRecognizeModal(match); }}
+                              className="text-[10px] font-bold bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 border border-indigo-500/50 px-2 py-1 rounded transition-colors"
+                            >
+                              ¡Lo conozco!
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1027,46 +1041,6 @@ export default function Home() {
                   <span className="text-[10px] opacity-75 font-normal leading-tight">Solo enviará tu última carga para no saturar el servidor</span>
                 </div>
               </button>
-
-              {/* Cross-Match Button */}
-              <div className="mt-3 pt-3 border-t border-neutral-800/50">
-                <button
-                  onClick={startCrossMatch}
-                  disabled={isCrossMatchLoading}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-amber-600/20 to-orange-600/20 hover:from-amber-600/30 hover:to-orange-600/30 text-amber-300 border border-amber-500/30 hover:border-amber-400/50 font-semibold rounded-xl transition-all flex items-center justify-center gap-3 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.15)] hover:shadow-[0_0_25px_rgba(245,158,11,0.3)] disabled:opacity-50 group"
-                >
-                  {isCrossMatchLoading ? (
-                    <svg className="animate-spin h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                  )}
-                  <div className="flex flex-col items-start text-left">
-                    <span>{isCrossMatchLoading ? `Cruzando... ${crossMatchStatus.percentage || 0}%` : 'Iniciar Cruce Inteligente'}</span>
-                    <span className="text-[10px] opacity-75 font-normal leading-tight">
-                      {isCrossMatchLoading 
-                        ? `${crossMatchStatus.progress}/${crossMatchStatus.total} pacientes · ${crossMatchStatus.matchesFound} coincidencias`
-                        : 'Cruza tu base de pacientes contra portales de desaparecidos'
-                      }
-                    </span>
-                  </div>
-                </button>
-                {isCrossMatchLoading && (
-                  <div className="mt-2 w-full bg-neutral-800 rounded-full h-2 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(245,158,11,0.5)]" 
-                      style={{ width: `${crossMatchStatus.percentage || 0}%` }} 
-                    />
-                  </div>
-                )}
-                {!isCrossMatchLoading && crossMatchResults.length > 0 && (
-                  <p className="text-[10px] text-amber-400/60 text-center mt-2">
-                    Último cruce: {crossMatchResults.length} coincidencias encontradas
-                  </p>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -1776,6 +1750,50 @@ export default function Home() {
         </div>
       )}
 
-    </div>
+      {/* RECOGNIZE MODAL */}
+      {recognizeModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-neutral-900 border border-indigo-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl relative shadow-[0_0_50px_rgba(79,70,229,0.15)]">
+            <button onClick={() => setRecognizeModal(null)} className="absolute top-4 right-4 text-neutral-400 hover:text-white transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 bg-indigo-500/20 text-indigo-400 rounded-xl">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <h2 className="text-xl font-bold">Validar Coincidencia</h2>
+            </div>
+            
+            <p className="text-sm text-neutral-300 mb-4">
+              Estás confirmando que el paciente <strong>{recognizeModal.nombre_local} {recognizeModal.apellido_local}</strong> es la misma persona reportada como desaparecida bajo el nombre de <strong>{recognizeModal.nombre_externo} {recognizeModal.apellido_externo}</strong>.
+            </p>
+            
+            <form onSubmit={handleRecognizeSubmit} className="flex flex-col gap-4 mt-6">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1.5">Tu Nombre y Apellido *</label>
+                <input required type="text" value={recognizeForm.nombre} onChange={e => setRecognizeForm({...recognizeForm, nombre: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700/50 rounded-xl px-4 py-2.5 text-white placeholder-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all" placeholder="Ej. Dra. María Pérez" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1.5">Tu Correo Electrónico *</label>
+                <input required type="email" value={recognizeForm.email} onChange={e => setRecognizeForm({...recognizeForm, email: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700/50 rounded-xl px-4 py-2.5 text-white placeholder-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all" placeholder="tucorreo@hospital.com" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1.5">Teléfono (Opcional)</label>
+                <input type="tel" value={recognizeForm.telefono} onChange={e => setRecognizeForm({...recognizeForm, telefono: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700/50 rounded-xl px-4 py-2.5 text-white placeholder-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all" placeholder="+58 412..." />
+              </div>
+              
+              <div className="flex gap-3 mt-4 pt-4 border-t border-neutral-800/50">
+                <button type="button" onClick={() => setRecognizeModal(null)} className="flex-1 py-2.5 px-4 bg-neutral-800 hover:bg-neutral-700 text-white font-semibold rounded-xl transition-all">Cancelar</button>
+                <button type="submit" disabled={isRecognizing} className="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
+                  {isRecognizing ? (
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  ) : 'Confirmar Coincidencia'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
   );
 }
