@@ -914,7 +914,17 @@ export default function Home() {
                             <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mb-1">Coincide con:</p>
                             <p className="text-xs font-semibold text-amber-300 truncate">{match.nombre_externo} {match.apellido_externo}</p>
                             {match.centro_externo && <p className="text-[10px] text-neutral-500 truncate mt-0.5">📍 {match.centro_externo}</p>}
-                            {match.estado_externo && <p className="text-[10px] text-neutral-500 mt-0.5">Estado: {match.estado_externo}</p>}
+                            {match.estado_externo && (
+                              <div className="mt-1.5">
+                                <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${
+                                  match.estado_externo.toLowerCase().includes('rescatad') || match.estado_externo.toLowerCase().includes('reencontrad') || match.estado_externo.toLowerCase().includes('encontrad')
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                                }`}>
+                                  {match.estado_externo}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           {/* Sources */}
                           <div className="flex flex-wrap items-center justify-between gap-1 mt-3">

@@ -258,46 +258,51 @@ async function searchDesaparecidosVzla(term) {
 
 async function searchReencuentroHelp(term) {
     try {
-        const response = await fetch('https://rwqhswywmdjqyqnpsxqw.supabase.co/functions/v1/chat', {
+        const queryParams = {
             method: 'POST',
             headers: {
-                'accept': '*/*',
+                'accept': 'application/json',
                 'content-type': 'application/json',
                 'origin': 'https://reencuentro.help',
                 'referer': 'https://reencuentro.help/'
-            },
-            body: JSON.stringify({
-                messages: [{ role: 'user', content: `Busco a ${term}` }],
-                lang: 'es'
-            })
-        });
+            }
+        };
+
+        const fetchList = async (kind) => {
+            try {
+                const res = await fetch('https://rwqhswywmdjqyqnpsxqw.supabase.co/functions/v1/list-records', {
+                    ...queryParams,
+                    body: JSON.stringify({ kind, q: term, page: 1 })
+                });
+                if (!res.ok) return [];
+                const data = await res.json();
+                return data.records || [];
+            } catch (e) {
+                return [];
+            }
+        };
+
+        const [missingRecords, foundRecords] = await Promise.all([
+            fetchList('missing'),
+            fetchList('found')
+        ]);
+
+        const allRecords = [...missingRecords, ...foundRecords];
         
-        if (!response.ok) return [];
-        
-        const text = await response.text();
-        const results = [];
-        
-        // The response is typically streaming SSE or JSON. Try to extract person data.
-        // Parse any JSON objects with person data that appear in the response
-        const nameMatches = text.matchAll(/["']?(?:nombre|name)["']?\s*[:"]\s*["']([^"']+)["']/gi);
-        for (const m of nameMatches) {
-            if (results.length >= 20) break;
-            const fullName = m[1].trim();
-            if (fullName.length < 3) continue;
+        return allRecords.map(p => {
+            const fullName = p.display_name || "";
             const parts = fullName.split(' ');
-            results.push({
-                nombre: parts.slice(0, Math.ceil(parts.length / 2)).join(' '),
-                apellido: parts.slice(Math.ceil(parts.length / 2)).join(' '),
-                cedula: '',
-                centro: '',
-                edad_sector: '',
-                estado: '',
+            return {
+                nombre: parts.slice(0, Math.ceil(parts.length / 2)).join(' ').trim(),
+                apellido: parts.slice(Math.ceil(parts.length / 2)).join(' ').trim(),
+                cedula: (p.cedula || '').trim(),
+                centro: (p.location_detail || '').trim(),
+                edad_sector: p.age_min ? `${p.age_min} Años` : '',
+                estado: p.kind === 'missing' ? 'Desaparecido' : 'Rescatado',
                 source: 'Reencuentro.help',
                 sourceUrl: 'https://reencuentro.help'
-            });
-        }
-        
-        return results;
+            };
+        });
     } catch (e) {
         console.error("Reencuentro.help search error:", e);
         return [];
