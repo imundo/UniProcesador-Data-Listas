@@ -15,7 +15,7 @@ class FakeFile {
 }
 
 async function run() {
-    const filePath = "c:\\Users\\imund\\OneDrive\\Documentos\\Proyectos DEV\\unificar\\procesar\\IMG-20260625-WA0732.jpg";
+    const filePath = "c:\\Users\\imund\\OneDrive\\Documentos\\Proyectos DEV\\unificar\\procesar\\procesar_V2\\WhatsApp Image 2026-06-27 at 2.52.31 PM (1).jpeg";
     const buffer = fs.readFileSync(filePath);
     const file = new FakeFile(buffer, path.basename(filePath));
     

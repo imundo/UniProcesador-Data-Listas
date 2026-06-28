@@ -217,7 +217,7 @@ export async function processFiles(files) {
                     return parsedResult.pacientes || [];
                 } catch(e) {
                     console.error("Error processing chunk with OpenAI:", e);
-                    return [];
+                    throw e; // Lanza el error para que falle el lote completo y se muestre en el frontend
                 }
             };
 
@@ -338,6 +338,7 @@ export async function processFiles(files) {
             processedFiles[fileHash] = true;
         } catch (error) {
             console.error(`Error procesando archivo ${file.name}:`, error);
+            throw error; // Propagar error crítico hacia la ruta de la API
         }
     }
 

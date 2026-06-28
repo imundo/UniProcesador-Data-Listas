@@ -418,7 +418,7 @@ export async function performSearch(term) {
     let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData];
     
     // Agrupar por similitud (cédula o tokens de nombre)
-    const groupedResults = [];
+    let groupedResults = [];
     
     const getTokens = (nombre, apellido) => {
         const full = normalizeText(`${nombre || ''} ${apellido || ''}`).toLowerCase().trim();
