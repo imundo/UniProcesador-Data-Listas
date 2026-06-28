@@ -969,6 +969,7 @@ export default function Home() {
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                   {crossMatchResults.filter(m => m.status === 'recognized').length} Reconocidos
+                </div>
               </div>
             </div>
           </div>
