@@ -10,7 +10,9 @@ export async function POST(request) {
             return NextResponse.json({ error: 'No files provided' }, { status: 400 });
         }
 
-        const result = await processFiles(files);
+        const highPrecision = formData.get('highPrecision') === 'true';
+
+        const result = await processFiles(files, highPrecision);
         return NextResponse.json(result);
     } catch (error) {
         console.error("API Error:", error);

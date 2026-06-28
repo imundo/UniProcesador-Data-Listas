@@ -47,6 +47,7 @@ export default function Home() {
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [highPrecision, setHighPrecision] = useState(false);
   const [aiThought, setAiThought] = useState("Iniciando análisis...");
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState(null);
@@ -392,6 +393,7 @@ export default function Home() {
     setLocalPage(1); // Reset local page
 
     const formData = new FormData();
+    formData.append("highPrecision", highPrecision);
     files.forEach(file => {
       formData.append("files", file);
     });
@@ -732,6 +734,19 @@ export default function Home() {
             {files.length > 0 && (
               <div className="mt-4 flex flex-col gap-3 relative z-10">
                 <div className="text-sm text-neutral-300 font-medium">{files.length} archivos seleccionados</div>
+                
+                <label className="flex items-center gap-2 mt-2 cursor-pointer p-3 bg-neutral-800/50 rounded-xl border border-neutral-700/50 hover:bg-neutral-800 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    className="w-5 h-5 rounded text-blue-500 bg-neutral-700 border-neutral-600 focus:ring-blue-500 focus:ring-offset-neutral-900" 
+                    checked={highPrecision}
+                    onChange={(e) => setHighPrecision(e.target.checked)}
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-white">Escaneo de Alta Precisión</span>
+                    <span className="text-[10px] text-neutral-400">Recomendado para hojas de cálculo y listas densas. Usa un modelo de IA más potente.</span>
+                  </div>
+                </label>
                 <button
                   onClick={processFiles}
                   disabled={isProcessing}

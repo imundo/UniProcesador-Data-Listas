@@ -12,7 +12,7 @@ import db from './db.js';
 import sharp from 'sharp';
 import Fuse from 'fuse.js';
 
-const MODEL = "gpt-4o-mini";
+// MODEL constant is now determined dynamically
 const PROMPT = `Vas a actuar como un experto extraedor de datos médicos.
 A continuación te proporcionaré texto pre-procesado, una imagen o fotogramas de un video que contienen una lista de pacientes, personas, ingresos médicos u hospitalizados.
 Tu objetivo es transcribir estrictamente todos los pacientes a los campos requeridos.
@@ -64,7 +64,7 @@ async function processInBatches(items, batchSize, processItem) {
     return results;
 }
 
-export async function processFiles(files) {
+export async function processFiles(files, highPrecision = false) {
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
     });
@@ -173,8 +173,8 @@ export async function processFiles(files) {
                     const metadata = await sharp(fileBuffer).metadata();
                     
                     // Smart Image Slicing para Listas (Tablas densas)
-                    // Si la imagen es más alta que ancha y tiene altura significativa
-                    if (metadata.height && metadata.width && metadata.height > 800 && (metadata.height / metadata.width) > 1.2) {
+                    // Si la imagen es más alta que ancha y tiene altura significativa, y NO estamos en alta precisión
+                    if (!highPrecision && metadata.height && metadata.width && metadata.height > 800 && (metadata.height / metadata.width) > 1.2) {
                         // Calcular número de rebanadas para que cada una tenga máximo ~350px de altura
                         // Esto garantiza que gpt-4o-mini solo vea ~8-12 filas por imagen y no se confunda.
                         const slices = Math.max(3, Math.ceil(metadata.height / 350)); 
@@ -228,8 +228,9 @@ export async function processFiles(files) {
             const processChunk = async (taskMessages) => {
                 const finalMessages = [{ role: "system", content: PROMPT }, { role: "user", content: taskMessages }];
                 try {
+                    const modelToUse = highPrecision ? "gpt-4o" : "gpt-4o-mini";
                     const response = await openai.chat.completions.create({
-                        model: MODEL,
+                        model: modelToUse,
                         messages: finalMessages,
                         response_format: {
                             type: "json_schema",
