@@ -531,6 +531,9 @@ export default function Home() {
             <a href="https://redsolidariavenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)] hover:bg-red-500/30 transition-colors">🌐 RedSolidariaVenezuela.com</a>
             <a href="https://desaparecidosterremotovenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)] hover:bg-purple-500/30 transition-colors">🌐 DesaparecidosTerremotoVenezuela.com</a>
             <a href="https://redayudavenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)] hover:bg-amber-500/30 transition-colors">🌐 RedAyudaVenezuela.com</a>
+            <a href="https://www.desaparecidosvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)] hover:bg-rose-500/30 transition-colors">🌐 DesaparecidosVenezuela.com</a>
+            <a href="https://reencuentro.help/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/20 shadow-[0_0_10px_rgba(20,184,166,0.1)] hover:bg-teal-500/30 transition-colors">🌐 Reencuentro.help</a>
+            <a href="https://sosvenezuela2026.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:bg-cyan-500/30 transition-colors">🌐 SOSVenezuela2026.com</a>
           </div>
         </div>
 
@@ -598,6 +601,9 @@ export default function Home() {
                                              src.name === 'RedSolidariaVenezuela.com' ? 'bg-red-500/20 text-red-400' :
                                              src.name === 'DesaparecidosTerremotoVenezuela.com' ? 'bg-purple-500/20 text-purple-400' :
                                              src.name === 'RedAyudaVenezuela.com' ? 'bg-amber-500/20 text-amber-400' :
+                                             src.name === 'DesaparecidosVenezuela.com' ? 'bg-rose-500/20 text-rose-400' :
+                                             src.name === 'Reencuentro.help' ? 'bg-teal-500/20 text-teal-400' :
+                                             src.name === 'SOSVenezuela2026.com' ? 'bg-cyan-500/20 text-cyan-400' :
                                              'bg-emerald-500/20 text-emerald-400';
                           return (
                             <span key={sIdx} className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full ${badgeColor}`}>

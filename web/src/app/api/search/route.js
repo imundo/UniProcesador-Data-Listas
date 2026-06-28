@@ -157,6 +157,207 @@ async function searchRedAyudaAPI(term) {
     }
 }
 
+// ========== NUEVAS FUENTES (Fase 1) ==========
+
+async function searchDesaparecidosVzla(term) {
+    try {
+        const encodedTerm = encodeURIComponent(term);
+        const response = await fetch(`https://www.desaparecidosvenezuela.com/buscar?q=${encodedTerm}`, {
+            method: 'GET',
+            headers: {
+                'accept': 'text/html',
+                'user-agent': 'Mozilla/5.0 (compatible; UnificadorBot/1.0)'
+            }
+        });
+        
+        if (!response.ok) return [];
+        
+        const html = await response.text();
+        const results = [];
+        
+        // Parse SSR HTML: each person card is an <a> linking to /p/id with name, location, status
+        const cardRegex = /class="font-medium text-gray-900[^"]*">([^<]+)<\/p>.*?class="text-sm text-gray-500[^"]*">([^<]*)<\/p>.*?class="text-xs px-2 py-1 rounded-full font-medium shrink-0[^"]*">([^<]+)<\/span>/gs;
+        const ageRegex = /class="text-xs text-gray-400">([\d]+)<!-- -->\s*años/;
+        
+        // Simpler approach: extract names and locations from the structured HTML
+        const personBlocks = html.split('class="flex items-center gap-3 bg-white border');
+        
+        for (let i = 1; i < personBlocks.length && results.length < 30; i++) {
+            const block = personBlocks[i];
+            
+            // Extract name
+            const nameMatch = block.match(/class="font-medium text-gray-900[^"]*">([^<]+)</);
+            if (!nameMatch) continue;
+            
+            const fullName = nameMatch[1].trim();
+            const nameParts = fullName.split(' ');
+            const nombre = nameParts.slice(0, Math.ceil(nameParts.length / 2)).join(' ');
+            const apellido = nameParts.slice(Math.ceil(nameParts.length / 2)).join(' ');
+            
+            // Extract location
+            const locMatch = block.match(/class="text-sm text-gray-500[^"]*">([^<]*)</);
+            const centro = locMatch ? locMatch[1].trim() : '';
+            
+            // Extract age
+            const ageMatch = block.match(/class="text-xs text-gray-400">(\d+)/);
+            const edad = ageMatch ? `${ageMatch[1]} Años` : '';
+            
+            // Extract status
+            const statusMatch = block.match(/class="text-xs px-2 py-1 rounded-full font-medium shrink-0[^"]*">([^<]+)</);
+            const estado = statusMatch ? statusMatch[1].trim() : '';
+            
+            results.push({
+                nombre,
+                apellido,
+                cedula: '',
+                centro,
+                edad_sector: edad,
+                estado,
+                source: 'DesaparecidosVenezuela.com',
+                sourceUrl: 'https://www.desaparecidosvenezuela.com'
+            });
+        }
+        
+        return results;
+    } catch (e) {
+        console.error("DesaparecidosVzla search error:", e);
+        return [];
+    }
+}
+
+async function searchReencuentroHelp(term) {
+    try {
+        const response = await fetch('https://rwqhswywmdjqyqnpsxqw.supabase.co/functions/v1/chat', {
+            method: 'POST',
+            headers: {
+                'accept': '*/*',
+                'content-type': 'application/json',
+                'origin': 'https://reencuentro.help',
+                'referer': 'https://reencuentro.help/'
+            },
+            body: JSON.stringify({
+                messages: [{ role: 'user', content: `Busco a ${term}` }],
+                lang: 'es'
+            })
+        });
+        
+        if (!response.ok) return [];
+        
+        const text = await response.text();
+        const results = [];
+        
+        // The response is typically streaming SSE or JSON. Try to extract person data.
+        // Parse any JSON objects with person data that appear in the response
+        const nameMatches = text.matchAll(/["']?(?:nombre|name)["']?\s*[:"]\s*["']([^"']+)["']/gi);
+        for (const m of nameMatches) {
+            if (results.length >= 20) break;
+            const fullName = m[1].trim();
+            if (fullName.length < 3) continue;
+            const parts = fullName.split(' ');
+            results.push({
+                nombre: parts.slice(0, Math.ceil(parts.length / 2)).join(' '),
+                apellido: parts.slice(Math.ceil(parts.length / 2)).join(' '),
+                cedula: '',
+                centro: '',
+                edad_sector: '',
+                estado: '',
+                source: 'Reencuentro.help',
+                sourceUrl: 'https://reencuentro.help'
+            });
+        }
+        
+        return results;
+    } catch (e) {
+        console.error("Reencuentro.help search error:", e);
+        return [];
+    }
+}
+
+async function searchSOSVenezuela(term) {
+    try {
+        const encodedTerm = encodeURIComponent(term);
+        const response = await fetch(`https://sosvenezuela2026.com/buscar?q=${encodedTerm}`, {
+            method: 'GET',
+            headers: {
+                'accept': 'text/html',
+                'user-agent': 'Mozilla/5.0 (compatible; UnificadorBot/1.0)'
+            }
+        });
+        
+        if (!response.ok) return [];
+        
+        const html = await response.text();
+        const results = [];
+        
+        // SOS Venezuela uses SSR Next.js. Look for person data in the RSC payload.
+        // Person names appear in JSON-like structures within __next_f script blocks
+        const nameRegex = /"nombre"\s*:\s*"([^"]+)"/g;
+        const apellidoRegex = /"apellido"\s*:\s*"([^"]+)"/g;
+        const estadoRegex = /"estado_text"\s*:\s*"([^"]+)"/g;
+        const zonaRegex = /"zona"\s*:\s*"([^"]+)"/g;
+        
+        let nameMatch;
+        const names = [];
+        while ((nameMatch = nameRegex.exec(html)) !== null && names.length < 30) {
+            names.push(nameMatch[1]);
+        }
+        
+        // Also try extracting from alt tags on images or visible text
+        const altRegex = /alt="Foto de ([^"]+)"/g;
+        let altMatch;
+        while ((altMatch = altRegex.exec(html)) !== null && names.length < 30) {
+            if (!names.includes(altMatch[1])) names.push(altMatch[1]);
+        }
+        
+        // Also try card-based extraction similar to desaparecidosvenezuela
+        const cardBlocks = html.split('font-semibold');
+        for (let i = 1; i < cardBlocks.length && results.length < 30; i++) {
+            const block = cardBlocks[i];
+            // Try to find a name that contains the search term
+            const textMatch = block.match(/>([^<]{3,50})</)
+            if (!textMatch) continue;
+            const text = textMatch[1].trim();
+            if (text.toLowerCase().includes(term.toLowerCase()) && text.match(/[A-ZÁ-Ú]/)) {
+                const parts = text.split(' ');
+                if (parts.length >= 1 && !results.find(r => r.nombre === parts[0])) {
+                    results.push({
+                        nombre: parts.slice(0, Math.ceil(parts.length / 2)).join(' '),
+                        apellido: parts.slice(Math.ceil(parts.length / 2)).join(' '),
+                        cedula: '',
+                        centro: '',
+                        edad_sector: '',
+                        estado: 'Desaparecido',
+                        source: 'SOSVenezuela2026.com',
+                        sourceUrl: 'https://sosvenezuela2026.com'
+                    });
+                }
+            }
+        }
+        
+        // Dedupe by adding extracted names not already in results
+        for (const fullName of names) {
+            if (results.length >= 30) break;
+            if (results.find(r => (r.nombre + ' ' + r.apellido).trim() === fullName)) continue;
+            const parts = fullName.split(' ');
+            results.push({
+                nombre: parts.slice(0, Math.ceil(parts.length / 2)).join(' '),
+                apellido: parts.slice(Math.ceil(parts.length / 2)).join(' '),
+                cedula: '',
+                centro: '',
+                edad_sector: '',
+                estado: 'Desaparecido',
+                source: 'SOSVenezuela2026.com',
+                sourceUrl: 'https://sosvenezuela2026.com'
+            });
+        }
+        
+        return results;
+    } catch (e) {
+        console.error("SOSVenezuela search error:", e);
+        return [];
+    }
+}
+
 async function searchLocalDb(term) {
     try {
         const tokens = normalizeText(term).split(/\s+/).filter(t => t.length > 0);
@@ -192,13 +393,16 @@ export async function performSearch(term) {
         return [];
     }
 
-    // Ejecutar las 5 búsquedas en paralelo (Búsqueda Federada)
-    const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes] = await Promise.allSettled([
+    // Ejecutar las 8 búsquedas en paralelo (Búsqueda Federada Multi-Origen)
+    const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes, desapVzlaRes, reencuentroRes, sosRes] = await Promise.allSettled([
         searchLocalDb(term),
         searchSupabase(term),
         searchGoogleSheets(term),
         searchDesaparecidosAPI(term),
-        searchRedAyudaAPI(term)
+        searchRedAyudaAPI(term),
+        searchDesaparecidosVzla(term),
+        searchReencuentroHelp(term),
+        searchSOSVenezuela(term)
     ]);
 
     const localData = localRes.status === 'fulfilled' ? localRes.value : [];
@@ -206,9 +410,12 @@ export async function performSearch(term) {
     const sheetsData = sheetsRes.status === 'fulfilled' ? sheetsRes.value : [];
     const desaparecidosData = desaparecidosRes.status === 'fulfilled' ? desaparecidosRes.value : [];
     const redAyudaData = redAyudaRes.status === 'fulfilled' ? redAyudaRes.value : [];
+    const desapVzlaData = desapVzlaRes.status === 'fulfilled' ? desapVzlaRes.value : [];
+    const reencuentroData = reencuentroRes.status === 'fulfilled' ? reencuentroRes.value : [];
+    const sosData = sosRes.status === 'fulfilled' ? sosRes.value : [];
 
-    // Combinar resultados
-    let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData];
+    // Combinar resultados de todas las fuentes
+    let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData];
     
     // Agrupar por similitud (nombre + apellido + cedula normalizados)
     const groupedMap = new Map();
