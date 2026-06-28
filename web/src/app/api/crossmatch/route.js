@@ -139,13 +139,30 @@ async function runCrossMatch() {
 
                 if (!searchQuery || searchQuery.length < 3) return [];
 
-                const results = await performSearch(searchQuery);
+                // 1. QUERY SHADOW DB INSTEAD OF EXTERNAL APIS!
+                // Extract tokens to find matches locally
+                const tokens = normalizeText(searchQuery).split(/\s+/).filter(t => t.length > 2);
+                if (tokens.length === 0) return [];
                 
-                // Filter out excluded sources
-                const externalResults = results.filter(r => {
-                    const sources = r.sources || [{name: r.source}];
-                    return !sources.every(s => EXCLUDED_SOURCES.includes(s.name));
-                });
+                let query = "SELECT * FROM registros_externos WHERE 1=1";
+                const params = [];
+                for (const t of tokens) {
+                    query += " AND (nombre LIKE ? OR apellido LIKE ? OR cedula LIKE ?)";
+                    const likeTerm = `%${t}%`;
+                    params.push(likeTerm, likeTerm, likeTerm);
+                }
+                query += " LIMIT 50";
+                
+                const stmt = db.prepare(query);
+                const localExtResults = stmt.all(...params);
+                
+                // Format results to match the expected format
+                const externalResults = localExtResults.map(r => ({
+                    ...r,
+                    source: r.origen,
+                    sourceUrl: r.fuente_url,
+                    sources: [{name: r.origen, url: r.fuente_url}]
+                }));
 
                 const matches = [];
                 for (const ext of externalResults) {
