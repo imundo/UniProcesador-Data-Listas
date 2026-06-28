@@ -168,11 +168,52 @@ export async function processFiles(files) {
             } else if (['.jpg', '.jpeg', '.png'].includes(ext)) {
                 let mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
                 const fileBuffer = fs.readFileSync(filePath);
-                const base64Image = fileBuffer.toString('base64');
-                openAiTasks.push([{
-                    type: "image_url",
-                    image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
-                }]);
+                
+                try {
+                    const metadata = await sharp(fileBuffer).metadata();
+                    
+                    // Slicing para Tablas densas: Obligatorio incluso para gpt-4o para evitar 
+                    // que el modelo reduzca la resolución y omita filas.
+                    if (metadata.height && metadata.width && metadata.height > 800 && (metadata.height / metadata.width) > 1.2) {
+                        const slices = Math.max(3, Math.ceil(metadata.height / 350)); 
+                        console.log(`[Smart Slicing] Imagen alta detectada (${metadata.width}x${metadata.height}). Cortando en ${slices} pedazos para gpt-4o...`);
+                        
+                        const sliceHeight = Math.ceil(metadata.height / slices);
+                        const overlap = 60; // Solapamiento para no cortar texto
+                        
+                        for (let j = 0; j < slices; j++) {
+                            let top = j * sliceHeight - (j > 0 ? overlap : 0);
+                            if (top < 0) top = 0;
+                            let height = sliceHeight + (j > 0 ? overlap : 0) + (j < slices - 1 ? overlap : 0);
+                            if (top + height > metadata.height) {
+                                height = metadata.height - top;
+                            }
+                            
+                            const sliceBuffer = await sharp(fileBuffer)
+                                .extract({ left: 0, top: Math.floor(top), width: metadata.width, height: Math.floor(height) })
+                                .toBuffer();
+                                
+                            const base64Slice = sliceBuffer.toString('base64');
+                            openAiTasks.push([{
+                                type: "image_url",
+                                image_url: { url: `data:${mimeType};base64,${base64Slice}`, detail: "high" }
+                            }]);
+                        }
+                    } else {
+                        const base64Image = fileBuffer.toString('base64');
+                        openAiTasks.push([{
+                            type: "image_url",
+                            image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
+                        }]);
+                    }
+                } catch (sharpError) {
+                    console.error("Error al procesar imagen con sharp:", sharpError);
+                    const base64Image = fileBuffer.toString('base64');
+                    openAiTasks.push([{
+                        type: "image_url",
+                        image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
+                    }]);
+                }
             } else {
                 console.log(`Extensión no soportada ignorada: ${ext}`);
                 archivosSaltados++;
@@ -245,6 +286,21 @@ export async function processFiles(files) {
 
             // DB Insertion Transaction (Actually just formatting and caching now)
             const insertMany = db.transaction((allPacientes) => {
+                // Intra-batch Deduplication to remove overlap artifacts from slicing
+                let uniquePacientes = [];
+                let seenInBatch = new Set();
+                for (let p of allPacientes) {
+                    let n = normalizeText(p.nombre);
+                    let a = normalizeText(p.apellido);
+                    let c = normalizeText(p.cedula);
+                    let key = `${n}|${a}|${c}`;
+                    if (key !== "||" && !seenInBatch.has(key)) {
+                        seenInBatch.add(key);
+                        uniquePacientes.push(p);
+                    }
+                }
+                allPacientes = uniquePacientes;
+
                 for (const paciente of allPacientes) {
                     const { nombre, apellido, cedula, edad, sector } = paciente;
                     let { centro } = paciente;
