@@ -408,11 +408,39 @@ export async function processFiles(files) {
                         
                         pacientesExtraidos.push(nuevoPaciente);
                     } else {
-                        totalDuplicados++;
-                        pacientesDuplicados.push({
-                            nuevo: nuevoPaciente,
-                            existente: existingMatch
-                        });
+                        // Auto-Merge check: Does the new record just fill empty fields without conflicting?
+                        const existingCen = normalizeText(existingMatch.centro || "");
+                        const newCen = normCen;
+                        const isConflictCentro = newCen && existingCen && newCen !== existingCen;
+                        
+                        const existingE = existingMatch.edad_sector || "";
+                        const newE = combinedEdadSector;
+                        const isConflictEdadSector = newE && existingE && newE !== existingE;
+                        
+                        // Validar si solo está agregando información útil
+                        const hasNewCentro = newCen && !existingCen;
+                        const hasNewEdad = newE && !existingE;
+                        const hasNewCedula = normC && !existingMatch.cedula; // Poco probable por la llave primaria, pero posible por nombre
+
+                        if (!isConflictCentro && !isConflictEdadSector && (hasNewCentro || hasNewEdad || hasNewCedula)) {
+                            // Es un "Smart Merge"
+                            nuevoPaciente.isMerged = true;
+                            nuevoPaciente.mergeId = existingMatch.id;
+                            
+                            // Fusionar datos
+                            if (!nuevoPaciente.cedula && existingMatch.cedula) nuevoPaciente.cedula = existingMatch.cedula;
+                            if (!nuevoPaciente.centro && existingMatch.centro) nuevoPaciente.centro = existingMatch.centro;
+                            if (!nuevoPaciente.edad_sector && existingMatch.edad_sector) nuevoPaciente.edad_sector = existingMatch.edad_sector;
+                            
+                            totalNuevos++; // Lo contamos como registro actualizado/nuevo en la UI
+                            pacientesExtraidos.push(nuevoPaciente);
+                        } else {
+                            totalDuplicados++;
+                            pacientesDuplicados.push({
+                                nuevo: nuevoPaciente,
+                                existente: existingMatch
+                            });
+                        }
                     }
                 }
             });

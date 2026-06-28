@@ -48,6 +48,7 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [aiThought, setAiThought] = useState("Iniciando análisis...");
+  const [showDuplicates, setShowDuplicates] = useState(false);
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState(null);
 
@@ -389,6 +390,7 @@ export default function Home() {
     if (files.length === 0) return;
     setIsProcessing(true);
     setStats(null);
+    setShowDuplicates(false);
     setLocalPage(1); // Reset local page
 
     const formData = new FormData();
@@ -843,7 +845,10 @@ export default function Home() {
                     {stats.totalDuplicados > 0 && (
                       <button
                         onClick={() => {
-                          document.getElementById('duplicates-section')?.scrollIntoView({ behavior: 'smooth' });
+                          setShowDuplicates(true);
+                          setTimeout(() => {
+                            document.getElementById('duplicates-section')?.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
                         }}
                         className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/50 px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2"
                       >
@@ -1024,7 +1029,7 @@ export default function Home() {
             )}
 
             {/* Revisión de Posibles Duplicados */}
-            {stats.pacientesDuplicados && stats.pacientesDuplicados.length > 0 && (
+            {showDuplicates && stats.pacientesDuplicados && stats.pacientesDuplicados.length > 0 && (
               <div id="duplicates-section" className="mt-4 bg-neutral-950/60 rounded-2xl border border-yellow-500/30 overflow-hidden backdrop-blur-md flex flex-col">
                 <div className="px-4 py-3 border-b border-yellow-500/30 bg-yellow-500/10 flex flex-col gap-3">
                   <div className="flex flex-wrap justify-between items-center gap-4">
