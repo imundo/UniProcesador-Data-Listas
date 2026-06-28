@@ -812,17 +812,36 @@ export default function Home() {
         {/* === CROSS-MATCH ROLLER === */}
         {crossMatchResults.length > 0 && (
           <div className="w-full">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-500/10 text-amber-400 rounded-xl">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                  <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Cruce Inteligente</h3>
-                  <p className="text-[10px] text-neutral-400">Pacientes locales encontrados en portales de desaparecidos</p>
+                  <h3 className="text-xl font-black text-white tracking-tight uppercase">Cruce Inteligente</h3>
+                  <p className="text-xs text-neutral-400 font-medium">Pacientes locales encontrados en portales de desaparecidos</p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/crossmatch', { method: 'POST' });
+                      alert('Sincronización forzada iniciada. Recarga la página en unos minutos.');
+                    } catch (e) {
+                      alert('Error al forzar sincronización.');
+                    }
+                  }}
+                  className="text-xs font-bold px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center gap-1 shadow-lg shadow-blue-500/20"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  Forzar Sincronización
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mb-3">
                 <div className="relative">
                   <input
                     type="text"
@@ -933,16 +952,16 @@ export default function Home() {
                                 const sourceName = typeof src === 'string' ? src : (src.name || '');
                                 
                                 const KNOWN_URLS = {
-                                  'REENCUENTRO.HELP': 'https://reencuentro.help',
-                                  'HospitalesEnVenezuela.com': 'https://hospitalesenvenezuela.com',
-                                  'RedSolidariaVenezuela.com': 'https://www.redsolidariavenezuela.com',
-                                  'DesaparecidosTerremotoVenezuela.com': 'https://desaparecidosterremotovenezuela.com',
-                                  'SOSVenezuela2026.com': 'https://sosvenezuela2026.com'
+                                  'reencuentro.help': 'https://reencuentro.help',
+                                  'hospitalesenvenezuela.com': 'https://hospitalesenvenezuela.com',
+                                  'redsolidariavenezuela.com': 'https://www.redsolidariavenezuela.com',
+                                  'desaparecidosterremotovenezuela.com': 'https://desaparecidosterremotovenezuela.com',
+                                  'sosvenezuela2026.com': 'https://sosvenezuela2026.com'
                                 };
                                 
                                 let sourceUrl = '#';
                                 if (typeof src === 'object' && src.url) sourceUrl = src.url;
-                                else if (KNOWN_URLS[sourceName]) sourceUrl = KNOWN_URLS[sourceName];
+                                else if (KNOWN_URLS[sourceName.toLowerCase()]) sourceUrl = KNOWN_URLS[sourceName.toLowerCase()];
 
                                 return (
                                   <a 
