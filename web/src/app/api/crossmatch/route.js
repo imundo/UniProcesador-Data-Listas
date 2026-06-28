@@ -111,18 +111,18 @@ async function runCrossMatch() {
         db.prepare("INSERT INTO cross_match_status (id, status, progress, total, matches_found, started_at) VALUES (1, 'running', 0, ?, 0, ?)").run(pacientes.length, crossMatchJobState.startedAt);
     } catch(e) { /* first run */ }
 
-    // Clear only PENDING matches (keep recognized ones)
-    db.prepare("DELETE FROM cross_matches WHERE status = 'pending'").run();
+    const currentSyncId = Date.now();
 
     const insertMatch = db.prepare(`
-        INSERT INTO cross_matches (paciente_id, nombre_local, apellido_local, cedula_local, nombre_externo, apellido_externo, cedula_externo, centro_externo, edad_externo, estado_externo, match_score, sources, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        INSERT INTO cross_matches (paciente_id, nombre_local, apellido_local, cedula_local, nombre_externo, apellido_externo, cedula_externo, centro_externo, edad_externo, estado_externo, match_score, sources, status, last_sync)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
     `);
 
-    // Check if this match was already recognized (to avoid re-inserting)
-    const checkRecognized = db.prepare(
-        "SELECT id FROM cross_matches WHERE paciente_id = ? AND nombre_externo = ? AND apellido_externo = ? AND status = 'recognized' LIMIT 1"
+    // Check if this match already exists (either pending or recognized)
+    const checkExisting = db.prepare(
+        "SELECT id, status FROM cross_matches WHERE paciente_id = ? AND nombre_externo = ? AND apellido_externo = ? LIMIT 1"
     );
+    const updateSync = db.prepare("UPDATE cross_matches SET last_sync = ? WHERE id = ?");
 
     const BATCH_SIZE = 5;
     const DELAY_MS = 1500;
@@ -177,9 +177,14 @@ async function runCrossMatch() {
         if (flatResults.length > 0) {
             db.transaction((results) => {
                 for (const m of results) {
-                    // Skip if already recognized
-                    const existing = checkRecognized.get(m.paciente.id, m.external.nombre || '', m.external.apellido || '');
-                    if (existing) continue;
+                    // Skip if already exists, just update sync timestamp so it doesn't get deleted
+                    const existing = checkExisting.get(m.paciente.id, m.external.nombre || '', m.external.apellido || '');
+                    if (existing) {
+                        if (existing.status === 'pending') {
+                            updateSync.run(currentSyncId, existing.id);
+                        }
+                        continue;
+                    }
 
                     insertMatch.run(
                         m.paciente.id,
@@ -193,7 +198,8 @@ async function runCrossMatch() {
                         m.external.edad_sector || '',
                         m.external.estado || '',
                         m.score,
-                        JSON.stringify(m.sources.map(s => s.name))
+                        JSON.stringify(m.sources.map(s => s.name)),
+                        currentSyncId
                     );
                 }
             })(flatResults);
@@ -212,6 +218,9 @@ async function runCrossMatch() {
             await new Promise(resolve => setTimeout(resolve, DELAY_MS));
         }
     }
+
+    // Delete matches that were not found in this sync run (removed from external APIs)
+    db.prepare("DELETE FROM cross_matches WHERE status = 'pending' AND last_sync != ?").run(currentSyncId);
 
     crossMatchJobState.status = 'completed';
     crossMatchJobState.completedAt = new Date().toISOString();
