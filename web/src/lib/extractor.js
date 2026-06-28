@@ -12,7 +12,7 @@ import db from './db.js';
 import sharp from 'sharp';
 import Fuse from 'fuse.js';
 
-// MODEL constant is now determined dynamically
+const MODEL = "gpt-4o";
 const PROMPT = `Vas a actuar como un experto extraedor de datos médicos.
 A continuación te proporcionaré texto pre-procesado, una imagen o fotogramas de un video que contienen una lista de pacientes, personas, ingresos médicos u hospitalizados.
 Tu objetivo es transcribir estrictamente todos los pacientes a los campos requeridos.
@@ -64,7 +64,7 @@ async function processInBatches(items, batchSize, processItem) {
     return results;
 }
 
-export async function processFiles(files, highPrecision = false) {
+export async function processFiles(files) {
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
     });
@@ -168,56 +168,11 @@ export async function processFiles(files, highPrecision = false) {
             } else if (['.jpg', '.jpeg', '.png'].includes(ext)) {
                 let mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
                 const fileBuffer = fs.readFileSync(filePath);
-                
-                try {
-                    const metadata = await sharp(fileBuffer).metadata();
-                    
-                    // Smart Image Slicing para Listas (Tablas densas)
-                    // Si la imagen es más alta que ancha y tiene altura significativa, y NO estamos en alta precisión
-                    if (!highPrecision && metadata.height && metadata.width && metadata.height > 800 && (metadata.height / metadata.width) > 1.2) {
-                        // Calcular número de rebanadas para que cada una tenga máximo ~350px de altura
-                        // Esto garantiza que gpt-4o-mini solo vea ~8-12 filas por imagen y no se confunda.
-                        const slices = Math.max(3, Math.ceil(metadata.height / 350)); 
-                        console.log(`[Smart Slicing] Imagen alta detectada (${metadata.width}x${metadata.height}). Cortando en ${slices} pedazos para gpt-4o-mini...`);
-                        
-                        const sliceHeight = Math.ceil(metadata.height / slices);
-                        const overlap = 60; // 60 píxeles de solapamiento para no cortar texto
-                        
-                        for (let j = 0; j < slices; j++) {
-                            let top = j * sliceHeight - (j > 0 ? overlap : 0);
-                            if (top < 0) top = 0;
-                            let height = sliceHeight + (j > 0 ? overlap : 0) + (j < slices - 1 ? overlap : 0);
-                            if (top + height > metadata.height) {
-                                height = metadata.height - top;
-                            }
-                            
-                            const sliceBuffer = await sharp(fileBuffer)
-                                .extract({ left: 0, top: Math.floor(top), width: metadata.width, height: Math.floor(height) })
-                                .toBuffer();
-                                
-                            const base64Slice = sliceBuffer.toString('base64');
-                            openAiTasks.push([{
-                                type: "image_url",
-                                image_url: { url: `data:${mimeType};base64,${base64Slice}`, detail: "high" }
-                            }]);
-                        }
-                    } else {
-                        // Imagen normal, pasar entera
-                        const base64Image = fileBuffer.toString('base64');
-                        openAiTasks.push([{
-                            type: "image_url",
-                            image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
-                        }]);
-                    }
-                } catch (sharpError) {
-                    console.error("Error al procesar imagen con sharp:", sharpError);
-                    // Fallback a imagen completa
-                    const base64Image = fileBuffer.toString('base64');
-                    openAiTasks.push([{
-                        type: "image_url",
-                        image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
-                    }]);
-                }
+                const base64Image = fileBuffer.toString('base64');
+                openAiTasks.push([{
+                    type: "image_url",
+                    image_url: { url: `data:${mimeType};base64,${base64Image}`, detail: "high" }
+                }]);
             } else {
                 console.log(`Extensión no soportada ignorada: ${ext}`);
                 archivosSaltados++;
@@ -228,9 +183,8 @@ export async function processFiles(files, highPrecision = false) {
             const processChunk = async (taskMessages) => {
                 const finalMessages = [{ role: "system", content: PROMPT }, { role: "user", content: taskMessages }];
                 try {
-                    const modelToUse = highPrecision ? "gpt-4o" : "gpt-4o-mini";
                     const response = await openai.chat.completions.create({
-                        model: modelToUse,
+                        model: MODEL,
                         messages: finalMessages,
                         response_format: {
                             type: "json_schema",
