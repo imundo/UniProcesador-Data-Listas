@@ -886,7 +886,7 @@ export default function Home() {
                 const duration = Math.max(30, filtered.length * 6); // 6 segundos por tarjeta para que vaya lento y fluido
 
                 return (
-                  <div className="flex hover:[animation-play-state:paused_!important] gap-4 py-4 px-4" style={{ width: 'max-content', animation: `scroll ${duration}s linear infinite` }}>
+                  <div className="roller-track flex gap-4 py-4 px-4" style={{ width: 'max-content', animation: `scroll ${duration}s linear infinite` }}>
                     {[...filtered, ...filtered].map((match, idx) => {
                       const scoreColor = match.match_score >= 80 ? 'from-emerald-500 to-teal-500' : match.match_score >= 60 ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500';
                       const borderColor = match.match_score >= 80 ? 'border-emerald-500/30 hover:border-emerald-400/60' : match.match_score >= 60 ? 'border-yellow-500/30 hover:border-yellow-400/60' : 'border-orange-500/30 hover:border-orange-400/60';
@@ -921,7 +921,19 @@ export default function Home() {
                             <div className="flex flex-wrap gap-1">
                               {sources.map((src, si) => {
                                 const sourceName = typeof src === 'string' ? src : (src.name || '');
-                                const sourceUrl = typeof src === 'object' && src.url ? src.url : '#';
+                                
+                                const KNOWN_URLS = {
+                                  'REENCUENTRO.HELP': 'https://reencuentro.help',
+                                  'HospitalesEnVenezuela.com': 'https://hospitalesenvenezuela.com',
+                                  'RedSolidariaVenezuela.com': 'https://www.redsolidariavenezuela.com',
+                                  'DesaparecidosTerremotoVenezuela.com': 'https://desaparecidosterremotovenezuela.com',
+                                  'SOSVenezuela2026.com': 'https://sosvenezuela2026.com'
+                                };
+                                
+                                let sourceUrl = '#';
+                                if (typeof src === 'object' && src.url) sourceUrl = src.url;
+                                else if (KNOWN_URLS[sourceName]) sourceUrl = KNOWN_URLS[sourceName];
+
                                 return (
                                   <a 
                                     key={si} 

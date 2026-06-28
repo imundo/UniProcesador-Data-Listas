@@ -198,7 +198,7 @@ async function runCrossMatch() {
                         m.external.edad_sector || '',
                         m.external.estado || '',
                         m.score,
-                        JSON.stringify(m.sources.map(s => s.name)),
+                        JSON.stringify(m.sources.map(s => ({ name: s.name, url: s.url || '#' }))),
                         currentSyncId
                     );
                 }
