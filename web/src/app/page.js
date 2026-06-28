@@ -797,9 +797,25 @@ export default function Home() {
               <button
                 onClick={fetchInvalidsPreview}
                 disabled={isFetchingInvalids}
-                className="w-full py-3 px-4 bg-red-900/40 hover:bg-red-800/60 text-red-300 border border-red-700/50 font-semibold rounded-xl transition-all flex items-center justify-center gap-3 backdrop-blur-md"
+                className="w-full py-3 px-4 bg-red-900/40 hover:bg-red-800/60 text-red-300 border border-red-500/50 font-semibold rounded-xl transition-all flex flex-col items-center justify-center gap-1 backdrop-blur-md shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] group relative overflow-hidden"
               >
-                {isFetchingInvalids ? "Cargando..." : "Ver Registros Incompletos (No Enviados)"}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                <div className="flex items-center gap-2">
+                  {isFetchingInvalids ? (
+                    <svg className="animate-spin h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  )}
+                  <span>{isFetchingInvalids ? "Cargando..." : "Ver Registros Incompletos (No Enviados)"}</span>
+                </div>
+                <span className="text-[10px] opacity-80 font-normal leading-tight text-center max-w-[90%] mt-1">
+                  Aquí se encuentran las personas que no fueron sincronizadas al portal por falta de <b>Cédula</b>, <b>Centro</b> o <b>Nombre</b> (filtros principales).
+                </span>
               </button>
 
               <button
