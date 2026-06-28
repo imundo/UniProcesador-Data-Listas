@@ -26,12 +26,9 @@ export async function GET(req) {
             }
 
             const cp = require('child_process');
-            const cwd = process.cwd();
-            const scriptPath = cwd + '/scripts/seed_extraccion.js';
             
-            extractionProcess = cp.spawn('node', [scriptPath], {
-                stdio: 'ignore', // Run in background completely detached
-                detached: true
+            extractionProcess = cp.exec('node scripts/seed_extraccion.js', {
+                cwd: process.cwd()
             });
             
             extractionProcess.unref(); // Allow the parent process to exit independently
