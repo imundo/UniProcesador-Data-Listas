@@ -16,7 +16,8 @@ const SEARCH_SOURCES = [
   "🌐 Consultando RedAyudaVenezuela.com...",
   "🌐 Escaneando DesaparecidosVenezuela.com...",
   "🌐 Consultando Reencuentro.help...",
-  "🌐 Buscando en SOSVenezuela2026.com..."
+  "🌐 Buscando en SOSVenezuela2026.com...",
+  "🌐 Conectando con NodoAyuda.com..."
 ];
 
 function MultiSourceLoader() {
@@ -937,7 +938,8 @@ export default function Home() {
                                   'hospitalesenvenezuela.com': 'https://hospitalesenvenezuela.com',
                                   'redsolidariavenezuela.com': 'https://www.redsolidariavenezuela.com',
                                   'desaparecidosterremotovenezuela.com': 'https://desaparecidosterremotovenezuela.com',
-                                  'sosvenezuela2026.com': 'https://sosvenezuela2026.com'
+                                  'sosvenezuela2026.com': 'https://sosvenezuela2026.com',
+                                  'nodoayuda.com': 'https://www.nodoayuda.com'
                                 };
                                 
                                 let sourceUrl = '#';

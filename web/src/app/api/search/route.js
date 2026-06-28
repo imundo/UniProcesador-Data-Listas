@@ -394,6 +394,43 @@ async function searchSOSVenezuela(term) {
     }
 }
 
+async function searchNodoAyuda(term) {
+    try {
+        const url = `https://kciubdfrwsbdiyrihtzx.supabase.co/rest/v1/personas?select=id,tipo,nombre,edad,visto_lugar,descripcion,contacto,estado,lat,lng,creado_en,foto_url,origen,fuente_url&or=(nombre.ilike.*${encodeURIComponent(term)}*,visto_lugar.ilike.*${encodeURIComponent(term)}*)&limit=30&order=creado_en.desc`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'apikey': 'sb_publishable_ipLQ2B5eSzvhprKHz4XT-A_jWUq9AZt',
+                'authorization': 'Bearer sb_publishable_ipLQ2B5eSzvhprKHz4XT-A_jWUq9AZt',
+                'accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) return [];
+        
+        const data = await response.json();
+        const results = Array.isArray(data) ? data : [];
+        
+        return results.map(p => {
+            // Translate the "tipo" to "Desaparecido" or "Rescatado" or matching status
+            let estado = p.tipo === 'encontrado' ? 'Rescatado' : (p.tipo === 'desaparecido' ? 'Desaparecido' : p.tipo);
+            return {
+                nombre: (p.nombre || "").trim(),
+                apellido: "", // Usually Full Name is in nombre for NodoAyuda
+                cedula: "",
+                centro: (p.visto_lugar || "").trim(),
+                edad_sector: (p.descripcion || "").trim(),
+                estado: estado,
+                source: 'NodoAyuda.com',
+                sourceUrl: 'https://www.nodoayuda.com'
+            };
+        });
+    } catch (e) {
+        console.error("NodoAyuda search error:", e);
+        return [];
+    }
+}
+
 async function searchLocalDb(term) {
     try {
         const tokens = normalizeText(term).split(/\s+/).filter(t => t.length > 0);
@@ -429,9 +466,9 @@ export async function performSearch(term) {
         return [];
     }
 
-    // Ejecutar las 8 búsquedas en paralelo (Búsqueda Federada Multi-Origen)
+    // Ejecutar las 9 búsquedas en paralelo (Búsqueda Federada Multi-Origen)
     // Se usa un timeout de 4.5 segundos para cada petición para evitar que una API lenta bloquee todas
-    const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes, desapVzlaRes, reencuentroRes, sosRes] = await Promise.allSettled([
+    const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes, desapVzlaRes, reencuentroRes, sosRes, nodoAyudaRes] = await Promise.allSettled([
         withTimeout(searchLocalDb(term), 1000), // BD Local es rápida
         withTimeout(searchSupabase(term), 4500),
         withTimeout(searchGoogleSheets(term), 4500),
@@ -439,7 +476,8 @@ export async function performSearch(term) {
         withTimeout(searchRedAyudaAPI(term), 4500),
         withTimeout(searchDesaparecidosVzla(term), 4500),
         withTimeout(searchReencuentroHelp(term), 4500),
-        withTimeout(searchSOSVenezuela(term), 4500)
+        withTimeout(searchSOSVenezuela(term), 4500),
+        withTimeout(searchNodoAyuda(term), 4500)
     ]);
 
     const localData = localRes.status === 'fulfilled' ? localRes.value : [];
@@ -450,9 +488,10 @@ export async function performSearch(term) {
     const desapVzlaData = desapVzlaRes.status === 'fulfilled' ? desapVzlaRes.value : [];
     const reencuentroData = reencuentroRes.status === 'fulfilled' ? reencuentroRes.value : [];
     const sosData = sosRes.status === 'fulfilled' ? sosRes.value : [];
+    const nodoAyudaData = nodoAyudaRes.status === 'fulfilled' ? nodoAyudaRes.value : [];
 
     // Combinar resultados de todas las fuentes
-    let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData];
+    let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData, ...nodoAyudaData];
     
     // Agrupar por similitud (cédula o tokens de nombre)
     let groupedResults = [];
