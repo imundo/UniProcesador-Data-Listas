@@ -630,6 +630,20 @@ export default function Home() {
                 
                 const shareText = encodeURIComponent(`🚨 PERSONA LOCALIZADA\nNombre: ${person.nombre} ${person.apellido}\nCédula: ${person.cedula}\nUbicación: ${person.centro}\n${person.edad_sector ? `Sector/Nota: ${person.edad_sector}\n` : ''}${person.estado ? `Estado: ${person.estado}\n` : ''}Reportado en ${sourcesArray.length} plataforma(s).`);
                 
+                const getSearchUrlForSource = (sourceName, query) => {
+                  const q = encodeURIComponent(query);
+                  switch (sourceName) {
+                    case 'HospitalesEnVenezuela.com': return `https://hospitalesenvenezuela.com/?q=${q}`;
+                    case 'RedSolidariaVenezuela.com': return `https://www.redsolidariavenezuela.com/?q=${q}`;
+                    case 'DesaparecidosTerremotoVenezuela.com': return `https://desaparecidosterremotovenezuela.com/?q=${q}`;
+                    case 'RedAyudaVenezuela.com': return `https://redayudavenezuela.com/?q=${q}`;
+                    case 'DesaparecidosVenezuela.com': return `https://www.desaparecidosvenezuela.com/?q=${q}`;
+                    case 'Reencuentro.help': return `https://reencuentro.help/?q=${q}`;
+                    case 'SOSVenezuela2026.com': return `https://sosvenezuela2026.com/buscar?q=${q}`;
+                    default: return '#';
+                  }
+                };
+                
                 return (
                   <div key={idx} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-neutral-700 transition-colors">
                     <div className="flex-1">
@@ -659,12 +673,29 @@ export default function Home() {
                       
                       <div className="mt-3 flex flex-wrap gap-2 items-center">
                         <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mr-1">Encontrado en:</span>
-                        {sourcesArray.map((src, i) => (
-                           <span key={i} className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md bg-neutral-800/80 text-neutral-300 border border-neutral-700/50 flex items-center gap-1.5 shadow-sm">
-                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                             {src.name.replace('.com', '').replace('.help', '')}
-                           </span>
-                        ))}
+                        {sourcesArray.map((src, i) => {
+                          const searchQuery = (person.cedula && person.cedula.length > 5) ? person.cedula : `${person.nombre} ${person.apellido}`.trim();
+                          const targetUrl = src.url ? getSearchUrlForSource(src.name, searchQuery) : null;
+                          return targetUrl ? (
+                            <a 
+                              key={i} 
+                              href={targetUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="cursor-pointer hover:bg-neutral-700 hover:scale-105 transition-all text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md bg-neutral-800/80 text-neutral-300 border border-neutral-700/50 flex items-center gap-1.5 shadow-sm"
+                              title={`Buscar a ${searchQuery} en ${src.name}`}
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                              {src.name.replace('.com', '').replace('.help', '')}
+                              <svg className="w-3 h-3 ml-0.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            </a>
+                          ) : (
+                            <span key={i} className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md bg-neutral-800/80 text-neutral-300 border border-neutral-700/50 flex items-center gap-1.5 shadow-sm">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              {src.name}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                     

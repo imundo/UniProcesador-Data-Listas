@@ -6,6 +6,14 @@ function normalizeText(text) {
     return text.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
+function withTimeout(promise, ms = 4000) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms)
+        )
+    ]);
+}
 
 async function searchSupabase(term) {
     try {
@@ -394,15 +402,16 @@ export async function performSearch(term) {
     }
 
     // Ejecutar las 8 búsquedas en paralelo (Búsqueda Federada Multi-Origen)
+    // Se usa un timeout de 4.5 segundos para cada petición para evitar que una API lenta bloquee todas
     const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes, desapVzlaRes, reencuentroRes, sosRes] = await Promise.allSettled([
-        searchLocalDb(term),
-        searchSupabase(term),
-        searchGoogleSheets(term),
-        searchDesaparecidosAPI(term),
-        searchRedAyudaAPI(term),
-        searchDesaparecidosVzla(term),
-        searchReencuentroHelp(term),
-        searchSOSVenezuela(term)
+        withTimeout(searchLocalDb(term), 1000), // BD Local es rápida
+        withTimeout(searchSupabase(term), 4500),
+        withTimeout(searchGoogleSheets(term), 4500),
+        withTimeout(searchDesaparecidosAPI(term), 4500),
+        withTimeout(searchRedAyudaAPI(term), 4500),
+        withTimeout(searchDesaparecidosVzla(term), 4500),
+        withTimeout(searchReencuentroHelp(term), 4500),
+        withTimeout(searchSOSVenezuela(term), 4500)
     ]);
 
     const localData = localRes.status === 'fulfilled' ? localRes.value : [];
