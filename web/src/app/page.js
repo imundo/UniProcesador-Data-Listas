@@ -569,6 +569,12 @@ export default function Home() {
             <a href="https://www.desaparecidosvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)] hover:bg-rose-500/30 transition-colors">🌐 DesaparecidosVenezuela.com</a>
             <a href="https://reencuentro.help/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/20 shadow-[0_0_10px_rgba(20,184,166,0.1)] hover:bg-teal-500/30 transition-colors">🌐 Reencuentro.help</a>
             <a href="https://sosvenezuela2026.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:bg-cyan-500/30 transition-colors">🌐 SOSVenezuela2026.com</a>
+            
+            {/* Sitios adicionales de consulta externa */}
+            <a href="https://venezuelatebusca.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-pink-500/20 text-pink-400 border border-pink-500/20 shadow-[0_0_10px_rgba(236,72,153,0.1)] hover:bg-pink-500/30 transition-colors">🔗 VenezuelaTeBusca.com</a>
+            <a href="https://encuentravenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 shadow-[0_0_10px_rgba(99,102,241,0.1)] hover:bg-indigo-500/30 transition-colors">🔗 EncuentraVenezuela.com</a>
+            <a href="https://aidvenezuela.net/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-lime-500/20 text-lime-400 border border-lime-500/20 shadow-[0_0_10px_rgba(132,204,22,0.1)] hover:bg-lime-500/30 transition-colors">🔗 AidVenezuela.net</a>
+            <a href="https://venayuda.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/20 shadow-[0_0_10px_rgba(14,165,233,0.1)] hover:bg-sky-500/30 transition-colors">🔗 VenAyuda.com</a>
           </div>
         </div>
 
