@@ -57,6 +57,7 @@ function getDb() {
         recognized_by_email TEXT,
         recognized_by_phone TEXT,
         recognized_at DATETIME,
+        last_sync DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (paciente_id) REFERENCES pacientes(id)
       );
@@ -107,6 +108,8 @@ function getDb() {
         if (cmInfo.length > 0) {
             const hasStatus = cmInfo.some(col => col.name === 'status');
             if (!hasStatus) db.exec("ALTER TABLE cross_matches ADD COLUMN status TEXT DEFAULT 'pending'");
+            const hasLastSync = cmInfo.some(col => col.name === 'last_sync');
+            if (!hasLastSync) db.exec("ALTER TABLE cross_matches ADD COLUMN last_sync DATETIME");
             const hasRecName = cmInfo.some(col => col.name === 'recognized_by_name');
             if (!hasRecName) {
                 db.exec("ALTER TABLE cross_matches ADD COLUMN recognized_by_name TEXT");

@@ -16,8 +16,14 @@ export async function GET() {
             // Table might not exist yet if running very first time
         }
         
+        let crossesFound = 0;
+        try {
+            const cmRow = db.prepare("SELECT COUNT(*) as count FROM cross_matches").get();
+            crossesFound = cmRow.count;
+        } catch(e) {}
+        
         if (total === 0 && externalCount === 0) {
-            return NextResponse.json({ total: 0, externalCount: 0, showing: 0, pacientes: [] });
+            return NextResponse.json({ total: 0, externalCount: 0, crossesFound: 0, showing: 0, pacientes: [] });
         }
 
         const pacientes = db.prepare('SELECT * FROM pacientes ORDER BY id DESC').all();
@@ -25,6 +31,7 @@ export async function GET() {
         return NextResponse.json({ 
             total, 
             externalCount,
+            crossesFound,
             showing: pacientes.length, 
             pacientes 
         });

@@ -653,31 +653,21 @@ export default function Home() {
 
           <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
             <div className="p-2 bg-orange-500/10 text-orange-400 rounded-xl mb-3 group-hover:scale-110 transition-transform">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             </div>
-            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Archivos Procesados</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">{totalArchivosProcesados.toLocaleString()}</p>
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Cruces Inteligentes</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">{(stats?.crossesFound || 0).toLocaleString()}</p>
           </div>
         </div>
 
         {/* Multi-source indicator */}
         <div className="w-full flex flex-col items-center mb-6 z-20">
 
-          <div className="flex flex-wrap justify-center gap-3">
-            <span className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)] cursor-default">🏢 Base Local</span>
-            <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)] hover:bg-blue-500/30 transition-colors">🌐 HospitalesEnVenezuela.com</a>
-            <a href="https://redsolidariavenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)] hover:bg-red-500/30 transition-colors">🌐 RedSolidariaVenezuela.com</a>
-            <a href="https://desaparecidosterremotovenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)] hover:bg-purple-500/30 transition-colors">🌐 DesaparecidosTerremotoVenezuela.com</a>
-            <a href="https://redayudavenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)] hover:bg-amber-500/30 transition-colors">🌐 RedAyudaVenezuela.com</a>
-            <a href="https://www.desaparecidosvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)] hover:bg-rose-500/30 transition-colors">🌐 DesaparecidosVenezuela.com</a>
-            <a href="https://reencuentro.help/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/20 shadow-[0_0_10px_rgba(20,184,166,0.1)] hover:bg-teal-500/30 transition-colors">🌐 Reencuentro.help</a>
-            <a href="https://sosvenezuela2026.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:bg-cyan-500/30 transition-colors">🌐 SOSVenezuela2026.com</a>
-            
-            {/* Sitios adicionales de consulta externa */}
-            <a href="https://venezuelatebusca.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-pink-500/20 text-pink-400 border border-pink-500/20 shadow-[0_0_10px_rgba(236,72,153,0.1)] hover:bg-pink-500/30 transition-colors">🔗 VenezuelaTeBusca.com</a>
-            <a href="https://encuentravenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 shadow-[0_0_10px_rgba(99,102,241,0.1)] hover:bg-indigo-500/30 transition-colors">🔗 EncuentraVenezuela.com</a>
-            <a href="https://aidvenezuela.net/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-lime-500/20 text-lime-400 border border-lime-500/20 shadow-[0_0_10px_rgba(132,204,22,0.1)] hover:bg-lime-500/30 transition-colors">🔗 AidVenezuela.net</a>
-            <a href="https://venayuda.com/" target="_blank" rel="noopener noreferrer" className="text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/20 shadow-[0_0_10px_rgba(14,165,233,0.1)] hover:bg-sky-500/30 transition-colors">🔗 VenAyuda.com</a>
+          <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto opacity-80 hover:opacity-100 transition-opacity">
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)] cursor-default">🏢 Base Local</span>
+            {['NodoAyuda.com', 'HospitalesEnVenezuela.com', 'RedSolidariaVenezuela.com', 'DesaparecidosTerremotoVenezuela.com', 'RedAyudaVenezuela.com', 'DesaparecidosVenezuela.com', 'Reencuentro.help', 'SOSVenezuela2026.com', 'VenezuelaTeBusca.com', 'EncuentraVenezuela.com', 'AidVenezuela.net', 'VenAyuda.com'].map(site => (
+              <a key={site} href={`https://${site.toLowerCase()}/`} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white/90 transition-colors">🌐 {site}</a>
+            ))}
           </div>
         </div>
 
