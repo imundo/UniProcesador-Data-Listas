@@ -35,41 +35,6 @@ export async function GET(req) {
         const run = searchParams.get('run');
         
         if (run === 'true') {
-            // No API key required for Dateas
-            // We can just proceed
-
-            // Tomar 20 pacientes locales no validados que tengan cédula válida (solo números)
-            const unverifiedPacientes = db.prepare(`
-                SELECT id, nombre, apellido, cedula 
-                FROM pacientes 
-                WHERE cne_validado = 0 
-                  AND cedula IS NOT NULL 
-                  AND cedula != ''
-                LIMIT 20
-            `).all();
-
-            // Tomar 20 registros_externos no validados
-            const unverifiedExternos = db.prepare(`
-                SELECT id, nombre, apellido, cedula 
-                FROM registros_externos 
-                WHERE cne_validado = 0 
-                  AND cedula IS NOT NULL 
-                  AND cedula != ''
-                LIMIT 20
-            `).all();
-
-            const allUnverified = [
-                ...unverifiedPacientes.map(p => ({ ...p, table: 'pacientes' })),
-                ...unverifiedExternos.map(p => ({ ...p, table: 'registros_externos' }))
-            ].slice(0, 20); // Tomar solo 20 en total por ciclo
-
-            // Ejecutar en segundo plano para no saturar el servidor ni bloquear la petición HTTP
-            setTimeout(async () => {
-                for (const record of allUnverified) {
-                const cleanCedula = record.cedula.replace(/[^0-9]/g, '');
-                
-                if (cleanCedula.length < 5) continue; // Cédula inválida
-                
                 const numCedula = parseInt(cleanCedula, 10);
                 if (numCedula > 22000000) {
                     // Dateas no tiene cédulas tan nuevas, lo marcamos como 4 (Pendiente/Ignorado) para que no bloquee la cola
@@ -112,7 +77,8 @@ export async function GET(req) {
                             console.log(`[CNE Validation Dateas] ❌ No se encontró la cédula ${cleanCedula} en Dateas`);
                         }
                     } else if (res.status === 429) {
-                        console.log("[CNE Validation Dateas] Límite de peticiones excedido (429). Pausando...");
+                        console.log("[CNE Validation Dateas] Límite de peticiones excedido (429). Pausando 1 minuto...");
+                        await new Promise(r => setTimeout(r, 60000));
                         break;
                     } else {
                         console.log(`[CNE Validation Dateas] Error HTTP ${res.status} para CI ${cleanCedula}`);
@@ -124,8 +90,19 @@ export async function GET(req) {
                 // Pausa de 2 segundos para evitar saturar Dateas y que nos bloqueen la IP
                 await new Promise(r => setTimeout(r, 2000));
             }
-            console.log("[CNE Validation] Ciclo finalizado.");
-            }, 0);
+            console.log(`[CNE Validation] Lote finalizado. Buscando siguiente lote...`);
+            
+            // Llamada recursiva para procesar el siguiente lote después de una pausa
+            setTimeout(processBatch, 2000);
+            
+            } catch (err) {
+                console.error("[CNE Validation] Error global en el worker:", err);
+                global.isCneValidating = false;
+            }
+        };
+
+        // Iniciar el ciclo
+        setTimeout(processBatch, 0);
             
             return NextResponse.json({
                 status: 'ok',
