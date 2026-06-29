@@ -35,74 +35,116 @@ export async function GET(req) {
         const run = searchParams.get('run');
         
         if (run === 'true') {
-                const numCedula = parseInt(cleanCedula, 10);
-                if (numCedula > 22000000) {
-                    // Dateas no tiene cédulas tan nuevas, lo marcamos como 4 (Pendiente/Ignorado) para que no bloquee la cola
-                    db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
-                    console.log(`[CNE Validation Dateas] ⏩ Omitido (> 22M): ${cleanCedula}`);
-                    continue;
-                }
+            if (global.isCneValidating) {
+                return NextResponse.json({
+                    status: 'ok',
+                    message: 'La validación ya está en ejecución en segundo plano.'
+                });
+            }
+            
+            global.isCneValidating = true;
 
+            // Ejecutar en segundo plano de manera continua
+            const processBatch = async () => {
                 try {
-                    const url = `https://www.dateas.com/es/consulta_venezuela?name=&cedula=${cleanCedula}`;
-                    const res = await fetch(url, {
-                        headers: {
-                            'accept': 'text/html',
-                            'user-agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
-                        }
-                    });
+                    const unverifiedPacientes = db.prepare(`
+                        SELECT id, nombre, apellido, cedula 
+                        FROM pacientes 
+                        WHERE cne_validado = 0 
+                          AND cedula IS NOT NULL 
+                          AND cedula != ''
+                        LIMIT 20
+                    `).all();
 
-                    if (res.ok) {
-                        const html = await res.text();
-                        // Extract name from Dateas table
-                        // Format: <td data-label="Nombre"><a href="...">NOMBRE AQUI</a></td>
-                        const cleanHtml = html.replace(/\s+/g, ' ');
-                        const match = cleanHtml.match(/<td data-label="Nombre">\s*<a[^>]*>([^<]+)<\/a>/i);
-                        
-                        if (match && match[1]) {
-                            const vFullName = match[1].trim();
-                            
-                            // Check match level
-                            const matchLevel = getMatchLevel(record.nombre, record.apellido, vFullName);
-                            
-                            if (matchLevel === 1 || matchLevel === 2) {
-                                db.prepare(`UPDATE ${record.table} SET cne_validado = ? WHERE id = ?`).run(matchLevel, record.id);
-                                console.log(`[CNE Validation Dateas] ${matchLevel === 1 ? '✅ Exacto' : '⚠️ Parcial'} (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
-                            } else {
-                                db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
-                                console.log(`[CNE Validation Dateas] ❌ Rechazado (No coincide): ${record.nombre} vs ${vFullName}`);
-                            }
-                        } else {
-                            db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
-                            console.log(`[CNE Validation Dateas] ❌ No se encontró la cédula ${cleanCedula} en Dateas`);
-                        }
-                    } else if (res.status === 429) {
-                        console.log("[CNE Validation Dateas] Límite de peticiones excedido (429). Pausando 1 minuto...");
-                        await new Promise(r => setTimeout(r, 60000));
-                        break;
-                    } else {
-                        console.log(`[CNE Validation Dateas] Error HTTP ${res.status} para CI ${cleanCedula}`);
+                    const unverifiedExternos = db.prepare(`
+                        SELECT id, nombre, apellido, cedula 
+                        FROM registros_externos 
+                        WHERE cne_validado = 0 
+                          AND cedula IS NOT NULL 
+                          AND cedula != ''
+                        LIMIT 20
+                    `).all();
+
+                    const allUnverified = [
+                        ...unverifiedPacientes.map(p => ({ ...p, table: 'pacientes' })),
+                        ...unverifiedExternos.map(p => ({ ...p, table: 'registros_externos' }))
+                    ].slice(0, 20);
+
+                    if (allUnverified.length === 0) {
+                        console.log("[CNE Validation] No hay más registros por validar.");
+                        global.isCneValidating = false;
+                        return;
                     }
+
+                    for (const record of allUnverified) {
+                        const cleanCedula = record.cedula.replace(/[^0-9]/g, '');
+                        
+                        if (cleanCedula.length < 5) continue; // Cédula inválida
+                        
+                        const numCedula = parseInt(cleanCedula, 10);
+                        if (numCedula > 22000000) {
+                            // Dateas no tiene cédulas tan nuevas, lo marcamos como 4 (Pendiente/Ignorado) para que no bloquee la cola
+                            db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
+                            console.log(`[CNE Validation Dateas] ⏩ Omitido (> 22M): ${cleanCedula}`);
+                            continue;
+                        }
+
+                        try {
+                            const url = `https://www.dateas.com/es/consulta_venezuela?name=&cedula=${cleanCedula}`;
+                            const res = await fetch(url, {
+                                headers: {
+                                    'accept': 'text/html',
+                                    'user-agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+                                }
+                            });
+
+                            if (res.ok) {
+                                const html = await res.text();
+                                const cleanHtml = html.replace(/\s+/g, ' ');
+                                const match = cleanHtml.match(/<td data-label="Nombre">\s*<a[^>]*>([^<]+)<\/a>/i);
+                                
+                                if (match && match[1]) {
+                                    const vFullName = match[1].trim();
+                                    const matchLevel = getMatchLevel(record.nombre, record.apellido, vFullName);
+                                    
+                                    if (matchLevel === 1 || matchLevel === 2) {
+                                        db.prepare(`UPDATE ${record.table} SET cne_validado = ? WHERE id = ?`).run(matchLevel, record.id);
+                                        console.log(`[CNE Validation Dateas] ${matchLevel === 1 ? '✅ Exacto' : '⚠️ Parcial'} (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
+                                    } else {
+                                        db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
+                                        console.log(`[CNE Validation Dateas] ❌ Rechazado (No coincide): ${record.nombre} vs ${vFullName}`);
+                                    }
+                                } else {
+                                    db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
+                                    console.log(`[CNE Validation Dateas] ❌ No se encontró la cédula ${cleanCedula} en Dateas`);
+                                }
+                            } else if (res.status === 429) {
+                                console.log("[CNE Validation Dateas] Límite de peticiones excedido (429). Pausando 1 minuto...");
+                                await new Promise(r => setTimeout(r, 60000));
+                                break;
+                            } else {
+                                console.log(`[CNE Validation Dateas] Error HTTP ${res.status} para CI ${cleanCedula}`);
+                            }
+                        } catch (err) {
+                            console.error("[CNE Validation Dateas] Error en petición:", err.message);
+                        }
+
+                        // Pausa de 2 segundos para evitar saturar Dateas y que nos bloqueen la IP
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                    console.log(`[CNE Validation] Lote finalizado. Buscando siguiente lote...`);
+                    
+                    // Llamada recursiva para procesar el siguiente lote después de una pausa
+                    setTimeout(processBatch, 2000);
+                    
                 } catch (err) {
-                    console.error("[CNE Validation Dateas] Error en petición:", err.message);
+                    console.error("[CNE Validation] Error global en el worker:", err);
+                    global.isCneValidating = false;
                 }
+            };
 
-                // Pausa de 2 segundos para evitar saturar Dateas y que nos bloqueen la IP
-                await new Promise(r => setTimeout(r, 2000));
-            }
-            console.log(`[CNE Validation] Lote finalizado. Buscando siguiente lote...`);
-            
-            // Llamada recursiva para procesar el siguiente lote después de una pausa
-            setTimeout(processBatch, 2000);
-            
-            } catch (err) {
-                console.error("[CNE Validation] Error global en el worker:", err);
-                global.isCneValidating = false;
-            }
-        };
-
-        // Iniciar el ciclo
-        setTimeout(processBatch, 0);
+            // Iniciar el ciclo
+            setTimeout(processBatch, 0);
             
             return NextResponse.json({
                 status: 'ok',
