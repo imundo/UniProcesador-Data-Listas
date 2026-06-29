@@ -3,28 +3,30 @@ import db from '@/lib/db.js';
 
 export const dynamic = 'force-dynamic';
 
-function cleanAndMatchName(localName, verifikName) {
-    if (!localName || !verifikName) return false;
+function getMatchLevel(localNombre, localApellido, dateasFullName) {
+    if (!dateasFullName) return 0;
+    const lNom = (localNombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    const lApe = (localApellido || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    const dFull = dateasFullName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
-    // Convert both to lowercase
-    const local = localName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    
-    // Remove asterisks from Verifik name and trim spaces
-    const verifikClean = verifikName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\*/g, '').trim();
-    
-    if (verifikClean.length < 3) return false; // Too little information to match safely
-    
-    // Split into parts (in case Verifik returns multiple unmasked words like "LUIS JAVIER")
-    const verifikParts = verifikClean.split(/\s+/).filter(p => p.length > 2);
-    
-    // If we have parts, check if AT LEAST ONE unmasked part exists in the local name
-    for (const part of verifikParts) {
-        if (local.includes(part)) {
-            return true;
-        }
+    // Si nombre y apellido están completos dentro del nombre de Dateas
+    if (lNom.length > 0 && lApe.length > 0 && dFull.includes(lNom) && dFull.includes(lApe)) {
+        return 1; // 1 = Validado (Exact Match)
     }
     
-    return false;
+    // Chequear similitud parcial (al menos una palabra clave coincide)
+    const nomParts = lNom.split(/\s+/).filter(p => p.length > 2);
+    const apeParts = lApe.split(/\s+/).filter(p => p.length > 2);
+    const dParts = dFull.split(/\s+/).filter(p => p.length > 2);
+    
+    let anyMatch = false;
+    for (const p of [...nomParts, ...apeParts]) {
+        if (dParts.includes(p) || dFull.includes(p)) anyMatch = true;
+    }
+    
+    if (anyMatch) return 2; // 2 = Validado con observación (Partial Match)
+    
+    return 3; // 3 = Falso/Rechazado (No coincide fonéticamente)
 }
 
 export async function GET(req) {
@@ -87,18 +89,19 @@ export async function GET(req) {
                         if (match && match[1]) {
                             const vFullName = match[1].trim();
                             
-                            // Check if local name matches the scraped name
-                            const nameMatch = cleanAndMatchName(record.nombre, vFullName);
-                            const lastMatch = cleanAndMatchName(record.apellido, vFullName);
+                            // Check match level
+                            const matchLevel = getMatchLevel(record.nombre, record.apellido, vFullName);
                             
-                            if (nameMatch || lastMatch) {
-                                db.prepare(`UPDATE ${record.table} SET cne_validado = 1 WHERE id = ?`).run(record.id);
-                                console.log(`[CNE Validation Dateas] ✅ Validado (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
+                            if (matchLevel === 1 || matchLevel === 2) {
+                                db.prepare(`UPDATE ${record.table} SET cne_validado = ? WHERE id = ?`).run(matchLevel, record.id);
+                                console.log(`[CNE Validation Dateas] ${matchLevel === 1 ? '✅ Exacto' : '⚠️ Parcial'} (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
                             } else {
-                                console.log(`[CNE Validation Dateas] ❌ Rechazado (No coincide fonética): ${record.nombre} vs ${vFullName}`);
+                                db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
+                                console.log(`[CNE Validation Dateas] ❌ Rechazado (No coincide): ${record.nombre} vs ${vFullName}`);
                             }
                         } else {
-                            console.log(`[CNE Validation Dateas] ⚠️ No se encontró la cédula ${cleanCedula} en Dateas`);
+                            db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
+                            console.log(`[CNE Validation Dateas] ❌ No se encontró la cédula ${cleanCedula} en Dateas`);
                         }
                     } else if (res.status === 429) {
                         console.log("[CNE Validation Dateas] Límite de peticiones excedido (429). Pausando...");
