@@ -102,8 +102,12 @@ export default function BuscarPage() {
           const isRescatado = person.estado && person.estado.toLowerCase().includes('rescatado');
           const isDesaparecido = person.estado && (person.estado.toLowerCase().includes('desaparecido') || person.estado.toLowerCase().includes('incompleto'));
           
+          const borderClass = person.cne_validado === 1 ? 'border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)] bg-emerald-950/20 hover:bg-emerald-950/30' : 
+                              person.cne_validado === 2 ? 'border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.15)] bg-yellow-950/20 hover:bg-yellow-950/30' : 
+                              'bg-neutral-900/60 border-neutral-800 hover:bg-neutral-800/80 hover:border-neutral-700';
+
           return (
-            <div key={idx} className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 rounded-3xl p-6 transition-transform hover:scale-[1.01] hover:bg-neutral-800/80 shadow-lg">
+            <div key={idx} className={`backdrop-blur-md rounded-3xl p-6 transition-all duration-300 transform hover:scale-[1.01] border ${borderClass}`}>
               
               <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                 {/* Person Info */}
@@ -113,9 +117,15 @@ export default function BuscarPage() {
                       {person.nombre} {person.apellido}
                     </h2>
                     {person.cne_validado === 1 && (
-                      <span className="bg-emerald-950 text-emerald-400 border border-emerald-800/50 text-xs px-2 py-1 rounded-full flex items-center font-bold">
-                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
-                        CNE VALIDADO
+                      <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-full flex items-center font-bold uppercase tracking-wider">
+                        <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
+                        CI VERIFICADA
+                      </span>
+                    )}
+                    {person.cne_validado === 2 && (
+                      <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs px-2.5 py-1 rounded-full flex items-center font-bold uppercase tracking-wider">
+                        <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path></svg>
+                        CI PARCIAL
                       </span>
                     )}
                   </div>

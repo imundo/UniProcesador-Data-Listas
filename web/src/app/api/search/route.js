@@ -597,6 +597,18 @@ export async function performSearch(term) {
                 if (!existing.estado || (existing.estado.toLowerCase().trim() === 'active' && p.estado && p.estado.toLowerCase().trim() !== 'active')) {
                     existing.estado = p.estado;
                 }
+                
+                // Conservar la validación CNE si alguno la tiene
+                if (p.cne_validado && (!existing.cne_validado || p.cne_validado < existing.cne_validado)) {
+                    // Si el nuevo tiene 1 (Exacto) o 2 (Parcial) prevalece. 
+                    // En realidad, para no complicarnos, tomamos el valor mínimo si ambos son > 0 (1 es mejor que 2),
+                    // o tomamos el que sea > 0.
+                    if (!existing.cne_validado || (p.cne_validado === 1)) {
+                        existing.cne_validado = p.cne_validado;
+                    } else if (p.cne_validado === 2 && existing.cne_validado !== 1) {
+                        existing.cne_validado = p.cne_validado;
+                    }
+                }
                 break;
             }
         }
