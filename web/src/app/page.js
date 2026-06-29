@@ -1724,15 +1724,23 @@ export default function Home() {
                           <td className="px-6 py-3 font-medium text-white">
                             <div className="flex flex-col items-start justify-center gap-1">
                               <span>{p.nombre} {p.apellido}</span>
-                              {p.isExternal ? (
-                                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                                  {p.origen}
-                                </span>
-                              ) : (
-                                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                  LOCAL
-                                </span>
-                              )}
+                              <div className="flex items-center gap-1.5">
+                                {p.isExternal ? (
+                                  <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                    {p.origen}
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    LOCAL
+                                  </span>
+                                )}
+                                {p.cne_validado === 1 && (
+                                  <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 flex items-center gap-0.5" title="Nombre y cédula verificados en el CNE">
+                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                                    CNE
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-3 font-mono text-blue-300">{p.cedula || '-'}</td>

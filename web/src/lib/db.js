@@ -98,8 +98,23 @@ function getDb() {
         if (!hasEstatus) {
             db.exec("ALTER TABLE pacientes ADD COLUMN estatus TEXT DEFAULT 'Válido'");
         }
+        const hasCNEValidadoPacientes = tableInfo.some(col => col.name === 'cne_validado');
+        if (!hasCNEValidadoPacientes) {
+            db.exec("ALTER TABLE pacientes ADD COLUMN cne_validado BOOLEAN DEFAULT 0");
+        }
     } catch(e) {
         console.error("Migration error:", e);
+    }
+    
+    // Migración: añadir cne_validado a registros_externos si no existe
+    try {
+        const tableInfoExt = db.pragma("table_info(registros_externos)");
+        const hasCNEValidadoExternos = tableInfoExt.some(col => col.name === 'cne_validado');
+        if (!hasCNEValidadoExternos) {
+            db.exec("ALTER TABLE registros_externos ADD COLUMN cne_validado BOOLEAN DEFAULT 0");
+        }
+    } catch(e) {
+        console.error("Migration error externos:", e);
     }
 
     // Migración: añadir campos de reconocimiento a cross_matches si no existen
