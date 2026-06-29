@@ -614,7 +614,7 @@ export default function Home() {
   // Dashboard Metrics
   const baseRegistradas = history.reduce((acc, curr) => acc + (curr.newPatients || 0), 0);
   const baseLeidas = history.reduce((acc, curr) => acc + (curr.newPatients || 0) + (curr.duplicatesIgnored || 0), 0);
-  const externalDataCount = stats?.externalCount || 0;
+  const externalDataCount = dashboardStats.externalCount || 0;
 
   const totalPersonasRegistradas = baseRegistradas + externalDataCount;
   const totalPersonasLeidas = baseLeidas + externalDataCount;
@@ -673,7 +673,7 @@ export default function Home() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             </div>
             <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Cruces Inteligentes</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">{(stats?.crossesFound || 153).toLocaleString()}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">{(dashboardStats.crossesFound || 0).toLocaleString()}</p>
           </div>
         </div>
 
