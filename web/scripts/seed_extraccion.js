@@ -22,16 +22,7 @@ db.exec(`
   );
 `);
 
-const insertStmt = db.prepare(`
-    INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, fuente_url)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(nombre, apellido, cedula, origen) DO UPDATE SET
-    centro=excluded.centro,
-    estado=excluded.estado,
-    edad_sector=excluded.edad_sector,
-    fuente_url=excluded.fuente_url,
-    creado_en=CURRENT_TIMESTAMP
-`);
+// Old insertStmt removed
 
 const APELLIDOS_COMUNES = [
     "Gonzalez", "Rodriguez", "Gomez", "Fernandez", "Lopez", "Diaz", "Martinez", "Perez", "Garcia", "Sanchez",
@@ -131,15 +122,39 @@ async function searchReencuentroHelp(term) {
     }
 }
 
+const extendedNamesPath = path.join(__dirname, 'nombres_extendidos.json');
+let SEARCH_TERMS = [...APELLIDOS_COMUNES];
+
+if (fs.existsSync(extendedNamesPath)) {
+    try {
+        const jsonContent = JSON.parse(fs.readFileSync(extendedNamesPath, 'utf8'));
+        // Extract both "nombre" and "apellido_paterno" to use as search terms
+        const extendedSet = new Set();
+        
+        // Handle both raw arrays and object with personas array
+        const listToParse = Array.isArray(jsonContent) ? jsonContent : (jsonContent.personas || []);
+        
+        listToParse.forEach(item => {
+            if (item.nombre) extendedSet.add(item.nombre.split(' ')[0]);
+            if (item.apellido_paterno) extendedSet.add(item.apellido_paterno);
+            if (item.apellido_materno) extendedSet.add(item.apellido_materno);
+        });
+        SEARCH_TERMS = Array.from(extendedSet);
+        console.log(`Cargados ${SEARCH_TERMS.length} términos de búsqueda extendidos.`);
+    } catch(e) {
+        console.error("Error leyendo nombres_extendidos.json:", e.message);
+    }
+}
+
 async function seed() {
     let totalInserted = 0;
     
-    for (const apellido of APELLIDOS_COMUNES) {
-        console.log(`Buscando apellido: ${apellido}...`);
+    for (const term of SEARCH_TERMS) {
+        console.log(`Buscando término: ${term}...`);
         
         const [hospResults, reenResults] = await Promise.all([
-            searchHospitalesEnVenezuela(apellido),
-            searchReencuentroHelp(apellido)
+            searchHospitalesEnVenezuela(term),
+            searchReencuentroHelp(term)
         ]);
         
         const allResults = [...hospResults, ...reenResults];
