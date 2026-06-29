@@ -73,7 +73,11 @@ export async function GET(req) {
                     processedCount++;
                     const cleanCedula = record.cedula.replace(/[^0-9]/g, '');
                     
-                    if (cleanCedula.length < 5) continue; // Cédula inválida
+                    if (cleanCedula.length < 5) {
+                        db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
+                        console.log(`[CNE Validation Dateas] ⏩ Omitido (Cédula inválida): ${record.cedula}`);
+                        continue;
+                    }
                     
                     const numCedula = parseInt(cleanCedula, 10);
                     if (numCedula > 22000000) {
