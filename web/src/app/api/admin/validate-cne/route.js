@@ -61,7 +61,9 @@ export async function GET(req) {
                 ...unverifiedExternos.map(p => ({ ...p, table: 'registros_externos' }))
             ].slice(0, 20); // Tomar solo 20 en total por ciclo
 
-            for (const record of allUnverified) {
+            // Ejecutar en segundo plano para no saturar el servidor ni bloquear la petición HTTP
+            setTimeout(async () => {
+                for (const record of allUnverified) {
                 const cleanCedula = record.cedula.replace(/[^0-9]/g, '');
                 
                 if (cleanCedula.length < 5) continue; // Cédula inválida
@@ -112,6 +114,12 @@ export async function GET(req) {
                 await new Promise(r => setTimeout(r, 2000));
             }
             console.log("[CNE Validation] Ciclo finalizado.");
+            }, 0);
+            
+            return NextResponse.json({
+                status: 'ok',
+                message: 'Validación en segundo plano iniciada con Dateas.'
+            });
         }
         
         // Get stats for UI
