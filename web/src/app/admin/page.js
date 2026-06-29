@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 
 export default function AdminDashboard() {
@@ -25,6 +25,7 @@ export default function AdminDashboard() {
     const [cnePage, setCnePage] = useState(1);
     const [cneValidating, setCneValidating] = useState(false);
     const [cneMsg, setCneMsg] = useState('');
+    const cneLoopRef = useRef(false);
 
     // Función de Login simulada + Set de estado
     const handleLogin = (e) => {
@@ -155,22 +156,60 @@ export default function AdminDashboard() {
     };
 
     const handleRunCneValidation = async () => {
-        try {
-            setCneValidating(true);
-            setCneMsg('Iniciando...');
-            const token = sessionStorage.getItem('adminToken');
-            const res = await fetch('/api/admin/validate-cne?run=true', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            setCneMsg(data.message || 'Validación iniciada');
-            setTimeout(() => setCneMsg(''), 5000);
-        } catch(e) {
-            setCneMsg('Error de conexión');
-            setTimeout(() => setCneMsg(''), 5000);
-        } finally {
+        if (cneValidating) {
+            cneLoopRef.current = false;
             setCneValidating(false);
+            setCneMsg('Validación detenida.');
+            return;
         }
+
+        cneLoopRef.current = true;
+        setCneValidating(true);
+        setCneMsg('Ejecutando proceso por lotes...');
+        const token = sessionStorage.getItem('adminToken');
+
+        const processNextBatch = async () => {
+            if (!cneLoopRef.current) return;
+            try {
+                const res = await fetch('/api/admin/validate-cne?run=true', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.status === 'rate_limit') {
+                    setCneMsg('Límite de peticiones Dateas (429), pausando 60s...');
+                    setTimeout(processNextBatch, 60000);
+                    return;
+                }
+                
+                if (data.finished) {
+                    cneLoopRef.current = false;
+                    setCneValidating(false);
+                    setCneMsg('¡No hay más registros pendientes!');
+                    return;
+                }
+                
+                setCneMsg(data.message || 'Procesando lote...');
+                
+                // Refrescar stats
+                const resCne = await fetch('/api/admin/validate-cne?run=false', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resCne.ok) {
+                    const dataCne = await resCne.json();
+                    setCneStats({ validados: dataCne.total_validados || 0, rechazados: dataCne.total_rechazados || 0, procesados: dataCne.total_procesados || 0 });
+                }
+                
+                // Seguir con el siguiente lote
+                setTimeout(processNextBatch, 1000);
+            } catch(e) {
+                console.error("Error en validación", e);
+                setCneMsg('Error de red, reintentando en 5s...');
+                if (cneLoopRef.current) setTimeout(processNextBatch, 5000);
+            }
+        };
+
+        processNextBatch();
     };
 
     const loadCnePage = async (pageToLoad) => {
@@ -268,10 +307,9 @@ export default function AdminDashboard() {
                             <span className="text-emerald-400 font-medium text-sm">{cneMsg}</span>
                             <button 
                                 onClick={handleRunCneValidation}
-                                disabled={cneValidating}
-                                className="bg-blue-600 hover:bg-blue-500 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-bold py-2 px-6 rounded-xl transition-colors flex items-center"
+                                className={`text-white font-bold py-2 px-6 rounded-xl transition-colors flex items-center ${cneValidating ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500'}`}
                             >
-                                {cneValidating ? 'Iniciando...' : 'Ejecutar Validación'}
+                                {cneValidating ? 'Detener Validación' : 'Ejecutar Validación Continua'}
                             </button>
                         </div>
                     </div>
