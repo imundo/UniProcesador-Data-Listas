@@ -73,10 +73,10 @@ export async function GET(req) {
                 if (cleanCedula.length < 5) continue; // Cédula inválida
 
                 try {
-                    const url = \`https://api.verifik.co/v2/ve/cedula?documentType=CCVE&documentNumber=\${cleanCedula}\`;
+                    const url = `https://api.verifik.co/v2/ve/cedula?documentType=CCVE&documentNumber=${cleanCedula}`;
                     const res = await fetch(url, {
                         headers: {
-                            'Authorization': \`jwt \${apiKey}\`
+                            'Authorization': `jwt ${apiKey}`
                         }
                     });
 
@@ -93,17 +93,17 @@ export async function GET(req) {
                             const lastMatch = cleanAndMatchName(record.apellido, vLastName);
                             
                             if (nameMatch || lastMatch) {
-                                db.prepare(\`UPDATE \${record.table} SET cne_validado = 1 WHERE id = ?\`).run(record.id);
-                                console.log(\`[CNE Validation] ✅ Validado (\${record.table}): \${record.nombre} \${record.apellido} (\${cleanCedula})\`);
+                                db.prepare(`UPDATE ${record.table} SET cne_validado = 1 WHERE id = ?`).run(record.id);
+                                console.log(`[CNE Validation] ✅ Validado (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
                             } else {
-                                console.log(\`[CNE Validation] ❌ Rechazado (No coincide fonética): \${record.nombre} vs \${vFirstName}\`);
+                                console.log(`[CNE Validation] ❌ Rechazado (No coincide fonética): ${record.nombre} vs ${vFirstName}`);
                             }
                         }
                     } else if (res.status === 429) {
                         console.log("[CNE Validation] Límite de peticiones excedido (429). Pausando...");
                         break;
                     } else {
-                        console.log(\`[CNE Validation] Error API Verifik HTTP \${res.status} para CI \${cleanCedula}\`);
+                        console.log(`[CNE Validation] Error API Verifik HTTP ${res.status} para CI ${cleanCedula}`);
                     }
                 } catch (err) {
                     console.error("[CNE Validation] Error en petición:", err.message);
