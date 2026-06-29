@@ -640,9 +640,9 @@ export async function performSearch(term) {
     
     groupedResults.sort((a, b) => b.score - a.score);
 
-    // Limitar a los mejores 50 resultados para no saturar la UI
-    if (groupedResults.length > 50) {
-        groupedResults = groupedResults.slice(0, 50);
+    // Limitar a los mejores 15 resultados para no saturar la UI
+    if (groupedResults.length > 15) {
+        groupedResults = groupedResults.slice(0, 15);
     }
 
     return groupedResults;

@@ -33,13 +33,8 @@ export async function GET(req) {
         const run = searchParams.get('run');
         
         if (run === 'true') {
-            console.log("[CNE Validation] Iniciando background job de validación con Verifik...");
-            const apiKey = process.env.VERIFIK_API_KEY;
-            
-            if (!apiKey) {
-                console.log("[CNE Validation] ABORTADO: No se encontró la variable de entorno VERIFIK_API_KEY.");
-                return NextResponse.json({ error: "Falta VERIFIK_API_KEY" }, { status: 401 });
-            }
+            // No API key required for Dateas
+            // We can just proceed
 
             // Tomar 20 pacientes locales no validados que tengan cédula válida (solo números)
             const unverifiedPacientes = db.prepare(`
@@ -67,50 +62,54 @@ export async function GET(req) {
             ].slice(0, 20); // Tomar solo 20 en total por ciclo
 
             for (const record of allUnverified) {
-                // Extraer solo los números de la cédula (ej. "V-12.345.678" -> "12345678")
                 const cleanCedula = record.cedula.replace(/[^0-9]/g, '');
                 
                 if (cleanCedula.length < 5) continue; // Cédula inválida
 
                 try {
-                    const url = `https://api.verifik.co/v2/ve/cedula?documentType=CCVE&documentNumber=${cleanCedula}`;
+                    const url = `https://www.dateas.com/es/consulta_venezuela?name=&cedula=${cleanCedula}`;
                     const res = await fetch(url, {
                         headers: {
-                            'Authorization': `jwt ${apiKey}`
+                            'accept': 'text/html',
+                            'user-agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
                         }
                     });
 
                     if (res.ok) {
-                        const data = await res.json();
-                        const vData = data.data;
+                        const html = await res.text();
+                        // Extract name from Dateas table
+                        // Format: <td data-label="Nombre"><a href="...">NOMBRE AQUI</a></td>
+                        const cleanHtml = html.replace(/\s+/g, ' ');
+                        const match = cleanHtml.match(/<td data-label="Nombre">\s*<a[^>]*>([^<]+)<\/a>/i);
                         
-                        if (vData) {
-                            const vFirstName = vData.firstName || '';
-                            const vLastName = vData.lastName || '';
+                        if (match && match[1]) {
+                            const vFullName = match[1].trim();
                             
-                            // Check first name or last name
-                            const nameMatch = cleanAndMatchName(record.nombre, vFirstName);
-                            const lastMatch = cleanAndMatchName(record.apellido, vLastName);
+                            // Check if local name matches the scraped name
+                            const nameMatch = cleanAndMatchName(record.nombre, vFullName);
+                            const lastMatch = cleanAndMatchName(record.apellido, vFullName);
                             
                             if (nameMatch || lastMatch) {
                                 db.prepare(`UPDATE ${record.table} SET cne_validado = 1 WHERE id = ?`).run(record.id);
-                                console.log(`[CNE Validation] ✅ Validado (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
+                                console.log(`[CNE Validation Dateas] ✅ Validado (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
                             } else {
-                                console.log(`[CNE Validation] ❌ Rechazado (No coincide fonética): ${record.nombre} vs ${vFirstName}`);
+                                console.log(`[CNE Validation Dateas] ❌ Rechazado (No coincide fonética): ${record.nombre} vs ${vFullName}`);
                             }
+                        } else {
+                            console.log(`[CNE Validation Dateas] ⚠️ No se encontró la cédula ${cleanCedula} en Dateas`);
                         }
                     } else if (res.status === 429) {
-                        console.log("[CNE Validation] Límite de peticiones excedido (429). Pausando...");
+                        console.log("[CNE Validation Dateas] Límite de peticiones excedido (429). Pausando...");
                         break;
                     } else {
-                        console.log(`[CNE Validation] Error API Verifik HTTP ${res.status} para CI ${cleanCedula}`);
+                        console.log(`[CNE Validation Dateas] Error HTTP ${res.status} para CI ${cleanCedula}`);
                     }
                 } catch (err) {
-                    console.error("[CNE Validation] Error en petición:", err.message);
+                    console.error("[CNE Validation Dateas] Error en petición:", err.message);
                 }
 
-                // Pausa de 1 segundo para evitar saturar la API
-                await new Promise(r => setTimeout(r, 1000));
+                // Pausa de 2 segundos para evitar saturar Dateas y que nos bloqueen la IP
+                await new Promise(r => setTimeout(r, 2000));
             }
             console.log("[CNE Validation] Ciclo finalizado.");
         }
