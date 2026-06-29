@@ -20,6 +20,10 @@ export default function AdminDashboard() {
     
     // CNE Stats
     const [cneStats, setCneStats] = useState({ validados: 0, rechazados: 0 });
+    const [cneModalOpen, setCneModalOpen] = useState(false);
+    const [cneDetails, setCneDetails] = useState({ validados: [], rechazados: [] });
+    const [cneValidating, setCneValidating] = useState(false);
+    const [cneMsg, setCneMsg] = useState('');
 
     // Función de Login simulada + Set de estado
     const handleLogin = (e) => {
@@ -149,6 +153,41 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleRunCneValidation = async () => {
+        try {
+            setCneValidating(true);
+            setCneMsg('Iniciando...');
+            const token = sessionStorage.getItem('adminToken');
+            const res = await fetch('/api/admin/validate-cne?run=true', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            setCneMsg(data.message || 'Validación iniciada');
+            setTimeout(() => setCneMsg(''), 5000);
+        } catch(e) {
+            setCneMsg('Error de conexión');
+            setTimeout(() => setCneMsg(''), 5000);
+        } finally {
+            setCneValidating(false);
+        }
+    };
+
+    const handleOpenCneModal = async () => {
+        setCneModalOpen(true);
+        try {
+            const token = sessionStorage.getItem('adminToken');
+            const res = await fetch('/api/admin/cne-details', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setCneDetails(data);
+            }
+        } catch(e) {
+            console.error(e);
+        }
+    };
+
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-6 text-neutral-200">
@@ -216,14 +255,32 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-12">
-                    <div className="bg-green-950/20 backdrop-blur-md border border-green-900/50 p-6 rounded-3xl flex flex-col items-center">
-                        <span className="text-green-500 uppercase tracking-widest text-xs font-bold mb-2">Validados por CNE</span>
-                        <span className="text-4xl font-black text-green-100">{cneStats.validados}</span>
+                <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 md:p-8 mb-12">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-white">Validación CNE (Dateas)</h2>
+                        <div className="flex items-center gap-4">
+                            <span className="text-emerald-400 font-medium text-sm">{cneMsg}</span>
+                            <button 
+                                onClick={handleRunCneValidation}
+                                disabled={cneValidating}
+                                className="bg-blue-600 hover:bg-blue-500 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-bold py-2 px-6 rounded-xl transition-colors flex items-center"
+                            >
+                                {cneValidating ? 'Iniciando...' : 'Ejecutar Validación'}
+                            </button>
+                        </div>
                     </div>
-                    <div className="bg-orange-950/20 backdrop-blur-md border border-orange-900/50 p-6 rounded-3xl flex flex-col items-center">
-                        <span className="text-orange-500 uppercase tracking-widest text-xs font-bold mb-2">Rechazados por CNE</span>
-                        <span className="text-4xl font-black text-orange-100">{cneStats.rechazados}</span>
+                    
+                    <div className="grid grid-cols-2 gap-4" onClick={handleOpenCneModal} style={{cursor: 'pointer'}}>
+                        <div className="bg-green-950/20 hover:bg-green-950/40 transition-colors backdrop-blur-md border border-green-900/50 p-6 rounded-2xl flex flex-col items-center relative group">
+                            <span className="text-green-500 uppercase tracking-widest text-xs font-bold mb-2">Validados por CNE</span>
+                            <span className="text-4xl font-black text-green-100">{cneStats.validados}</span>
+                            <span className="text-green-500/50 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click para ver detalles</span>
+                        </div>
+                        <div className="bg-orange-950/20 hover:bg-orange-950/40 transition-colors backdrop-blur-md border border-orange-900/50 p-6 rounded-2xl flex flex-col items-center relative group">
+                            <span className="text-orange-500 uppercase tracking-widest text-xs font-bold mb-2">Rechazados por CNE</span>
+                            <span className="text-4xl font-black text-orange-100">{cneStats.rechazados}</span>
+                            <span className="text-orange-500/50 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click para ver detalles</span>
+                        </div>
                     </div>
                 </div>
 
@@ -294,6 +351,55 @@ export default function AdminDashboard() {
                     El worker se ejecuta automáticamente cada 2 minutos y procesa 3 términos a la vez para prevenir baneos.
                 </div>
             </div>
+
+            {/* CNE Modal */}
+            {cneModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+                        <div className="p-6 border-b border-neutral-800 flex justify-between items-center bg-neutral-950">
+                            <h3 className="text-xl font-bold text-white">Detalles de Validación CNE (Últimos 50 de cada tabla)</h3>
+                            <button onClick={() => setCneModalOpen(false)} className="text-neutral-400 hover:text-white">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-6 custom-scrollbar">
+                            <div>
+                                <h4 className="text-lg font-bold text-green-400 mb-4 sticky top-0 bg-neutral-900 py-2 z-10 border-b border-neutral-800">✅ Validados</h4>
+                                <div className="flex flex-col gap-3">
+                                    {cneDetails.validados.map((p, idx) => (
+                                        <div key={idx} className="bg-neutral-950 p-4 border border-green-900/30 rounded-xl">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <div className="font-bold text-white text-sm">{p.nombre} {p.apellido}</div>
+                                                    <div className="font-mono text-green-300 text-xs mt-1">{p.cedula}</div>
+                                                    <div className="text-neutral-500 text-[10px] mt-1 capitalize">{p.source.replace('_', ' ')}</div>
+                                                </div>
+                                                <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-neutral-800 ${p.cne_validado === 1 ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                    {p.cne_validado === 1 ? 'Exacto' : 'Parcial'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {cneDetails.validados.length === 0 && <div className="text-neutral-500 text-center py-8">No hay registros</div>}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-bold text-orange-400 mb-4 sticky top-0 bg-neutral-900 py-2 z-10 border-b border-neutral-800">❌ Rechazados</h4>
+                                <div className="flex flex-col gap-3">
+                                    {cneDetails.rechazados.map((p, idx) => (
+                                        <div key={idx} className="bg-neutral-950 p-4 border border-orange-900/30 rounded-xl opacity-70">
+                                            <div className="font-bold text-white text-sm">{p.nombre} {p.apellido}</div>
+                                            <div className="font-mono text-orange-300 text-xs mt-1">{p.cedula}</div>
+                                            <div className="text-neutral-500 text-[10px] mt-1 capitalize">{p.source.replace('_', ' ')}</div>
+                                        </div>
+                                    ))}
+                                    {cneDetails.rechazados.length === 0 && <div className="text-neutral-500 text-center py-8">No hay registros</div>}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
