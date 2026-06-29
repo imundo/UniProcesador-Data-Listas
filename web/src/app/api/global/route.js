@@ -29,13 +29,22 @@ export async function GET() {
         }
 
         const pacientes = db.prepare('SELECT * FROM pacientes ORDER BY id DESC').all();
+        let externos = [];
+        try {
+            externos = db.prepare('SELECT id, nombre, apellido, cedula, centro, edad_sector, estado as estatus, origen FROM registros_externos ORDER BY id DESC').all();
+        } catch (e) {}
+
+        const combined = [
+            ...pacientes.map(p => ({ ...p, isExternal: false })),
+            ...externos.map(e => ({ ...e, isExternal: true }))
+        ];
 
         return NextResponse.json({ 
             total, 
             externalCount,
             crossesFound,
-            showing: pacientes.length, 
-            pacientes 
+            showing: combined.length, 
+            pacientes: combined 
         });
     } catch (error) {
         console.error("API Global Error:", error);

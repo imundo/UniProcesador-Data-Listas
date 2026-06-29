@@ -1670,7 +1670,20 @@ export default function Home() {
                     <tbody className="divide-y divide-neutral-800/60">
                       {globalCurrent.map((p, idx) => (
                         <tr key={idx} className="hover:bg-white/5 transition-colors">
-                          <td className="px-6 py-3 font-medium text-white">{p.nombre} {p.apellido}</td>
+                          <td className="px-6 py-3 font-medium text-white">
+                            <div className="flex flex-col items-start justify-center gap-1">
+                              <span>{p.nombre} {p.apellido}</span>
+                              {p.isExternal ? (
+                                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                  {p.origen}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                  LOCAL
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-6 py-3 font-mono text-blue-300">{p.cedula || '-'}</td>
                           <td className="px-6 py-3 opacity-80">{p.centro}</td>
                           <td className="px-6 py-3 opacity-80">{p.edad_sector}</td>
