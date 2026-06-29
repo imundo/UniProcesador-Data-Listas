@@ -648,3 +648,76 @@ export async function GET(req) {
         return NextResponse.json({ error: "Search failed" }, { status: 500 });
     }
 }
+
+export async function syncGlobalSources() {
+    console.log("[GlobalSync] Starting bulk extraction from external sources (Buffer Mode)...");
+    
+    // Ejecutar todas las consultas en paralelo con un timeout generoso
+    const resultsSettled = await Promise.allSettled([
+        withTimeout(searchSupabase(""), 8000),
+        withTimeout(searchGoogleSheets(""), 8000),
+        withTimeout(searchDesaparecidosAPI(""), 8000),
+        withTimeout(searchRedAyudaAPI(""), 8000),
+        withTimeout(searchDesaparecidosVzlaHTML(""), 8000),
+        withTimeout(searchReencuentroHelp(""), 8000),
+        withTimeout(searchSOSVzlaHTML(""), 8000),
+        withTimeout(searchNodoAyudaAPI(""), 8000)
+    ]);
+
+    let allExtracted = [];
+    for (const res of resultsSettled) {
+        if (res.status === 'fulfilled' && res.value && res.value.length > 0) {
+            allExtracted.push(...res.value);
+        }
+    }
+
+    console.log(`[GlobalSync] Fetched ${allExtracted.length} total records from external APIs.`);
+
+    if (allExtracted.length === 0) return 0;
+
+    const upsertStmt = db.prepare(`
+        INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, fuente_url, metadata)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(nombre, apellido, cedula, origen) DO UPDATE SET
+            centro = excluded.centro,
+            edad_sector = excluded.edad_sector,
+            estado = excluded.estado,
+            metadata = excluded.metadata,
+            fuente_url = excluded.fuente_url
+        WHERE estado != excluded.estado OR centro != excluded.centro OR edad_sector != excluded.edad_sector OR metadata != excluded.metadata
+    `);
+
+    let upsertCount = 0;
+    db.transaction((records) => {
+        for (const p of records) {
+            try {
+                // Limpieza básica antes de insertar
+                const n = (p.nombre || '').trim();
+                const a = (p.apellido || '').trim();
+                const c = (p.cedula || '').trim();
+                const o = (p.source || '').trim();
+
+                // Ignorar registros vacíos
+                if (!n && !a && !c) continue;
+
+                upsertStmt.run(
+                    n,
+                    a,
+                    c,
+                    p.centro || '',
+                    p.edad_sector || '',
+                    p.estado || '',
+                    o,
+                    p.sourceUrl || '',
+                    p.metadata ? JSON.stringify(p.metadata) : null
+                );
+                upsertCount++;
+            } catch (e) {
+                // Ignore silent failures on specific records
+            }
+        }
+    })(allExtracted);
+
+    console.log(`[GlobalSync] Successfully upserted ${upsertCount} records into local buffer.`);
+    return upsertCount;
+}

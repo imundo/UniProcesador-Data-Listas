@@ -99,10 +99,13 @@ async function runCrossMatch() {
     console.log('[CrossMatch] Starting cross-match sync...');
     
     try {
+        const { syncGlobalSources } = await import('@/app/api/search/route.js');
+        await syncGlobalSources();
+        
         runPacientesDeduplication(db);
         runInPlaceDeduplication(db);
     } catch(e) {
-        console.error('[CrossMatch] Deduplication error before sync:', e);
+        console.error('[CrossMatch] Deduplication/Sync error before cross-match:', e);
     }
 
     const pacientes = db.prepare("SELECT * FROM pacientes WHERE estatus = 'Válido' OR estatus IS NULL").all();

@@ -94,6 +94,33 @@ function getDb() {
         creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(nombre, apellido, cedula, origen)
       );
+
+      CREATE TABLE IF NOT EXISTS historial_estados (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        registro_id INTEGER,
+        tipo_registro TEXT,
+        nombre_completo TEXT,
+        cedula TEXT,
+        estado_anterior TEXT,
+        estado_nuevo TEXT,
+        fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TRIGGER IF NOT EXISTS tr_registros_externos_estado
+      AFTER UPDATE OF estado ON registros_externos
+      WHEN old.estado IS NOT new.estado AND new.estado IS NOT NULL AND new.estado != ''
+      BEGIN
+          INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo)
+          VALUES (new.id, 'externo', new.nombre || ' ' || new.apellido, new.cedula, old.estado, new.estado);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS tr_pacientes_estado
+      AFTER UPDATE OF estatus ON pacientes
+      WHEN old.estatus IS NOT new.estatus AND new.estatus IS NOT NULL AND new.estatus != ''
+      BEGIN
+          INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo)
+          VALUES (new.id, 'local', new.nombre || ' ' || new.apellido, new.cedula, old.estatus, new.estatus);
+      END;
     `);
 
     // Migración: añadir batch_id y estatus si no existen
