@@ -143,7 +143,8 @@ async function searchDesaparecidosAPI(term) {
             edad_sector: (p.detalle || p.edad_sector || p.sector || "").trim(),
             estado: (p.estado || p.status || "").trim(),
             source: 'DesaparecidosTerremotoVenezuela.com',
-            sourceUrl: 'https://desaparecidosterremotovenezuela.com'
+            sourceUrl: 'https://desaparecidosterremotovenezuela.com',
+            metadata: p
         }));
     } catch (e) {
         console.error("Desaparecidos API search error:", e);
@@ -180,7 +181,8 @@ async function searchRedAyudaAPI(term) {
             edad_sector: (p.description || p.notes || "").trim(),
             estado: (p.status || p.estado || "").trim(),
             source: 'RedAyudaVenezuela.com',
-            sourceUrl: 'https://redayudavenezuela.com'
+            sourceUrl: 'https://redayudavenezuela.com',
+            metadata: p
         }));
     } catch (e) {
         console.error("RedAyuda API search error:", e);
@@ -422,7 +424,8 @@ async function searchNodoAyuda(term) {
                 edad_sector: (p.descripcion || "").trim(),
                 estado: estado,
                 source: 'NodoAyuda.com',
-                sourceUrl: 'https://www.nodoayuda.com'
+                sourceUrl: 'https://www.nodoayuda.com',
+                metadata: p
             };
         });
     } catch (e) {
@@ -453,7 +456,8 @@ async function searchLocalDb(term) {
             ...p,
             estado: p.estatus === 'Incompleto' ? 'Incompleto' : '',
             source: 'Base de Datos Local',
-            sourceUrl: null
+            sourceUrl: null,
+            metadata: p.metadata ? (typeof p.metadata === 'string' ? JSON.parse(p.metadata) : p.metadata) : null
         }));
     } catch (e) {
         console.error("Local DB search error:", e);
@@ -501,18 +505,20 @@ export async function performSearch(term) {
         setTimeout(() => {
             try {
                 const insertStmt = db.prepare(`
-                    INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, fuente_url)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, fuente_url, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(nombre, apellido, cedula, origen) DO UPDATE SET
                     centro=excluded.centro,
                     estado=excluded.estado,
                     edad_sector=excluded.edad_sector,
                     fuente_url=excluded.fuente_url,
+                    metadata=excluded.metadata,
                     creado_en=CURRENT_TIMESTAMP
                 `);
                 
                 const insertMany = db.transaction((records) => {
                     for (const r of records) {
+                        const metaStr = r.metadata ? JSON.stringify(r.metadata) : null;
                         insertStmt.run(
                             r.nombre || '', 
                             r.apellido || '', 
@@ -521,7 +527,8 @@ export async function performSearch(term) {
                             r.edad_sector || '', 
                             r.estado || '', 
                             r.source || 'Desconocido', 
-                            r.sourceUrl || ''
+                            r.sourceUrl || '',
+                            metaStr
                         );
                     }
                 });
@@ -579,6 +586,11 @@ export async function performSearch(term) {
                 // Añadir source si no existe
                 if (!existing.sources.find(s => s.name === p.source)) {
                     existing.sources.push({ name: p.source, url: p.sourceUrl });
+                }
+                
+                // Mezclar metadata
+                if (p.metadata) {
+                    existing.metadata = { ...(existing.metadata || {}), ...p.metadata };
                 }
                 
                 // Priorizar estados que no sean genéricos o vacíos

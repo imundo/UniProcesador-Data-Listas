@@ -143,6 +143,7 @@ export default function Home() {
   const [crossMatchRecognizedCount, setCrossMatchRecognizedCount] = useState(0);
 
   const fileInputRef = useRef(null);
+  const rollerRef = useRef(null);
 
   const fetchGlobalPreview = async () => {
     setIsFetchingGlobal(true);
@@ -772,7 +773,7 @@ export default function Home() {
 
         {/* Emergency Search Bar */}
         <div className="w-full flex flex-col gap-3 relative z-20">
-          <div className="relative w-full group">
+          <div className="relative w-full group mb-4 md:mb-0">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition-opacity"></div>
             <div className="relative flex items-center bg-neutral-900/90 backdrop-blur-xl border border-neutral-700 rounded-2xl p-2 focus-within:border-blue-500 transition-colors">
               <div className="pl-4 pr-3 text-neutral-400">
@@ -781,10 +782,15 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="Busca fácilmente a tu ser querido por nombre o cédula 💙"
-                className="w-full bg-transparent text-lg text-white font-medium focus:outline-none placeholder-neutral-500 py-3"
+                className="w-full bg-transparent text-lg text-white font-medium focus:outline-none placeholder-neutral-500 py-3 pr-2"
                 value={emergencySearchQuery}
                 onChange={(e) => setEmergencySearchQuery(e.target.value)}
               />
+              <div className="hidden md:block">
+                {isEmergencySearching && <MultiSourceLoader />}
+              </div>
+            </div>
+            <div className="md:hidden absolute -bottom-6 right-2">
               {isEmergencySearching && <MultiSourceLoader />}
             </div>
           </div>
@@ -983,8 +989,16 @@ export default function Home() {
                 const duration = Math.max(30, filtered.length * 6); // 6 segundos por tarjeta para que vaya lento y fluido
 
                 return (
-                  <div className="roller-track flex gap-4 py-4 px-4" style={{ width: 'max-content', animation: `scroll ${duration}s linear infinite` }}>
-                    {[...filtered, ...filtered].map((match, idx) => {
+                  <div className="relative group/roller">
+                    <button onClick={() => { if(rollerRef.current) rollerRef.current.scrollBy({left: -320, behavior: 'smooth'}) }} className="hidden md:flex items-center justify-center absolute left-2 top-1/2 -translate-y-1/2 z-30 bg-neutral-900/80 p-2 rounded-full text-white hover:bg-neutral-800 border border-neutral-700 backdrop-blur-md opacity-0 group-hover/roller:opacity-100 transition-opacity shadow-lg cursor-pointer h-10 w-10">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button onClick={() => { if(rollerRef.current) rollerRef.current.scrollBy({left: 320, behavior: 'smooth'}) }} className="hidden md:flex items-center justify-center absolute right-2 top-1/2 -translate-y-1/2 z-30 bg-neutral-900/80 p-2 rounded-full text-white hover:bg-neutral-800 border border-neutral-700 backdrop-blur-md opacity-0 group-hover/roller:opacity-100 transition-opacity shadow-lg cursor-pointer h-10 w-10">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <div ref={rollerRef} className="flex gap-4 py-4 px-4 overflow-x-auto snap-x snap-mandatory touch-pan-x pb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                      <style dangerouslySetInnerHTML={{__html: `div::-webkit-scrollbar { display: none; }`}} />
+                    {filtered.map((match, idx) => {
                       const scoreColor = match.match_score >= 80 ? 'from-emerald-500 to-teal-500' : match.match_score >= 60 ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500';
                       const borderColor = match.match_score >= 80 ? 'border-emerald-500/30 hover:border-emerald-400/60' : match.match_score >= 60 ? 'border-yellow-500/30 hover:border-yellow-400/60' : 'border-orange-500/30 hover:border-orange-400/60';
                       const glowColor = match.match_score >= 80 ? 'shadow-[0_0_15px_rgba(16,185,129,0.15)]' : match.match_score >= 60 ? 'shadow-[0_0_15px_rgba(234,179,8,0.15)]' : 'shadow-[0_0_15px_rgba(249,115,22,0.15)]';
@@ -1072,6 +1086,7 @@ export default function Home() {
                         </div>
                       );
                     })}
+                    </div>
                   </div>
                 );
               })()}
@@ -1082,12 +1097,12 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400">
                   <span className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] animate-pulse"></span>
-                  {crossMatchResults.length} Coincidencias Totales
+                  {dashboardStats.crossesFound > 0 ? dashboardStats.crossesFound : crossMatchResults.length} Coincidencias Totales
                 </div>
                 <div className="w-px h-4 bg-neutral-800"></div>
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                  {crossMatchResults.filter(m => m.status === 'recognized').length} Reconocidos
+                  {crossMatchRecognizedCount} Reconocidos
                 </div>
               </div>
             </div>
