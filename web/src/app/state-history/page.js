@@ -3,6 +3,46 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from 'next/link';
 
+const SEARCH_SOURCES = [
+  "🌐 Sincronizando con HospitalesEnVenezuela.com...",
+  "🌐 Revisando RedSolidariaVenezuela.com...",
+  "🌐 Analizando DesaparecidosTerremotoVenezuela...",
+  "🌐 Extrayendo de RedAyudaVenezuela.com...",
+  "🌐 Escaneando DesaparecidosVenezuela.com...",
+  "🌐 Consultando Reencuentro.help...",
+  "🌐 Buscando en SOSVenezuela2026.com...",
+  "🌐 Conectando con NodoAyuda.com...",
+  "⚙️ Procesando motor de desduplicación de estados..."
+];
+
+function MultiSourceLoader() {
+  const [sourceIdx, setSourceIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSourceIdx((prev) => (prev + 1) % SEARCH_SOURCES.length);
+    }, 1800); // Cambia cada 1.8 segundos
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-2 mt-4">
+      <div className="flex items-center gap-3">
+        <div className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </div>
+        <span className="text-sm font-medium text-emerald-400 font-mono">
+          {SEARCH_SOURCES[sourceIdx]}
+        </span>
+      </div>
+      <div className="w-full bg-neutral-800 rounded-full h-1.5 overflow-hidden">
+        <div className="bg-emerald-500 h-1.5 rounded-full w-1/3 animate-[pulse_1s_ease-in-out_infinite] blur-[1px]"></div>
+      </div>
+    </div>
+  );
+}
+
 export default function StateHistoryPage() {
     const [events, setEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -70,8 +110,9 @@ export default function StateHistoryPage() {
                             </div>
                         </div>
                         <p className="text-neutral-400 text-sm md:text-base max-w-2xl">
-                            Este módulo rastrea continuamente en segundo plano (cada 1 hora) todas las plataformas de ayuda. Si el estado de una persona cambia (ej: pasa de Desaparecido a Encontrado), se registra aquí automáticamente.
+                            Este módulo rastrea continuamente en segundo plano todas las plataformas de ayuda. Si el estado de una persona cambia (ej: pasa de Desaparecido a Encontrado), se consolida y registra aquí automáticamente.
                         </p>
+                        <MultiSourceLoader />
                     </div>
                     <div className="shrink-0 flex gap-3">
                         <Link href="/" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors text-sm font-bold shadow-lg shadow-blue-900/20 flex items-center gap-2">
