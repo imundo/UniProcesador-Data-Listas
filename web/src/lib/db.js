@@ -182,10 +182,10 @@ function getDb() {
             db.exec("ALTER TABLE pacientes ADD COLUMN cne_validado BOOLEAN DEFAULT 0");
         }
     } catch(e) {
-        console.error("Migration error:", e);
+        console.error("Migration error pacientes:", e);
     }
-    
-    // Migración: añadir cne_validado y metadata a registros_externos si no existen
+
+    // Migración: añadir cne_validado, metadata y origenes_json a registros_externos si no existen
     try {
         const tableInfoExt = db.pragma("table_info(registros_externos)");
         const hasCNEValidadoExternos = tableInfoExt.some(col => col.name === 'cne_validado');
@@ -195,6 +195,10 @@ function getDb() {
         const hasMetadataExternos = tableInfoExt.some(col => col.name === 'metadata');
         if (!hasMetadataExternos) {
             db.exec("ALTER TABLE registros_externos ADD COLUMN metadata TEXT");
+        }
+        const hasOrigenesJson = tableInfoExt.some(col => col.name === 'origenes_json');
+        if (!hasOrigenesJson) {
+            db.exec("ALTER TABLE registros_externos ADD COLUMN origenes_json TEXT");
         }
     } catch(e) {
         console.error("Migration error externos:", e);

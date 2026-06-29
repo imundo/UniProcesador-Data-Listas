@@ -447,7 +447,7 @@ async function searchLocalDb(term) {
             const likeTerm = `%${t}%`;
             params.push(likeTerm, likeTerm, likeTerm);
         }
-        query += " LIMIT 50";
+        query += " LIMIT 200";
         
         const stmt = db.prepare(query);
         const results = stmt.all(...params);
@@ -605,6 +605,40 @@ export async function performSearch(term) {
             groupedResults.push(p);
         }
     }
+
+    // --- RANKING INTELIGENTE ---
+    const termLower = normalizeText(term);
+    const termTokens = termLower.split(/\s+/).filter(t => t.length > 0);
+    
+    for (const r of groupedResults) {
+        let score = 0;
+        const rName = normalizeText(r.nombre + ' ' + r.apellido);
+        const rCedula = normalizeText(r.cedula);
+        
+        if (termLower.length > 4 && rCedula.includes(termLower)) {
+            score += 100;
+        }
+        
+        const rTokens = rName.split(/\s+/).filter(t => t.length > 0);
+        
+        for (const t of termTokens) {
+            if (rTokens.includes(t)) {
+                score += 50; // Palabra exacta ("yvis" -> "yvis")
+            } else if (rTokens.some(rt => rt.startsWith(t))) {
+                score += 20; // Comienza con ("yvis" -> "yvismary")
+            } else if (rName.includes(t)) {
+                score += 5;  // Contiene en el medio ("yvis" -> "mayvis")
+            }
+        }
+        
+        if (r.sources && r.sources.length > 1) {
+            score += (r.sources.length * 2);
+        }
+        
+        r.score = score;
+    }
+    
+    groupedResults.sort((a, b) => b.score - a.score);
 
     // Limitar a los mejores 50 resultados para no saturar la UI
     if (groupedResults.length > 50) {
