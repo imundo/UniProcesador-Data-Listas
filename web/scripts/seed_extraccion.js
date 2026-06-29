@@ -69,7 +69,8 @@ async function searchHospitalesEnVenezuela(term) {
             edad_sector: (p.detalle || p.edad_sector || p.sector || "").trim(),
             estado: (p.estado || p.status || "Válido").trim(),
             source: 'HospitalesEnVenezuela.com',
-            sourceUrl: 'https://hospitalesenvenezuela.com'
+            sourceUrl: 'https://hospitalesenvenezuela.com',
+            metadata: p
         }));
     } catch (e) {
         console.error(`Error buscando ${term} en HospitalesEnVenezuela:`, e.message);
@@ -113,7 +114,8 @@ async function searchReencuentroHelp(term) {
                 edad_sector: (p.description || "").trim(),
                 estado: estado,
                 source: 'Reencuentro.help',
-                sourceUrl: 'https://reencuentro.help'
+                sourceUrl: 'https://reencuentro.help',
+                metadata: p
             };
         });
     } catch (e) {
@@ -163,8 +165,8 @@ async function seed() {
             const getStmt = db.prepare("SELECT id, origenes_json FROM registros_externos WHERE nombre=? AND apellido=? AND cedula=?");
             
             const insertStmt = db.prepare(`
-                INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, origenes_json, fuente_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, origenes_json, fuente_url, metadata)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
             
             const updateStmt = db.prepare(`
@@ -174,6 +176,7 @@ async function seed() {
                     edad_sector = COALESCE(NULLIF(?, ''), edad_sector),
                     fuente_url = COALESCE(NULLIF(?, ''), fuente_url),
                     origenes_json = ?,
+                    metadata = ?,
                     creado_en = CURRENT_TIMESTAMP
                 WHERE id = ?
             `);
@@ -186,6 +189,7 @@ async function seed() {
                         const apellido = (r.apellido || '').trim();
                         const cedula = (r.cedula || '').trim();
                         const origen = (r.source || 'Desconocido').trim();
+                        const metadataJson = JSON.stringify(r.metadata || {});
 
                         const existing = getStmt.get(nombre, apellido, cedula);
 
@@ -203,6 +207,7 @@ async function seed() {
                                 (r.edad_sector || '').trim(),
                                 (r.sourceUrl || '').trim(),
                                 JSON.stringify(origenes),
+                                metadataJson,
                                 existing.id
                             );
                         } else {
@@ -215,7 +220,8 @@ async function seed() {
                                 (r.estado || '').trim(),
                                 origen,
                                 JSON.stringify([origen]),
-                                (r.sourceUrl || '').trim()
+                                (r.sourceUrl || '').trim(),
+                                metadataJson
                             );
                             insertedCount++;
                         }

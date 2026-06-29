@@ -106,15 +106,30 @@ function getDb() {
         console.error("Migration error:", e);
     }
     
-    // Migración: añadir cne_validado a registros_externos si no existe
+    // Migración: añadir cne_validado y metadata a registros_externos si no existen
     try {
         const tableInfoExt = db.pragma("table_info(registros_externos)");
         const hasCNEValidadoExternos = tableInfoExt.some(col => col.name === 'cne_validado');
         if (!hasCNEValidadoExternos) {
             db.exec("ALTER TABLE registros_externos ADD COLUMN cne_validado BOOLEAN DEFAULT 0");
         }
+        const hasMetadataExternos = tableInfoExt.some(col => col.name === 'metadata');
+        if (!hasMetadataExternos) {
+            db.exec("ALTER TABLE registros_externos ADD COLUMN metadata TEXT");
+        }
     } catch(e) {
         console.error("Migration error externos:", e);
+    }
+    
+    // Migración: añadir metadata a pacientes si no existe
+    try {
+        const tableInfoPac = db.pragma("table_info(pacientes)");
+        const hasMetadataPac = tableInfoPac.some(col => col.name === 'metadata');
+        if (!hasMetadataPac) {
+            db.exec("ALTER TABLE pacientes ADD COLUMN metadata TEXT");
+        }
+    } catch(e) {
+        console.error("Migration error pacientes metadata:", e);
     }
 
     // Migración: añadir campos de reconocimiento a cross_matches si no existen

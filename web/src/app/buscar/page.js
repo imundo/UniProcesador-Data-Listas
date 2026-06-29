@@ -166,6 +166,24 @@ export default function BuscarPage() {
                 </div>
               </div>
 
+              {/* Metadata Tags */}
+              {person.metadata && typeof person.metadata === 'object' && Object.keys(person.metadata).length > 0 && (
+                <div className="mt-4 pt-4 flex flex-wrap gap-2 border-t border-neutral-800/60">
+                  {Object.entries(person.metadata).map(([key, value]) => {
+                    // Ignorar campos ruidosos o internos comunes
+                    const ignoreKeys = ['id', 'created_at', 'updated_at', 'nombre', 'apellido', 'nombres', 'apellidos', 'cedula', 'ci', 'estado', 'status', 'centro', 'hospital', 'location', 'edad_sector', 'descripcion', 'tipo'];
+                    if (ignoreKeys.includes(key.toLowerCase()) || !value || typeof value === 'object' || value.toString().trim() === '') return null;
+                    
+                    return (
+                      <span key={key} className="inline-flex items-center bg-blue-950/20 text-blue-300 border border-blue-900/30 px-2 py-1 rounded text-[11px] font-medium tracking-wide">
+                        <span className="opacity-70 mr-1 capitalize">{key.replace(/_/g, ' ')}:</span> 
+                        {value.toString()}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Sources List */}
               <div className="mt-6 pt-4 border-t border-neutral-800/60 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest shrink-0 mr-1">Visto en:</span>
