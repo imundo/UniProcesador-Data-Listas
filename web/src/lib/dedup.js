@@ -178,6 +178,7 @@ export function runPacientesDeduplication(db) {
     
     let deletedCount = 0;
     let updatedCount = 0;
+    const deleteCrossMatchesStmt = db.prepare(`DELETE FROM cross_matches WHERE paciente_id = ?`);
     const deleteStmt = db.prepare(`DELETE FROM pacientes WHERE id = ?`);
     const updateStmt = db.prepare(`UPDATE pacientes SET centro = ?, edad_sector = ?, cedula = ? WHERE id = ?`);
     const statsStmt = db.prepare(`UPDATE system_stats SET value = value + ? WHERE key = 'local_duplicates_removed'`);
@@ -198,6 +199,9 @@ export function runPacientesDeduplication(db) {
                 if (!centro && dup.centro) { centro = dup.centro; changed = true; }
                 if (!edad && dup.edad_sector) { edad = dup.edad_sector; changed = true; }
                 if (!cedula && dup.cedula) { cedula = dup.cedula; changed = true; }
+                
+                // Prevent FOREIGN KEY constraint failure
+                deleteCrossMatchesStmt.run(dup.id);
                 deleteStmt.run(dup.id);
                 deletedCount++;
             }
