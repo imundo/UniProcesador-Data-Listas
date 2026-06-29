@@ -658,10 +658,10 @@ export async function syncGlobalSources() {
         withTimeout(searchGoogleSheets(""), 8000),
         withTimeout(searchDesaparecidosAPI(""), 8000),
         withTimeout(searchRedAyudaAPI(""), 8000),
-        withTimeout(searchDesaparecidosVzlaHTML(""), 8000),
+        withTimeout(searchDesaparecidosVzla(""), 8000),
         withTimeout(searchReencuentroHelp(""), 8000),
-        withTimeout(searchSOSVzlaHTML(""), 8000),
-        withTimeout(searchNodoAyudaAPI(""), 8000)
+        withTimeout(searchSOSVenezuela(""), 8000),
+        withTimeout(searchNodoAyuda(""), 8000)
     ]);
 
     let allExtracted = [];
