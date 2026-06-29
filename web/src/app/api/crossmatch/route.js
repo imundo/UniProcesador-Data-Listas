@@ -153,12 +153,18 @@ async function runCrossMatch() {
                 const localExtResults = fuseResults.map(r => r.item);
                 
                 // Format results to match the expected format
-                const externalResults = localExtResults.map(r => ({
-                    ...r,
-                    source: r.origen,
-                    sourceUrl: r.fuente_url,
-                    sources: [{name: r.origen, url: r.fuente_url}]
-                }));
+                const externalResults = localExtResults.map(r => {
+                    let parsedSources = [];
+                    try { parsedSources = JSON.parse(r.origenes_json || '[]'); } catch(e){}
+                    if (parsedSources.length === 0 && r.origen) parsedSources = [r.origen];
+                    
+                    return {
+                        ...r,
+                        source: r.origen,
+                        sourceUrl: r.fuente_url,
+                        sources: parsedSources.map(s => ({name: s, url: r.fuente_url}))
+                    };
+                });
 
                 const matches = [];
                 for (const ext of externalResults) {

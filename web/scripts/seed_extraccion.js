@@ -145,23 +145,67 @@ async function seed() {
         const allResults = [...hospResults, ...reenResults];
         
         if (allResults.length > 0) {
+            const getStmt = db.prepare("SELECT id, origenes_json FROM registros_externos WHERE nombre=? AND apellido=? AND cedula=?");
+            
+            const insertStmt = db.prepare(`
+                INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, origenes_json, fuente_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            
+            const updateStmt = db.prepare(`
+                UPDATE registros_externos SET 
+                    centro = COALESCE(NULLIF(?, ''), centro),
+                    estado = COALESCE(NULLIF(?, ''), estado),
+                    edad_sector = COALESCE(NULLIF(?, ''), edad_sector),
+                    fuente_url = COALESCE(NULLIF(?, ''), fuente_url),
+                    origenes_json = ?,
+                    creado_en = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `);
+
             const insertMany = db.transaction((records) => {
                 let insertedCount = 0;
                 for (const r of records) {
                     try {
-                        insertStmt.run(
-                            r.nombre || '', 
-                            r.apellido || '', 
-                            r.cedula || '', 
-                            r.centro || '', 
-                            r.edad_sector || '', 
-                            r.estado || '', 
-                            r.source || 'Desconocido', 
-                            r.sourceUrl || ''
-                        );
-                        insertedCount++;
+                        const nombre = (r.nombre || '').trim();
+                        const apellido = (r.apellido || '').trim();
+                        const cedula = (r.cedula || '').trim();
+                        const origen = (r.source || 'Desconocido').trim();
+
+                        const existing = getStmt.get(nombre, apellido, cedula);
+
+                        if (existing) {
+                            let origenes = [];
+                            try { origenes = JSON.parse(existing.origenes_json || '[]'); } catch(e){}
+                            
+                            if (!origenes.includes(origen)) {
+                                origenes.push(origen);
+                            }
+                            
+                            updateStmt.run(
+                                (r.centro || '').trim(),
+                                (r.estado || '').trim(),
+                                (r.edad_sector || '').trim(),
+                                (r.sourceUrl || '').trim(),
+                                JSON.stringify(origenes),
+                                existing.id
+                            );
+                        } else {
+                            insertStmt.run(
+                                nombre,
+                                apellido,
+                                cedula,
+                                (r.centro || '').trim(),
+                                (r.edad_sector || '').trim(),
+                                (r.estado || '').trim(),
+                                origen,
+                                JSON.stringify([origen]),
+                                (r.sourceUrl || '').trim()
+                            );
+                            insertedCount++;
+                        }
                     } catch(e) {
-                        // ignore duplicates
+                        // ignore duplicates error
                     }
                 }
                 return insertedCount;

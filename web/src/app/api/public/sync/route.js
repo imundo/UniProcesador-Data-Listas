@@ -29,15 +29,22 @@ export async function POST(req) {
         let updatedCount = 0;
         let errorCount = 0;
 
+        const getStmt = db.prepare("SELECT id, origenes_json FROM registros_externos WHERE nombre=? AND apellido=? AND cedula=?");
+        
         const insertStmt = db.prepare(`
-            INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, fuente_url, cne_validado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(nombre, apellido, cedula, origen) DO UPDATE SET
-            centro=excluded.centro,
-            estado=excluded.estado,
-            edad_sector=excluded.edad_sector,
-            fuente_url=excluded.fuente_url,
-            creado_en=CURRENT_TIMESTAMP
+            INSERT INTO registros_externos (nombre, apellido, cedula, centro, edad_sector, estado, origen, origenes_json, fuente_url, cne_validado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        
+        const updateStmt = db.prepare(`
+            UPDATE registros_externos SET 
+                centro = COALESCE(NULLIF(?, ''), centro),
+                estado = COALESCE(NULLIF(?, ''), estado),
+                edad_sector = COALESCE(NULLIF(?, ''), edad_sector),
+                fuente_url = COALESCE(NULLIF(?, ''), fuente_url),
+                origenes_json = ?,
+                cne_validado = MAX(cne_validado, ?)
+            WHERE id = ?
         `);
 
         // Usar una transacción para insertar masivamente
@@ -49,22 +56,50 @@ export async function POST(req) {
                         errorCount++;
                         continue;
                     }
-
-                    const res = insertStmt.run(
-                        (r.nombre || '').trim(),
-                        (r.apellido || '').trim(),
-                        (r.cedula || '').toString().trim(),
-                        (r.centro || '').trim(),
-                        (r.edad_sector || '').trim(),
-                        (r.estado || 'Desconocido').trim(),
-                        (r.origen || 'API Externa').trim(),
-                        (r.fuente_url || '').trim(),
-                        r.cne_validado ? 1 : 0
-                    );
-
-                    // changes = 1 significa INSERT nuevo, changes = 2 significa UPDATE (upsert behavior in sqlite)
-                    if (res.changes === 1) insertedCount++;
-                    else if (res.changes > 1) updatedCount++;
+                    
+                    const nombre = (r.nombre || '').trim();
+                    const apellido = (r.apellido || '').trim();
+                    const cedula = (r.cedula || '').toString().trim();
+                    const origen = (r.origen || 'API Externa').trim();
+                    
+                    // Buscar si existe el perfil maestro
+                    const existing = getStmt.get(nombre, apellido, cedula);
+                    
+                    if (existing) {
+                        // Actualizar
+                        let origenes = [];
+                        try { origenes = JSON.parse(existing.origenes_json || '[]'); } catch(e){}
+                        
+                        if (!origenes.includes(origen)) {
+                            origenes.push(origen);
+                        }
+                        
+                        updateStmt.run(
+                            (r.centro || '').trim(),
+                            (r.estado || '').trim(),
+                            (r.edad_sector || '').trim(),
+                            (r.fuente_url || '').trim(),
+                            JSON.stringify(origenes),
+                            r.cne_validado ? 1 : 0,
+                            existing.id
+                        );
+                        updatedCount++;
+                    } else {
+                        // Insertar nuevo
+                        insertStmt.run(
+                            nombre,
+                            apellido,
+                            cedula,
+                            (r.centro || '').trim(),
+                            (r.edad_sector || '').trim(),
+                            (r.estado || 'Desconocido').trim(),
+                            origen,
+                            JSON.stringify([origen]),
+                            (r.fuente_url || '').trim(),
+                            r.cne_validado ? 1 : 0
+                        );
+                        insertedCount++;
+                    }
                 } catch (e) {
                     errorCount++;
                     console.error("Error insertando registro desde API pública:", e);
