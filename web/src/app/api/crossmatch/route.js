@@ -55,7 +55,16 @@ function calculateMatchScore(local, external) {
     const localCedula = cleanCedula(local.cedula);
     const extCedula = cleanCedula(external.cedula);
     if (localCedula && extCedula && localCedula.length >= 5 && extCedula.length >= 5) {
-        if (localCedula === extCedula) score += 20;
+        if (localCedula === extCedula) {
+            score += 20;
+            // Si además de coincidir la cédula, el paciente está verificado por el CNE (Dateas), 
+            // la certeza es absoluta.
+            if (local.cne_validado === 1) {
+                score += 40; 
+            } else if (local.cne_validado === 2) {
+                score += 20;
+            }
+        }
     }
 
     const localAge = extractAge(local.edad_sector);
@@ -74,7 +83,13 @@ function calculateMatchScore(local, external) {
         if (commonTokens.length > 0) score += 20 * (commonTokens.length / Math.max(localCTokens.length, extCTokens.length));
     }
 
-    return Math.round(score);
+    // Si coinciden fuertemente los nombres y apellidos, y el paciente local está 100% verificado
+    // darle un bonus de fiabilidad.
+    if (score >= 40 && local.cne_validado === 1) {
+        score += 15;
+    }
+
+    return Math.min(Math.round(score), 100);
 }
 
 // ============ AUTO-SCHEDULER ============
