@@ -19,7 +19,7 @@ export default function AdminDashboard() {
     const [syncMsg, setSyncMsg] = useState('');
     
     // CNE Stats
-    const [cneStats, setCneStats] = useState({ validados: 0, rechazados: 0 });
+    const [cneStats, setCneStats] = useState({ validados: 0, rechazados: 0, procesados: 0 });
     const [cneModalOpen, setCneModalOpen] = useState(false);
     const [cneDetails, setCneDetails] = useState({ validados: [], rechazados: [], pagination: { page: 1, totalValidados: 0, totalRechazados: 0 } });
     const [cnePage, setCnePage] = useState(1);
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
                 });
                 if (resCne.ok) {
                     const dataCne = await resCne.json();
-                    setCneStats({ validados: dataCne.total_validados || 0, rechazados: dataCne.total_rechazados || 0 });
+                    setCneStats({ validados: dataCne.total_validados || 0, rechazados: dataCne.total_rechazados || 0, procesados: dataCne.total_procesados || 0 });
                 }
             } catch (err) {
                 console.error("Error fetching stats", err);
@@ -276,7 +276,12 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4" onClick={handleOpenCneModal} style={{cursor: 'pointer'}}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" onClick={handleOpenCneModal} style={{cursor: 'pointer'}}>
+                        <div className="bg-blue-950/20 hover:bg-blue-950/40 transition-colors backdrop-blur-md border border-blue-900/50 p-6 rounded-2xl flex flex-col items-center relative group">
+                            <span className="text-blue-500 uppercase tracking-widest text-xs font-bold mb-2">Total Procesados</span>
+                            <span className="text-4xl font-black text-blue-100">{cneStats.procesados || 0}</span>
+                            <span className="text-blue-500/50 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Incluye los ignorados</span>
+                        </div>
                         <div className="bg-green-950/20 hover:bg-green-950/40 transition-colors backdrop-blur-md border border-green-900/50 p-6 rounded-2xl flex flex-col items-center relative group">
                             <span className="text-green-500 uppercase tracking-widest text-xs font-bold mb-2">Validados por CNE</span>
                             <span className="text-4xl font-black text-green-100">{cneStats.validados}</span>

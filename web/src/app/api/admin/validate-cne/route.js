@@ -158,11 +158,15 @@ export async function GET(req) {
         const rechazadosPacientes = db.prepare("SELECT COUNT(*) as c FROM pacientes WHERE cne_validado = 3").get().c;
         const rechazadosExternos = db.prepare("SELECT COUNT(*) as c FROM registros_externos WHERE cne_validado = 3").get().c;
         
+        const procesadosPac = db.prepare("SELECT COUNT(*) as c FROM pacientes WHERE cne_validado > 0").get().c;
+        const procesadosExt = db.prepare("SELECT COUNT(*) as c FROM registros_externos WHERE cne_validado > 0").get().c;
+        
         return NextResponse.json({
             status: 'ok',
             total_validados: validadosPacientes + validadosExternos,
             total_rechazados: rechazadosPacientes + rechazadosExternos,
-            message: 'El endpoint de validación CNE con Verifik está operativo.'
+            total_procesados: procesadosPac + procesadosExt,
+            message: 'El endpoint de validación CNE con Dateas está operativo.'
         });
         
     } catch (error) {
