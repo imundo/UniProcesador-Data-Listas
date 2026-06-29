@@ -1,7 +1,20 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db.js';
 
+const ADMIN_PASS = 'Amazonas=90';
+
+function isAuthenticated(req) {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) return false;
+    // Soporta tanto "Bearer Amazonas=90" como enviar el string directamente
+    return authHeader.replace('Bearer ', '').trim() === ADMIN_PASS;
+}
+
 export async function GET(req) {
+    if (!isAuthenticated(req)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const stats = db.prepare(`
             SELECT 
@@ -34,6 +47,10 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
+    if (!isAuthenticated(req)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const names = body.names; // Espera un array de strings
