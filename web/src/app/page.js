@@ -271,9 +271,9 @@ export default function Home() {
 
 
   // Fetch cross-match results on mount
-  const fetchCrossMatchResults = async (minScore = 40) => {
+  const fetchCrossMatchResults = async () => {
     try {
-      const res = await fetch(`/api/crossmatch?mode=results&minScore=${minScore}`);
+      const res = await fetch(`/api/crossmatch?mode=results&minScore=40`);
       const data = await res.json();
       if (data.matches) setCrossMatchResults(data.matches);
       if (data.recognizedCount !== undefined) setCrossMatchRecognizedCount(data.recognizedCount);
@@ -325,12 +325,38 @@ export default function Home() {
 
   useEffect(() => {
     const fetchInterval = setInterval(() => {
-      fetchCrossMatchResults(crossMatchFilter);
+      fetchCrossMatchResults();
       fetchDashboardStats();
       fetchAdminSeedStats();
     }, 60000); // Polling cada minuto para que se refresque solo si el backend hace la sincronización
     return () => clearInterval(fetchInterval);
-  }, [crossMatchFilter]);
+  }, []);
+
+  useEffect(() => {
+    let animationFrameId;
+    let lastTime = 0;
+    const speed = 0.04; // pixels per ms
+    
+    const scrollStep = (timestamp) => {
+      if (!lastTime) lastTime = timestamp;
+      const deltaTime = timestamp - lastTime;
+      lastTime = timestamp;
+      
+      const roller = rollerRef.current;
+      if (roller && !roller.matches(':hover') && !roller.matches(':active')) {
+        if (roller.scrollWidth > roller.clientWidth) {
+           roller.scrollLeft += speed * deltaTime;
+           if (roller.scrollLeft >= roller.scrollWidth / 2) {
+             roller.scrollLeft -= roller.scrollWidth / 2;
+           }
+        }
+      }
+      animationFrameId = requestAnimationFrame(scrollStep);
+    };
+    
+    animationFrameId = requestAnimationFrame(scrollStep);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
 
   useEffect(() => {
     let interval;
@@ -943,7 +969,7 @@ export default function Home() {
               </div>
               <span className="text-[10px] text-neutral-500 font-bold uppercase ml-2">Confianza:</span>
               {[40, 60, 80].map(s => (
-                <button key={s} onClick={() => { setCrossMatchFilter(s); fetchCrossMatchResults(s); }}
+                <button key={s} onClick={() => setCrossMatchFilter(s)}
                   className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider border transition-all ${crossMatchFilter === s
                       ? (s >= 80 ? 'bg-emerald-500/30 text-emerald-300 border-emerald-500/50' : s >= 60 ? 'bg-yellow-500/30 text-yellow-300 border-yellow-500/50' : 'bg-orange-500/30 text-orange-300 border-orange-500/50')
                       : 'bg-neutral-800/50 text-neutral-500 border-neutral-700/50 hover:bg-neutral-700/50'
@@ -953,6 +979,7 @@ export default function Home() {
               ))}
               <span className="text-[10px] text-neutral-500 ml-2">{(() => {
                 const filtered = crossMatchResults.filter(match => {
+                  if (match.match_score < crossMatchFilter) return false;
                   if (!crossMatchTextFilter) return true;
                   const term = crossMatchTextFilter.toLowerCase();
                   return (
@@ -963,8 +990,8 @@ export default function Home() {
                     (match.apellido_externo && match.apellido_externo.toLowerCase().includes(term))
                   );
                 });
-                return filtered.length;
-              })()} coincidencias | {crossMatchRecognizedCount} reconocidas</span>
+                return `${filtered.length} filtradas de ${dashboardStats.crossesFound > 0 ? dashboardStats.crossesFound : crossMatchResults.length} totales`;
+              })()} | {crossMatchRecognizedCount} reconocidas</span>
             </div>
             {/* Horizontal Roller/Ticker */}
             <div className="relative overflow-hidden rounded-2xl border border-neutral-800/50 bg-neutral-950/40 backdrop-blur-md">
@@ -973,6 +1000,7 @@ export default function Home() {
 
               {(() => {
                 const filtered = crossMatchResults.filter(match => {
+                  if (match.match_score < crossMatchFilter) return false;
                   if (!crossMatchTextFilter) return true;
                   const term = crossMatchTextFilter.toLowerCase();
                   return (
@@ -996,9 +1024,9 @@ export default function Home() {
                     <button onClick={() => { if(rollerRef.current) rollerRef.current.scrollBy({left: 320, behavior: 'smooth'}) }} className="hidden md:flex items-center justify-center absolute right-2 top-1/2 -translate-y-1/2 z-30 bg-neutral-900/80 p-2 rounded-full text-white hover:bg-neutral-800 border border-neutral-700 backdrop-blur-md opacity-0 group-hover/roller:opacity-100 transition-opacity shadow-lg cursor-pointer h-10 w-10">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                     </button>
-                    <div ref={rollerRef} className="flex gap-4 py-4 px-4 overflow-x-auto snap-x snap-mandatory touch-pan-x pb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div ref={rollerRef} className="flex gap-4 py-4 px-4 overflow-x-auto touch-pan-x pb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                       <style dangerouslySetInnerHTML={{__html: `div::-webkit-scrollbar { display: none; }`}} />
-                    {filtered.map((match, idx) => {
+                    {[...filtered, ...filtered].map((match, idx) => {
                       const scoreColor = match.match_score >= 80 ? 'from-emerald-500 to-teal-500' : match.match_score >= 60 ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500';
                       const borderColor = match.match_score >= 80 ? 'border-emerald-500/30 hover:border-emerald-400/60' : match.match_score >= 60 ? 'border-yellow-500/30 hover:border-yellow-400/60' : 'border-orange-500/30 hover:border-orange-400/60';
                       const glowColor = match.match_score >= 80 ? 'shadow-[0_0_15px_rgba(16,185,129,0.15)]' : match.match_score >= 60 ? 'shadow-[0_0_15px_rgba(234,179,8,0.15)]' : 'shadow-[0_0_15px_rgba(249,115,22,0.15)]';
