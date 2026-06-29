@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from 'next/dynamic';
 import Fuse from 'fuse.js';
+import Link from 'next/link';
 
 const MapView = dynamic(() => import('@/components/MapView'), {
   ssr: false,
