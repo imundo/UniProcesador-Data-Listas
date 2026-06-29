@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -13,14 +13,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom Premium Icon
+// Custom Premium Icon - Smaller
 const customIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
+  iconSize: [16, 26],
+  iconAnchor: [8, 26],
+  popupAnchor: [1, -22],
+  shadowSize: [26, 26]
 });
 
 const HeatmapLayer = ({ points }) => {
@@ -32,20 +32,21 @@ const HeatmapLayer = ({ points }) => {
     let heatLayer = null;
 
     import('leaflet.heat').then(() => {
-      const heatPoints = points.map(p => [p.lat, p.lon, p.count * 10]); // Multiplicamos para intensidad
-      const maxCount = Math.max(...points.map(p => p.count * 10));
+      // Ajustar intensidad base
+      const heatPoints = points.map(p => [p.lat, p.lon, p.count * 15]); 
+      const maxCount = Math.max(...points.map(p => p.count * 15));
 
       heatLayer = L.heatLayer(heatPoints, {
-        radius: 35,
-        blur: 25,
+        radius: 45, // Hacer el radio más grande para que se vea mejor de lejos
+        blur: 35,
         maxZoom: 14,
         max: maxCount,
         gradient: {
-          0.2: 'blue',
-          0.4: 'cyan',
-          0.6: 'lime',
-          0.8: 'yellow',
-          1.0: 'red'
+          0.2: '#00f',
+          0.4: '#0ff',
+          0.6: '#0f0',
+          0.8: '#ff0',
+          1.0: '#f00'
         }
       }).addTo(map);
     });
@@ -126,7 +127,15 @@ export default function MapView() {
         <HeatmapLayer points={locations} />
 
         {locations.map((loc, idx) => (
-          <Marker key={idx} position={[loc.lat, loc.lon]} icon={customIcon} opacity={0.8}>
+          <CircleMarker 
+            key={idx} 
+            center={[loc.lat, loc.lon]} 
+            radius={4} 
+            fillColor="#ef4444" 
+            color="#b91c1c" 
+            weight={1} 
+            fillOpacity={0.8}
+          >
             <Popup className="premium-popup">
               <div className="text-center p-1">
                 <h4 className="font-bold text-gray-900 text-sm mb-1">{loc.centro}</h4>
@@ -135,7 +144,7 @@ export default function MapView() {
                 </div>
               </div>
             </Popup>
-          </Marker>
+          </CircleMarker>
         ))}
       </MapContainer>
       <style jsx global>{`
