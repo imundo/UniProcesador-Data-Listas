@@ -793,7 +793,11 @@ export default function Home() {
           {emergencySearchResults.length > 0 && (
             <div className="flex flex-col gap-3 w-full">
               {emergencySearchResults.map((person, idx) => {
-                const sourcesArray = person.sources || [{ name: person.source, url: person.sourceUrl }];
+                let sourcesArray = person.sources || [{ name: person.source, url: person.sourceUrl }];
+                // Filter out NodoAyuda from visual tags as it is a redundant aggregator
+                sourcesArray = sourcesArray.filter(s => s.name && !s.name.toLowerCase().includes('nodoayuda'));
+                if (sourcesArray.length === 0 && person.source) sourcesArray = [{ name: person.source, url: person.sourceUrl }];
+                
                 const isDuplicated = sourcesArray.length > 1;
 
                 const shareText = encodeURIComponent(`🚨 PERSONA LOCALIZADA\nNombre: ${person.nombre} ${person.apellido}\nCédula: ${person.cedula}\nUbicación: ${person.centro}\n${person.edad_sector ? `Sector/Nota: ${person.edad_sector}\n` : ''}${person.estado ? `Estado: ${person.estado}\n` : ''}Reportado en ${sourcesArray.length} plataforma(s).`);
