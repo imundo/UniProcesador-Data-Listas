@@ -1,10 +1,40 @@
-function normalizeStr(str) {
-    if (!str) return '';
-    return str.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim();
+function getTokensStr(str) {
+    if (!str) return [];
+    return str.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).filter(w => w.length > 2);
+}
+
+function getDedupKeys(record) {
+    const keys = [];
+    
+    // 1. Cédula (Strongest identifier)
+    if (record.cedula && record.cedula.length > 4) {
+        keys.push('cedula:' + record.cedula.replace(/[^0-9]/g, ''));
+    }
+    
+    let nt = getTokensStr(record.nombre);
+    let at = getTokensStr(record.apellido);
+    
+    // 2. Si el apellido está vacío pero el nombre tiene 2+ palabras, lo partimos a la mitad
+    if (at.length === 0 && nt.length >= 2) {
+        const half = Math.ceil(nt.length / 2);
+        at = nt.slice(half);
+        nt = nt.slice(0, half);
+    }
+    
+    // 3. Primer nombre + Primer apellido (El estándar de identificación más común)
+    if (nt.length >= 1 && at.length >= 1) {
+        keys.push('name:' + nt[0] + '|' + at[0]);
+    }
+    
+    // 4. Fallback por si acaso todo quedó en un solo nombre
+    if (nt.length >= 2 && at.length === 0) {
+        keys.push('name:' + nt[0] + '|' + nt[1]);
+    }
+    
+    return keys;
 }
 
 function getClusters(records) {
-    // Union-Find data structure
     const parent = new Map();
     const find = (i) => {
         if (!parent.has(i)) parent.set(i, i);
@@ -19,39 +49,19 @@ function getClusters(records) {
         if (rootI !== rootJ) parent.set(rootI, rootJ);
     };
 
-    const cedulaMap = new Map();
-    const nameMap = new Map();
-
+    const fullMap = new Map();
     for (let i = 0; i < records.length; i++) {
-        const r = records[i];
-        
-        let merged = false;
-        
-        const c = normalizeStr(r.cedula);
-        if (c.length > 4) {
-            if (cedulaMap.has(c)) {
-                union(i, cedulaMap.get(c));
-                merged = true;
-            } else {
-                cedulaMap.set(c, i);
-            }
+        const keys = getDedupKeys(records[i]);
+        for (const key of keys) {
+            if (!fullMap.has(key)) fullMap.set(key, []);
+            fullMap.get(key).push(i);
         }
-        
-        const n = normalizeStr(r.nombre);
-        const a = normalizeStr(r.apellido);
-        if (n && a) {
-            const na = n + '|' + a;
-            if (nameMap.has(na)) {
-                union(i, nameMap.get(na));
-                merged = true;
-            } else {
-                nameMap.set(na, i);
-            }
-        }
-        
-        if (!merged) {
-            // Ensure it has a parent
-            find(i);
+    }
+
+    // Union all records that share any dedup key
+    for (const matches of fullMap.values()) {
+        for (let i = 1; i < matches.length; i++) {
+            union(matches[0], matches[i]);
         }
     }
 
