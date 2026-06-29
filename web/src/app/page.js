@@ -54,6 +54,7 @@ export default function Home() {
   const [stats, setStats] = useState(null);
 
   const [dashboardStats, setDashboardStats] = useState({ total: 0, externalCount: 0, crossesFound: 0 });
+  const [adminSeedStats, setAdminSeedStats] = useState(null);
   const [globalPreview, setGlobalPreview] = useState(null);
   const [isFetchingGlobal, setIsFetchingGlobal] = useState(false);
   const [showGlobalPreview, setShowGlobalPreview] = useState(false);
@@ -160,6 +161,18 @@ export default function Home() {
       });
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const fetchAdminSeedStats = async () => {
+    try {
+      const res = await fetch("/api/admin/seed");
+      if (res.ok) {
+        const data = await res.json();
+        setAdminSeedStats(data);
+      }
+    } catch (err) {
+      // Ignorar errores menores
     }
   };
 
@@ -272,12 +285,14 @@ export default function Home() {
     fetchHospitals();
     fetchCrossMatchResults();
     fetchDashboardStats();
+    fetchAdminSeedStats();
   }, []);
 
   useEffect(() => {
     const fetchInterval = setInterval(() => {
       fetchCrossMatchResults(crossMatchFilter);
       fetchDashboardStats();
+      fetchAdminSeedStats();
     }, 60000); // Polling cada minuto para que se refresque solo si el backend hace la sincronización
     return () => clearInterval(fetchInterval);
   }, [crossMatchFilter]);
@@ -682,9 +697,25 @@ export default function Home() {
 
           <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto opacity-80 hover:opacity-100 transition-opacity">
             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)] cursor-default">🏢 Base Local</span>
-            {['NodoAyuda.com', 'HospitalesEnVenezuela.com', 'RedSolidariaVenezuela.com', 'DesaparecidosTerremotoVenezuela.com', 'RedAyudaVenezuela.com', 'DesaparecidosVenezuela.com', 'Reencuentro.help', 'SOSVenezuela2026.com', 'VenezuelaTeBusca.com', 'EncuentraVenezuela.com', 'AidVenezuela.net', 'VenAyuda.com'].map(site => (
-              <a key={site} href={`https://${site.toLowerCase()}/`} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white/90 transition-colors">🌐 {site}</a>
-            ))}
+            {['NodoAyuda.com', 'HospitalesEnVenezuela.com', 'RedSolidariaVenezuela.com', 'DesaparecidosTerremotoVenezuela.com', 'RedAyudaVenezuela.com', 'DesaparecidosVenezuela.com', 'Reencuentro.help', 'SOSVenezuela2026.com', 'VenezuelaTeBusca.com', 'EncuentraVenezuela.com', 'AidVenezuela.net', 'VenAyuda.com'].map(site => {
+              // Buscar si existe un conteo para este origen en adminSeedStats
+              let originCount = null;
+              if (adminSeedStats && adminSeedStats.por_origen) {
+                const stat = adminSeedStats.por_origen.find(o => o.origen.toLowerCase() === site.toLowerCase());
+                if (stat) originCount = stat.count;
+              }
+
+              return (
+                <a key={site} href={`https://${site.toLowerCase()}/`} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white/90 transition-colors flex items-center gap-1.5">
+                  🌐 {site}
+                  {originCount !== null && (
+                    <span className="bg-white/20 text-white px-1.5 py-0.5 rounded-full text-[9px]">
+                      {originCount.toLocaleString()}
+                    </span>
+                  )}
+                </a>
+              );
+            })}
           </div>
         </div>
 
