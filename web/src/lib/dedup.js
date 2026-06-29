@@ -76,6 +76,7 @@ export function runInPlaceDeduplication(db) {
     
     const updateStmt = db.prepare(`UPDATE registros_externos SET origenes_json = ?, centro = ?, cne_validado = ?, cedula = ?, metadata = ? WHERE id = ?`);
     const deleteStmt = db.prepare(`DELETE FROM registros_externos WHERE id = ?`);
+    const statsStmt = db.prepare(`UPDATE system_stats SET value = value + ? WHERE key = 'external_duplicates_removed'`);
     
     db.transaction(() => {
         for (const group of clusters) {
@@ -152,6 +153,9 @@ export function runInPlaceDeduplication(db) {
                 updatedCount++;
             }
         }
+        if (deletedCount > 0) {
+            statsStmt.run(deletedCount);
+        }
     })();
     
     console.log(`[Deduplication] Finished registros_externos. Deleted ${deletedCount} duplicates, updated ${updatedCount} master records.`);
@@ -166,6 +170,7 @@ export function runPacientesDeduplication(db) {
     let updatedCount = 0;
     const deleteStmt = db.prepare(`DELETE FROM pacientes WHERE id = ?`);
     const updateStmt = db.prepare(`UPDATE pacientes SET centro = ?, edad_sector = ?, cedula = ? WHERE id = ?`);
+    const statsStmt = db.prepare(`UPDATE system_stats SET value = value + ? WHERE key = 'local_duplicates_removed'`);
     
     db.transaction(() => {
         for (const group of clusters) {
@@ -190,6 +195,9 @@ export function runPacientesDeduplication(db) {
                 updateStmt.run(centro || '', edad || '', cedula || '', master.id);
                 updatedCount++;
             }
+        }
+        if (deletedCount > 0) {
+            statsStmt.run(deletedCount);
         }
     })();
     console.log(`[Deduplication] Finished pacientes. Deleted ${deletedCount} duplicate pacientes, updated ${updatedCount} master records.`);

@@ -24,8 +24,17 @@ export async function GET() {
             crossesFound = cmRow.count;
         } catch(e) {}
         
+        let localDuplicatesRemoved = 0;
+        let externalDuplicatesRemoved = 0;
+        try {
+            const statLocal = db.prepare("SELECT value FROM system_stats WHERE key = 'local_duplicates_removed'").get();
+            if (statLocal) localDuplicatesRemoved = statLocal.value;
+            const statExt = db.prepare("SELECT value FROM system_stats WHERE key = 'external_duplicates_removed'").get();
+            if (statExt) externalDuplicatesRemoved = statExt.value;
+        } catch(e) {}
+        
         if (total === 0 && externalCount === 0) {
-            return NextResponse.json({ total: 0, externalCount: 0, crossesFound: 0, showing: 0, pacientes: [] });
+            return NextResponse.json({ total: 0, externalCount: 0, crossesFound: 0, showing: 0, pacientes: [], localDuplicatesRemoved, externalDuplicatesRemoved });
         }
 
         const pacientes = db.prepare('SELECT * FROM pacientes ORDER BY id DESC').all();
@@ -43,6 +52,8 @@ export async function GET() {
             total, 
             externalCount,
             crossesFound,
+            localDuplicatesRemoved,
+            externalDuplicatesRemoved,
             showing: combined.length, 
             pacientes: combined 
         });

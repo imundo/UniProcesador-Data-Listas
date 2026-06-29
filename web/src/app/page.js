@@ -87,7 +87,7 @@ export default function Home() {
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState(null);
 
-  const [dashboardStats, setDashboardStats] = useState({ total: 0, externalCount: 0, crossesFound: 0 });
+  const [dashboardStats, setDashboardStats] = useState({ total: 0, externalCount: 0, crossesFound: 0, localDuplicatesRemoved: 0, externalDuplicatesRemoved: 0 });
   const [adminSeedStats, setAdminSeedStats] = useState(null);
   const [globalPreview, setGlobalPreview] = useState(null);
   const [isFetchingGlobal, setIsFetchingGlobal] = useState(false);
@@ -192,7 +192,9 @@ export default function Home() {
       setDashboardStats({
         total: data.total || 0,
         externalCount: data.externalCount || 0,
-        crossesFound: data.crossesFound || 0
+        crossesFound: data.crossesFound || 0,
+        localDuplicatesRemoved: data.localDuplicatesRemoved || 0,
+        externalDuplicatesRemoved: data.externalDuplicatesRemoved || 0
       });
     } catch (err) {
       console.error(err);
@@ -702,8 +704,8 @@ export default function Home() {
   const externalDataCount = dashboardStats.externalCount || 0;
 
   const totalPersonasRegistradas = baseRegistradas + externalDataCount;
-  const totalPersonasLeidas = baseLeidas + externalDataCount;
-  const totalDesduplicados = totalPersonasLeidas - totalPersonasRegistradas;
+  const totalPersonasLeidas = baseLeidas + externalDataCount + (dashboardStats.externalDuplicatesRemoved || 0);
+  const totalDesduplicados = (baseLeidas - baseRegistradas) + (dashboardStats.localDuplicatesRemoved || 0) + (dashboardStats.externalDuplicatesRemoved || 0);
   const totalArchivosProcesados = history.reduce((acc, curr) => acc + (curr.filesUploaded || 0), 0);
   const totalCentros = hospitals.length;
 
@@ -725,6 +727,13 @@ export default function Home() {
           <p className="text-neutral-400 max-w-2xl mx-auto">
             Sube tus imágenes, videos y PDFs de listas de pacientes. Nuestra IA extraerá automáticamente la información y la consolidará en una sola base de datos unificada sin duplicados. Con formato para ser subidos a portales como <a href="https://hospitalesenvenezuela.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">https://hospitalesenvenezuela.com/</a>
           </p>
+          <div className="flex justify-center mt-6">
+            <Link href="/state-history" className="inline-flex items-center gap-2 px-5 py-2.5 bg-neutral-900/80 border border-neutral-700/50 hover:bg-neutral-800 hover:border-blue-500/50 text-neutral-300 hover:text-white rounded-full transition-all shadow-lg backdrop-blur-sm text-sm font-semibold group">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Ver Observador de Estados Global
+              <svg className="w-4 h-4 text-neutral-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </Link>
+          </div>
         </header>
 
 

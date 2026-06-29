@@ -103,25 +103,68 @@ function getDb() {
         cedula TEXT,
         estado_anterior TEXT,
         estado_nuevo TEXT,
+        origen_nombre TEXT,
+        origen_url TEXT,
         fecha DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS system_stats (
+        key TEXT PRIMARY KEY,
+        value INTEGER DEFAULT 0
+      );
+      INSERT OR IGNORE INTO system_stats (key, value) VALUES ('external_duplicates_removed', 0);
+      INSERT OR IGNORE INTO system_stats (key, value) VALUES ('local_duplicates_removed', 0);
 
       CREATE TRIGGER IF NOT EXISTS tr_registros_externos_estado
       AFTER UPDATE OF estado ON registros_externos
       WHEN old.estado IS NOT new.estado AND new.estado IS NOT NULL AND new.estado != ''
       BEGIN
-          INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo)
-          VALUES (new.id, 'externo', new.nombre || ' ' || new.apellido, new.cedula, old.estado, new.estado);
+          INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo, origen_nombre, origen_url)
+          VALUES (new.id, 'externo', new.nombre || ' ' || new.apellido, new.cedula, old.estado, new.estado, new.origen, new.fuente_url);
       END;
 
       CREATE TRIGGER IF NOT EXISTS tr_pacientes_estado
       AFTER UPDATE OF estatus ON pacientes
       WHEN old.estatus IS NOT new.estatus AND new.estatus IS NOT NULL AND new.estatus != ''
       BEGIN
-          INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo)
-          VALUES (new.id, 'local', new.nombre || ' ' || new.apellido, new.cedula, old.estatus, new.estatus);
+          INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo, origen_nombre, origen_url)
+          VALUES (new.id, 'local', new.nombre || ' ' || new.apellido, new.cedula, old.estatus, new.estatus, 'Base Local', NULL);
       END;
     `);
+
+    // Migración: añadir columnas de origen al historial si no existen
+    try {
+        const histInfo = db.pragma("table_info(historial_estados)");
+        const hasOrigenNombre = histInfo.some(col => col.name === 'origen_nombre');
+        if (!hasOrigenNombre) {
+            db.exec("ALTER TABLE historial_estados ADD COLUMN origen_nombre TEXT");
+            db.exec("ALTER TABLE historial_estados ADD COLUMN origen_url TEXT");
+            
+            // Recrear triggers
+            db.exec("DROP TRIGGER IF EXISTS tr_registros_externos_estado");
+            db.exec("DROP TRIGGER IF EXISTS tr_pacientes_estado");
+            db.exec(`
+                CREATE TRIGGER tr_registros_externos_estado
+                AFTER UPDATE OF estado ON registros_externos
+                WHEN old.estado IS NOT new.estado AND new.estado IS NOT NULL AND new.estado != ''
+                BEGIN
+                    INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo, origen_nombre, origen_url)
+                    VALUES (new.id, 'externo', new.nombre || ' ' || new.apellido, new.cedula, old.estado, new.estado, new.origen, new.fuente_url);
+                END;
+            `);
+            db.exec(`
+                CREATE TRIGGER tr_pacientes_estado
+                AFTER UPDATE OF estatus ON pacientes
+                WHEN old.estatus IS NOT new.estatus AND new.estatus IS NOT NULL AND new.estatus != ''
+                BEGIN
+                    INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo, origen_nombre, origen_url)
+                    VALUES (new.id, 'local', new.nombre || ' ' || new.apellido, new.cedula, old.estatus, new.estatus, 'Base Local', NULL);
+                END;
+            `);
+        }
+    } catch(e) {
+        console.error("Migration error historial_estados:", e);
+    }
 
     // Migración: añadir batch_id y estatus si no existen
     try {
