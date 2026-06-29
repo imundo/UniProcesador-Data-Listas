@@ -466,9 +466,9 @@ export async function performSearch(term) {
         return [];
     }
 
-    // Ejecutar las 9 búsquedas en paralelo (Búsqueda Federada Multi-Origen)
+    // Ejecutar las 8 búsquedas en paralelo (Búsqueda Federada Multi-Origen)
     // Se usa un timeout de 4.5 segundos para cada petición para evitar que una API lenta bloquee todas
-    const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes, desapVzlaRes, reencuentroRes, sosRes, nodoAyudaRes] = await Promise.allSettled([
+    const [localRes, supabaseRes, sheetsRes, desaparecidosRes, redAyudaRes, desapVzlaRes, reencuentroRes, sosRes] = await Promise.allSettled([
         withTimeout(searchLocalDb(term), 1000), // BD Local es rápida
         withTimeout(searchSupabase(term), 4500),
         withTimeout(searchGoogleSheets(term), 4500),
@@ -476,8 +476,8 @@ export async function performSearch(term) {
         withTimeout(searchRedAyudaAPI(term), 4500),
         withTimeout(searchDesaparecidosVzla(term), 4500),
         withTimeout(searchReencuentroHelp(term), 4500),
-        withTimeout(searchSOSVenezuela(term), 4500),
-        withTimeout(searchNodoAyuda(term), 4500)
+        withTimeout(searchSOSVenezuela(term), 4500)
+        // Nota: NodoAyuda removido porque es un agregador redundante
     ]);
 
     const localData = localRes.status === 'fulfilled' ? localRes.value : [];
@@ -488,14 +488,13 @@ export async function performSearch(term) {
     const desapVzlaData = desapVzlaRes.status === 'fulfilled' ? desapVzlaRes.value : [];
     const reencuentroData = reencuentroRes.status === 'fulfilled' ? reencuentroRes.value : [];
     const sosData = sosRes.status === 'fulfilled' ? sosRes.value : [];
-    const nodoAyudaData = nodoAyudaRes.status === 'fulfilled' ? nodoAyudaRes.value : [];
 
     // Combinar resultados de todas las fuentes
-    let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData, ...nodoAyudaData];
+    let combinedResults = [...localData, ...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData];
     
     // --- PASSIVE SCRAPING (Base de Datos Sombra) ---
     // Guardar los resultados externos asíncronamente en nuestra BD para alimentar el portal
-    const externalResults = [...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData, ...nodoAyudaData];
+    const externalResults = [...supabaseData, ...sheetsData, ...desaparecidosData, ...redAyudaData, ...desapVzlaData, ...reencuentroData, ...sosData];
     if (externalResults.length > 0) {
         // Ejecutar de forma no bloqueante (no usar await)
         setTimeout(() => {
