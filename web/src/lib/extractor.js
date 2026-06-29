@@ -472,3 +472,72 @@ export async function processFiles(files) {
         fileHashes: Object.keys(processedFiles)
     };
 }
+
+import { performSearch } from '../app/api/search/route.js';
+
+let workerStarted = false;
+const CHUNK_SIZE = 3; // Nombres a procesar por ciclo
+const INTERVAL_MS = 2 * 60 * 1000; // 2 minutos
+
+async function processNextChunk() {
+    try {
+        // Buscar 3 terminos pendientes
+        const pendingTerms = db.prepare(`
+            SELECT id, term FROM extraction_queue 
+            WHERE status = 'pending' 
+            ORDER BY created_at ASC 
+            LIMIT ?
+        `).all(CHUNK_SIZE);
+
+        if (pendingTerms.length === 0) {
+            return; // Nada que hacer, dormirse.
+        }
+
+        console.log(`[Extractor Worker] Procesando lote de ${pendingTerms.length} términos...`);
+
+        // Marcar como procesando
+        const updateProcessing = db.prepare("UPDATE extraction_queue SET status = 'processing', last_attempt = CURRENT_TIMESTAMP WHERE id = ?");
+        for (const pt of pendingTerms) {
+            updateProcessing.run(pt.id);
+        }
+
+        // Procesar uno por uno con una pequeña pausa para no saturar las APIs (ni la propia db local)
+        for (const pt of pendingTerms) {
+            try {
+                console.log(`[Extractor Worker] Buscando: ${pt.term}`);
+                
+                // performSearch realiza búsquedas en vivo y guarda automáticamente en registros_externos vía Passive Scraping
+                await performSearch(pt.term);
+
+                // Marcar completado
+                db.prepare("UPDATE extraction_queue SET status = 'completed' WHERE id = ?").run(pt.id);
+                
+                // Pausa artificial de 2 segundos entre términos
+                await new Promise(r => setTimeout(r, 2000));
+            } catch (err) {
+                console.error(`[Extractor Worker] Error con término ${pt.term}:`, err.message);
+                db.prepare("UPDATE extraction_queue SET status = 'error' WHERE id = ?").run(pt.id);
+            }
+        }
+        console.log(`[Extractor Worker] Lote procesado con éxito.`);
+    } catch (e) {
+        console.error("[Extractor Worker] Error crítico en el ciclo:", e);
+    }
+}
+
+export function startExtractorWorker() {
+    if (workerStarted) return;
+    workerStarted = true;
+
+    console.log(`[Extractor Worker] Inicializado. Correrá cada ${INTERVAL_MS / 1000 / 60} minutos.`);
+    
+    // Ejecutar inmediatamente (con un pequeño delay para que levante el server)
+    setTimeout(() => {
+        processNextChunk();
+    }, 5000);
+
+    // Configurar ciclo continuo
+    setInterval(() => {
+        processNextChunk();
+    }, INTERVAL_MS);
+}

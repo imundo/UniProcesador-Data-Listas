@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
+import { startExtractorWorker } from './extractor.js';
 
 let dbInstance = null;
 
@@ -20,6 +21,14 @@ function getDb() {
 
     // Inicializar tabla si no existe
     db.exec(`
+      CREATE TABLE IF NOT EXISTS extraction_queue (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        term TEXT UNIQUE,
+        status TEXT DEFAULT 'pending',
+        last_attempt DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS pacientes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT,
@@ -184,6 +193,8 @@ function getDb() {
     }
 
     dbInstance = db;
+    // Arrancar el Worker de extracción en segundo plano
+    startExtractorWorker();
     return dbInstance;
 }
 
