@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db.js';
 import { performSearch } from '@/app/api/search/route.js';
 import Fuse from 'fuse.js';
+import { runInPlaceDeduplication, runPacientesDeduplication } from '@/lib/dedup.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,7 +87,7 @@ let crossMatchJobState = {
     completedAt: null,
 };
 
-const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+const ONE_HOUR_MS = 1 * 60 * 60 * 1000;
 let schedulerStarted = false;
 
 async function runCrossMatch() {
@@ -96,6 +97,14 @@ async function runCrossMatch() {
     }
 
     console.log('[CrossMatch] Starting cross-match sync...');
+    
+    try {
+        runPacientesDeduplication(db);
+        runInPlaceDeduplication(db);
+    } catch(e) {
+        console.error('[CrossMatch] Deduplication error before sync:', e);
+    }
+
     const pacientes = db.prepare("SELECT * FROM pacientes WHERE estatus = 'Válido' OR estatus IS NULL").all();
     
     crossMatchJobState = {
@@ -253,12 +262,12 @@ function startScheduler() {
     if (schedulerStarted) return;
     schedulerStarted = true;
 
-    console.log('[CrossMatch] Scheduler initialized. Will run every 3 hours.');
+    console.log('[CrossMatch] Scheduler initialized. Will run every 1 hour.');
 
-    // Check if we should run immediately (first time or last run > 3 hours ago)
+    // Check if we should run immediately (first time or last run > 1 hour ago)
     const statusRow = db.prepare("SELECT * FROM cross_match_status WHERE id = 1").get();
     const shouldRunNow = !statusRow || !statusRow.completed_at || 
-        (Date.now() - new Date(statusRow.completed_at).getTime() > THREE_HOURS_MS);
+        (Date.now() - new Date(statusRow.completed_at).getTime() > ONE_HOUR_MS);
 
     if (shouldRunNow) {
         console.log('[CrossMatch] No recent sync found. Starting initial cross-match...');
@@ -271,14 +280,14 @@ function startScheduler() {
         }, 10000);
     }
 
-    // Schedule every 3 hours
+    // Schedule every 1 hour
     setInterval(() => {
         console.log('[CrossMatch] Scheduled sync triggered.');
         runCrossMatch().catch(e => {
             console.error('[CrossMatch] Scheduled run error:', e);
             crossMatchJobState.status = 'idle';
         });
-    }, THREE_HOURS_MS);
+    }, ONE_HOUR_MS);
 }
 
 // Start scheduler when this module loads
