@@ -44,6 +44,39 @@ function MultiSourceLoader() {
   );
 }
 
+const AnimatedNumber = ({ value }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let start = displayValue;
+    const end = value;
+    if (start === end) return;
+
+    const duration = 1500; // 1.5 seconds animation
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+      
+      const easeOut = 1 - Math.pow(1 - progress, 4);
+      const currentVal = Math.floor(start + (end - start) * easeOut);
+      
+      setDisplayValue(currentVal);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(end);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [value]);
+
+  return <>{displayValue.toLocaleString()}</>;
+};
+
 export default function Home() {
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -664,7 +697,9 @@ export default function Home() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Personas Leídas</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">{totalPersonasLeidas.toLocaleString()}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+              <AnimatedNumber value={totalPersonasLeidas} />
+            </p>
           </div>
 
           <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
@@ -672,7 +707,9 @@ export default function Home() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             </div>
             <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Personas Registradas</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{totalPersonasRegistradas.toLocaleString()}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              <AnimatedNumber value={totalPersonasRegistradas} />
+            </p>
           </div>
 
           <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
@@ -680,7 +717,9 @@ export default function Home() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
             </div>
             <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Centros Médicos</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{totalCentros.toLocaleString()}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <AnimatedNumber value={totalCentros} />
+            </p>
           </div>
 
           <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-neutral-800/60 transition-colors">
@@ -688,7 +727,9 @@ export default function Home() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             </div>
             <p className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Cruces Inteligentes</p>
-            <p className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">{(dashboardStats.crossesFound || 0).toLocaleString()}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+              <AnimatedNumber value={dashboardStats.crossesFound || 0} />
+            </p>
           </div>
         </div>
 
