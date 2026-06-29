@@ -26,6 +26,7 @@ export async function GET() {
         `).all();
         
         const results = [];
+        const missingCentros = [];
         
         for (const row of rows) {
             const centro = row.centro;
@@ -33,44 +34,21 @@ export async function GET() {
             // Check cache
             const cache = db.prepare('SELECT * FROM hospital_locations WHERE centro = ?').get(centro);
             if (cache && (cache.lat !== null || cache.last_checked)) {
-                // If we have valid coords or we already checked and found nothing, use cache
+                // If we have valid coords
                 if (cache.lat !== null) {
                     results.push({ centro, count: row.count, lat: cache.lat, lon: cache.lon });
                 }
-                continue;
+            } else {
+                // We need to geocode this location
+                missingCentros.push(centro);
             }
-            
-            // Geocode
-            // Add 'Venezuela' to help nominatim find it specifically in the country
-            const query = encodeURIComponent(`${centro}, Venezuela`);
-            const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
-            
-            try {
-                // Nominatim strictly requires a custom user agent for free usage
-                const res = await fetch(url, { headers: { 'User-Agent': 'UnificarDataApp/1.0 (contacto@hospitalesenvenezuela.com)' }});
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    
-                    if (data && data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        
-                        db.prepare('INSERT OR REPLACE INTO hospital_locations (centro, lat, lon) VALUES (?, ?, ?)').run(centro, lat, lon);
-                        results.push({ centro, count: row.count, lat, lon });
-                    } else {
-                        // Not found, cache as null so we don't query again
-                        db.prepare('INSERT OR REPLACE INTO hospital_locations (centro, lat, lon) VALUES (?, NULL, NULL)').run(centro);
-                    }
-                    
-                    // Be polite to Nominatim rate limits (max 1 req/sec)
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                } else {
-                    console.error("Nominatim API Error:", res.status);
-                }
-            } catch (err) {
-                console.error("Geocoding error for", centro, err);
-            }
+        }
+        
+        // Ejecutar geocodificación en background sin bloquear la respuesta de la API
+        if (missingCentros.length > 0) {
+            // Tomamos un máximo de 10 por llamada para no colapsar la API y respetar los límites
+            const toProcess = missingCentros.slice(0, 10);
+            geocodeAsync(toProcess).catch(err => console.error("Async geocode error:", err));
         }
         
         return NextResponse.json(results);
@@ -78,4 +56,32 @@ export async function GET() {
         console.error("Locations API Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
+}
+
+async function geocodeAsync(centros) {
+    console.log(`[Geocoding] Procesando en background ${centros.length} centros...`);
+    for (const centro of centros) {
+        const query = encodeURIComponent(`${centro}, Venezuela`);
+        const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
+        
+        try {
+            const res = await fetch(url, { headers: { 'User-Agent': 'UnificarDataApp/1.0 (contacto@hospitalesenvenezuela.com)' }});
+            
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    db.prepare('INSERT OR REPLACE INTO hospital_locations (centro, lat, lon) VALUES (?, ?, ?)').run(centro, lat, lon);
+                } else {
+                    db.prepare('INSERT OR REPLACE INTO hospital_locations (centro, lat, lon) VALUES (?, NULL, NULL)').run(centro);
+                }
+            }
+            // Delay 1.5s to respect Nominatim limits
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        } catch (err) {
+            console.error("[Geocoding] Failed for", centro, err.message);
+        }
+    }
+    console.log(`[Geocoding] Completado.`);
 }
