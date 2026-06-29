@@ -14,6 +14,10 @@ export default function AdminDashboard() {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadMsg, setUploadMsg] = useState('');
 
+    // CrossMatch stats
+    const [cmStats, setCmStats] = useState({ status: 'idle', progress: 0, total: 0, matchesFound: 0, percentage: 0 });
+    const [syncMsg, setSyncMsg] = useState('');
+
     // Función de Login simulada + Set de estado
     const handleLogin = (e) => {
         e.preventDefault();
@@ -51,6 +55,14 @@ export default function AdminDashboard() {
                 } else if (res.status === 401) {
                     setIsAuthenticated(false);
                 }
+
+                const resCm = await fetch('/api/crossmatch?mode=progress', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resCm.ok) {
+                    const dataCm = await resCm.json();
+                    setCmStats(dataCm);
+                }
             } catch (err) {
                 console.error("Error fetching stats", err);
             }
@@ -60,6 +72,24 @@ export default function AdminDashboard() {
         const interval = setInterval(fetchStats, 5000); // Refrescar cada 5 segundos
         return () => clearInterval(interval);
     }, [isAuthenticated]);
+
+    const handleForceSync = async () => {
+        try {
+            setSyncMsg('Iniciando...');
+            const token = sessionStorage.getItem('adminToken');
+            const res = await fetch('/api/crossmatch?force_sync=true', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success || data.error === 'Ya hay un cruce en ejecución') {
+                setSyncMsg(data.message || data.error);
+            } else {
+                setSyncMsg('Error al iniciar');
+            }
+        } catch(e) {
+            setSyncMsg('Error de conexión');
+        }
+    };
 
     const handleUpload = async (e) => {
         e.preventDefault();
@@ -200,6 +230,44 @@ export default function AdminDashboard() {
                     </form>
                 </div>
                 
+                <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 md:p-8 mt-8">
+                    <h2 className="text-2xl font-bold mb-4 text-white">Deduplicación y Cruce Inteligente</h2>
+                    <p className="text-neutral-400 mb-6">El sistema limpia los duplicados y busca coincidencias automáticamente cada hora. Si necesitas forzar una actualización inmediata, puedes hacerlo aquí.</p>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div className="bg-neutral-950 border border-neutral-800 p-4 rounded-2xl flex flex-col items-center">
+                            <span className="text-neutral-500 uppercase text-[10px] font-bold mb-1">Estado</span>
+                            <span className="text-xl font-bold text-white capitalize">{cmStats.status}</span>
+                        </div>
+                        <div className="bg-neutral-950 border border-neutral-800 p-4 rounded-2xl flex flex-col items-center">
+                            <span className="text-neutral-500 uppercase text-[10px] font-bold mb-1">Avance</span>
+                            <span className="text-xl font-bold text-blue-400">{cmStats.progress} / {cmStats.total}</span>
+                        </div>
+                        <div className="bg-neutral-950 border border-neutral-800 p-4 rounded-2xl flex flex-col items-center">
+                            <span className="text-neutral-500 uppercase text-[10px] font-bold mb-1">Progreso</span>
+                            <span className="text-xl font-bold text-white">
+                                {cmStats.status === 'running' && <span className="relative flex h-3 w-3 inline-block mr-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span></span>}
+                                {cmStats.percentage}%
+                            </span>
+                        </div>
+                        <div className="bg-neutral-950 border border-neutral-800 p-4 rounded-2xl flex flex-col items-center">
+                            <span className="text-neutral-500 uppercase text-[10px] font-bold mb-1">Encontrados</span>
+                            <span className="text-xl font-bold text-emerald-400">{cmStats.matchesFound}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <span className="text-emerald-400 font-medium">{syncMsg}</span>
+                        <button 
+                            onClick={handleForceSync}
+                            disabled={cmStats.status === 'running'}
+                            className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-bold py-3 px-8 rounded-xl transition-colors"
+                        >
+                            {cmStats.status === 'running' ? 'Procesando...' : 'Forzar Limpieza y Cruce'}
+                        </button>
+                    </div>
+                </div>
+
                 <div className="mt-8 text-center text-neutral-600 text-sm">
                     El worker se ejecuta automáticamente cada 2 minutos y procesa 3 términos a la vez para prevenir baneos.
                 </div>
