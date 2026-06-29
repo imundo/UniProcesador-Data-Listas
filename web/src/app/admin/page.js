@@ -17,6 +17,9 @@ export default function AdminDashboard() {
     // CrossMatch stats
     const [cmStats, setCmStats] = useState({ status: 'idle', progress: 0, total: 0, matchesFound: 0, percentage: 0 });
     const [syncMsg, setSyncMsg] = useState('');
+    
+    // CNE Stats
+    const [cneStats, setCneStats] = useState({ validados: 0, rechazados: 0 });
 
     // Función de Login simulada + Set de estado
     const handleLogin = (e) => {
@@ -62,6 +65,14 @@ export default function AdminDashboard() {
                 if (resCm.ok) {
                     const dataCm = await resCm.json();
                     setCmStats(dataCm);
+                }
+
+                const resCne = await fetch('/api/admin/validate-cne?run=false', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resCne.ok) {
+                    const dataCne = await resCne.json();
+                    setCneStats({ validados: dataCne.total_validados || 0, rechazados: dataCne.total_rechazados || 0 });
                 }
             } catch (err) {
                 console.error("Error fetching stats", err);
@@ -202,6 +213,17 @@ export default function AdminDashboard() {
                     <div className="bg-red-950/20 backdrop-blur-md border border-red-900/50 p-6 rounded-3xl flex flex-col items-center">
                         <span className="text-red-500 uppercase tracking-widest text-xs font-bold mb-2">Errores</span>
                         <span className="text-4xl font-black text-red-100">{stats.error}</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-12">
+                    <div className="bg-green-950/20 backdrop-blur-md border border-green-900/50 p-6 rounded-3xl flex flex-col items-center">
+                        <span className="text-green-500 uppercase tracking-widest text-xs font-bold mb-2">Validados por CNE</span>
+                        <span className="text-4xl font-black text-green-100">{cneStats.validados}</span>
+                    </div>
+                    <div className="bg-orange-950/20 backdrop-blur-md border border-orange-900/50 p-6 rounded-3xl flex flex-col items-center">
+                        <span className="text-orange-500 uppercase tracking-widest text-xs font-bold mb-2">Rechazados por CNE</span>
+                        <span className="text-4xl font-black text-orange-100">{cneStats.rechazados}</span>
                     </div>
                 </div>
 
