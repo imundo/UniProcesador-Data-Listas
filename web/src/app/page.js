@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from 'next/dynamic';
+import Fuse from 'fuse.js';
 
 const MapView = dynamic(() => import('@/components/MapView'), {
   ssr: false,
@@ -637,9 +638,12 @@ export default function Home() {
   };
 
   // Data Filtering
-  const localFiltered = stats?.nuevosPacientes?.filter(p =>
-    `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(localSearch.toLowerCase())
-  ) || [];
+  const localFiltered = useMemo(() => {
+    if (!stats?.nuevosPacientes) return [];
+    if (!localSearch.trim()) return stats.nuevosPacientes;
+    const fuse = new Fuse(stats.nuevosPacientes, { keys: ['nombre', 'apellido', 'cedula', 'centro'], threshold: 0.3 });
+    return fuse.search(localSearch).map(r => r.item);
+  }, [stats, localSearch]);
   const localCurrent = localFiltered.slice((localPage - 1) * itemsPerPage, localPage * itemsPerPage);
 
   const localDuplicatesFiltered = stats?.pacientesDuplicados?.filter(p =>
@@ -647,14 +651,20 @@ export default function Home() {
   ) || [];
   const localDuplicatesCurrent = localDuplicatesFiltered.slice((localDuplicatesPage - 1) * itemsPerPage, localDuplicatesPage * itemsPerPage);
 
-  const globalFiltered = globalPreview?.pacientes?.filter(p =>
-    `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(globalSearch.toLowerCase())
-  ) || [];
+  const globalFiltered = useMemo(() => {
+    if (!globalPreview?.pacientes) return [];
+    if (!globalSearch.trim()) return globalPreview.pacientes;
+    const fuse = new Fuse(globalPreview.pacientes, { keys: ['nombre', 'apellido', 'cedula', 'centro'], threshold: 0.3 });
+    return fuse.search(globalSearch).map(r => r.item);
+  }, [globalPreview, globalSearch]);
   const globalCurrent = globalFiltered.slice((globalPage - 1) * itemsPerPage, globalPage * itemsPerPage);
 
-  const batchFiltered = batchPreview?.nuevosPacientes?.filter(p =>
-    `${p.nombre} ${p.apellido} ${p.cedula} ${p.centro}`.toLowerCase().includes(batchSearch.toLowerCase())
-  ) || [];
+  const batchFiltered = useMemo(() => {
+    if (!batchPreview?.nuevosPacientes) return [];
+    if (!batchSearch.trim()) return batchPreview.nuevosPacientes;
+    const fuse = new Fuse(batchPreview.nuevosPacientes, { keys: ['nombre', 'apellido', 'cedula', 'centro'], threshold: 0.3 });
+    return fuse.search(batchSearch).map(r => r.item);
+  }, [batchPreview, batchSearch]);
   const batchCurrent = batchFiltered.slice((batchPage - 1) * itemsPerPage, batchPage * itemsPerPage);
 
   const historyCurrent = history.slice((historyPage - 1) * historyItemsPerPage, historyPage * historyItemsPerPage);
