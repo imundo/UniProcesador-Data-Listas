@@ -5,12 +5,23 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
+        // 1. Obtener conteo agrupado de ambas tablas (pacientes locales + externos)
         const rows = db.prepare(`
-            SELECT centro, COUNT(*) as count 
-            FROM pacientes 
-            WHERE centro IS NOT NULL AND centro != '' AND centro != 'N/D' 
-            GROUP BY centro 
-            HAVING COUNT(*) > 5 
+            SELECT centro, SUM(count) as count FROM (
+                SELECT centro, COUNT(*) as count 
+                FROM pacientes 
+                WHERE centro IS NOT NULL AND centro != '' AND centro != 'N/D' 
+                GROUP BY centro 
+                
+                UNION ALL
+                
+                SELECT centro, COUNT(*) as count 
+                FROM registros_externos 
+                WHERE centro IS NOT NULL AND centro != '' AND centro != 'N/D' 
+                GROUP BY centro
+            ) 
+            GROUP BY centro
+            HAVING count > 2 -- Solo mostrar si hay más de 2 para no llenar el mapa de ruido
             ORDER BY count DESC
         `).all();
         
