@@ -69,6 +69,14 @@ export async function GET(req) {
                 const cleanCedula = record.cedula.replace(/[^0-9]/g, '');
                 
                 if (cleanCedula.length < 5) continue; // Cédula inválida
+                
+                const numCedula = parseInt(cleanCedula, 10);
+                if (numCedula > 22000000) {
+                    // Dateas no tiene cédulas tan nuevas, lo marcamos como 4 (Pendiente/Ignorado) para que no bloquee la cola
+                    db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
+                    console.log(`[CNE Validation Dateas] ⏩ Omitido (> 22M): ${cleanCedula}`);
+                    continue;
+                }
 
                 try {
                     const url = `https://www.dateas.com/es/consulta_venezuela?name=&cedula=${cleanCedula}`;
