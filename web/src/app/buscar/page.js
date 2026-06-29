@@ -174,10 +174,22 @@ export default function BuscarPage() {
                     const ignoreKeys = ['id', 'created_at', 'updated_at', 'nombre', 'apellido', 'nombres', 'apellidos', 'cedula', 'ci', 'estado', 'status', 'centro', 'hospital', 'location', 'edad_sector', 'descripcion', 'tipo'];
                     if (ignoreKeys.includes(key.toLowerCase()) || !value || typeof value === 'object' || value.toString().trim() === '') return null;
                     
+                    const strValue = value.toString();
+                    const isImageUrl = strValue.match(/\.(jpeg|jpg|gif|png|webp|bmp)$/i) || strValue.includes('s3.') || key.toLowerCase().includes('foto');
+
+                    if (isImageUrl) {
+                      return (
+                        <div key={key} className="w-full sm:w-auto flex flex-col gap-1.5 p-2 bg-neutral-950/50 border border-neutral-800 rounded-lg">
+                          <span className="opacity-60 text-[10px] font-bold uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
+                          <img src={strValue} alt={key} className="max-h-40 max-w-full rounded-md object-contain border border-neutral-800/50" onError={(e) => { e.target.style.display = 'none'; }} />
+                        </div>
+                      );
+                    }
+
                     return (
                       <span key={key} className="inline-flex items-center bg-blue-950/20 text-blue-300 border border-blue-900/30 px-2 py-1 rounded text-[11px] font-medium tracking-wide">
                         <span className="opacity-70 mr-1 capitalize">{key.replace(/_/g, ' ')}:</span> 
-                        {value.toString()}
+                        {strValue}
                       </span>
                     );
                   })}

@@ -21,7 +21,8 @@ export default function AdminDashboard() {
     // CNE Stats
     const [cneStats, setCneStats] = useState({ validados: 0, rechazados: 0 });
     const [cneModalOpen, setCneModalOpen] = useState(false);
-    const [cneDetails, setCneDetails] = useState({ validados: [], rechazados: [] });
+    const [cneDetails, setCneDetails] = useState({ validados: [], rechazados: [], pagination: { page: 1, totalValidados: 0, totalRechazados: 0 } });
+    const [cnePage, setCnePage] = useState(1);
     const [cneValidating, setCneValidating] = useState(false);
     const [cneMsg, setCneMsg] = useState('');
 
@@ -172,20 +173,25 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleOpenCneModal = async () => {
-        setCneModalOpen(true);
+    const loadCnePage = async (pageToLoad) => {
         try {
             const token = sessionStorage.getItem('adminToken');
-            const res = await fetch('/api/admin/cne-details', {
+            const res = await fetch(`/api/admin/cne-details?page=${pageToLoad}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const data = await res.json();
                 setCneDetails(data);
+                setCnePage(pageToLoad);
             }
         } catch(e) {
             console.error(e);
         }
+    };
+
+    const handleOpenCneModal = async () => {
+        setCneModalOpen(true);
+        await loadCnePage(1);
     };
 
     if (!isAuthenticated) {
@@ -357,14 +363,15 @@ export default function AdminDashboard() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
                         <div className="p-6 border-b border-neutral-800 flex justify-between items-center bg-neutral-950">
-                            <h3 className="text-xl font-bold text-white">Detalles de Validación CNE (Últimos 50 de cada tabla)</h3>
+                            <h3 className="text-xl font-bold text-white">Detalles de Validación CNE (Página {cnePage})</h3>
                             <button onClick={() => setCneModalOpen(false)} className="text-neutral-400 hover:text-white">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
+                        
                         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-6 custom-scrollbar">
                             <div>
-                                <h4 className="text-lg font-bold text-green-400 mb-4 sticky top-0 bg-neutral-900 py-2 z-10 border-b border-neutral-800">✅ Validados</h4>
+                                <h4 className="text-lg font-bold text-green-400 mb-4 sticky top-0 bg-neutral-900 py-2 z-10 border-b border-neutral-800">✅ Validados ({cneDetails.pagination?.totalValidados || 0})</h4>
                                 <div className="flex flex-col gap-3">
                                     {cneDetails.validados.map((p, idx) => (
                                         <div key={idx} className="bg-neutral-950 p-4 border border-green-900/30 rounded-xl">
@@ -384,7 +391,7 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                             <div>
-                                <h4 className="text-lg font-bold text-orange-400 mb-4 sticky top-0 bg-neutral-900 py-2 z-10 border-b border-neutral-800">❌ Rechazados</h4>
+                                <h4 className="text-lg font-bold text-orange-400 mb-4 sticky top-0 bg-neutral-900 py-2 z-10 border-b border-neutral-800">❌ Rechazados ({cneDetails.pagination?.totalRechazados || 0})</h4>
                                 <div className="flex flex-col gap-3">
                                     {cneDetails.rechazados.map((p, idx) => (
                                         <div key={idx} className="bg-neutral-950 p-4 border border-orange-900/30 rounded-xl opacity-70">
@@ -396,6 +403,25 @@ export default function AdminDashboard() {
                                     {cneDetails.rechazados.length === 0 && <div className="text-neutral-500 text-center py-8">No hay registros</div>}
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Pagination Controls */}
+                        <div className="p-4 border-t border-neutral-800 bg-neutral-950 flex justify-between items-center">
+                            <button 
+                                onClick={() => loadCnePage(cnePage - 1)}
+                                disabled={cnePage <= 1}
+                                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white rounded-lg transition-colors text-sm font-bold"
+                            >
+                                ← Anterior
+                            </button>
+                            <span className="text-neutral-400 text-sm">Página {cnePage}</span>
+                            <button 
+                                onClick={() => loadCnePage(cnePage + 1)}
+                                disabled={cneDetails.validados.length < 50 && cneDetails.rechazados.length < 50}
+                                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white rounded-lg transition-colors text-sm font-bold"
+                            >
+                                Siguiente →
+                            </button>
                         </div>
                     </div>
                 </div>
