@@ -169,7 +169,8 @@ export async function GET(req) {
                                     console.log(`[CNE Validation PNP] ❌ Rechazado (No coincide): ${record.nombre} vs ${pnpFullName}`);
                                 }
                             } else {
-                                console.log(`[CNE Validation PNP] ⚠️ HTML inesperado para ${cleanCedula}`);
+                                console.log(`[CNE Validation PNP] ⚠️ HTML inesperado para ${cleanCedula}. Snippet: ${cleanHtml.substring(0, 150)}`);
+                                db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
                             }
                         }
                     } catch (err) {
