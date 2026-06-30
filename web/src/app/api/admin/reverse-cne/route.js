@@ -47,11 +47,12 @@ export async function GET(request) {
                     const cleanName = encodeURIComponent(`${record.nombre} ${record.apellido}`.trim());
                     
                     try {
-                        const url = `https://www.dateas.com/es/consulta_venezuela?name=${cleanName}&cedula=`;
+                        const targetUrl = encodeURIComponent(`https://www.dateas.com/es/consulta_venezuela?name=${cleanName}&cedula=`);
+                        const url = `https://api.allorigins.win/raw?url=${targetUrl}`;
+                        
                         const res = await fetch(url, {
                             headers: {
-                                'accept': 'text/html',
-                                'user-agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+                                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
                             }
                         });
 

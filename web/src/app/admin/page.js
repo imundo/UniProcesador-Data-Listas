@@ -308,6 +308,27 @@ export default function AdminDashboard() {
         processNextBatch();
     };
 
+    const handleResetOmitted = async () => {
+        if (!confirm('¿Deseas restaurar todas las cédulas omitidas (Cédulas > 22M u otras) para que se vuelvan a intentar validar?')) return;
+        
+        const token = sessionStorage.getItem('adminToken');
+        try {
+            const res = await fetch('/api/admin/reset-omitted', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                alert(data.message);
+            } else {
+                alert('Error al restaurar cédulas omitidas.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error de conexión.');
+        }
+    };
+
     const handleOpenHomonimos = async () => {
         setHomonimosModalOpen(true);
         const token = sessionStorage.getItem('adminToken');
@@ -422,6 +443,12 @@ export default function AdminDashboard() {
                         <h2 className="text-2xl font-bold text-white">Validación CNE (Dateas)</h2>
                         <div className="flex items-center gap-4">
                             <span className="text-emerald-400 font-medium text-sm">{cneMsg}</span>
+                            <button 
+                                onClick={handleResetOmitted}
+                                className="text-white font-bold py-2 px-4 rounded-xl transition-colors flex items-center bg-neutral-600 hover:bg-neutral-500 text-sm"
+                            >
+                                Reintentar Omitidos
+                            </button>
                             <button 
                                 onClick={handleRunCneValidation}
                                 className={`text-white font-bold py-2 px-6 rounded-xl transition-colors flex items-center ${cneValidating ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500'}`}
