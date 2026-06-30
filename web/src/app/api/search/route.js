@@ -439,26 +439,57 @@ async function searchLocalDb(term) {
         const tokens = normalizeText(term).split(/\s+/).filter(t => t.length > 0);
         if (tokens.length === 0) return [];
         
-        let query = "SELECT * FROM pacientes WHERE 1=1";
+        let queryPacientes = "SELECT * FROM pacientes WHERE 1=1";
+        let queryExternos = "SELECT * FROM registros_externos WHERE 1=1";
         const params = [];
         
         for (const t of tokens) {
-            query += " AND (nombre LIKE ? OR apellido LIKE ? OR cedula LIKE ?)";
+            // Si el token parece una cédula con prefijo (v, e, j, r) + números, extraemos solo los números
+            let cleanT = t;
+            const cedulaMatch = t.match(/^[vejr]-?(\d{5,10})$/i);
+            if (cedulaMatch) {
+                cleanT = cedulaMatch[1];
+            }
+
+            queryPacientes += " AND (nombre LIKE ? OR apellido LIKE ? OR cedula LIKE ?)";
+            queryExternos += " AND (nombre LIKE ? OR apellido LIKE ? OR cedula LIKE ?)";
+            
             const likeTerm = `%${t}%`;
-            params.push(likeTerm, likeTerm, likeTerm);
+            const likeCleanTerm = `%${cleanT}%`;
+            // Pasamos likeTerm para nombres, y likeCleanTerm para la cédula (por si buscaron v27027712)
+            params.push(likeTerm, likeTerm, likeCleanTerm);
         }
-        query += " LIMIT 200";
+        queryPacientes += " LIMIT 200";
+        queryExternos += " LIMIT 200";
         
-        const stmt = db.prepare(query);
-        const results = stmt.all(...params);
+        const stmtPacientes = db.prepare(queryPacientes);
+        const resultsPacientes = stmtPacientes.all(...params);
         
-        return results.map(p => ({
+        // Ejecutar los mismos parámetros para externos (duplicamos params ya que se usan 3 veces por query)
+        const stmtExternos = db.prepare(queryExternos);
+        const resultsExternos = stmtExternos.all(...params);
+        
+        const parsedPacientes = resultsPacientes.map(p => ({
             ...p,
-            estado: p.estatus === 'Incompleto' ? 'Incompleto' : '',
+            estado: p.estatus === 'Incompleto' ? 'Incompleto' : (p.estatus || ''),
             source: 'Base de Datos Local',
             sourceUrl: null,
             metadata: p.metadata ? (typeof p.metadata === 'string' ? JSON.parse(p.metadata) : p.metadata) : null
         }));
+
+        const parsedExternos = resultsExternos.map(e => ({
+            nombre: e.nombre || '',
+            apellido: e.apellido || '',
+            cedula: e.cedula || '',
+            centro: e.centro || '',
+            edad_sector: e.edad_sector || '',
+            estado: e.estado || '',
+            source: e.origen || 'Base de Datos Local (Buffer)',
+            sourceUrl: e.fuente_url || null,
+            metadata: e.metadata ? (typeof e.metadata === 'string' ? JSON.parse(e.metadata) : e.metadata) : null
+        }));
+
+        return [...parsedPacientes, ...parsedExternos];
     } catch (e) {
         console.error("Local DB search error:", e);
         return [];
