@@ -34,11 +34,15 @@ export async function syncRedAyuda() {
         try {
             payload = JSON.parse(jsonText);
         } catch (err) {
+            // Check if it's a Cloudflare challenge or HTML
+            if (jsonText.includes('Cloudflare') || jsonText.includes('HTTP ERROR 405') || jsonText.includes('<html')) {
+                 return { success: false, error: "RedAyuda ha bloqueado el acceso masivo a su base de datos por seguridad (Políticas de Cloudflare/Supabase activas)." };
+            }
             throw new Error("No se pudo parsear el JSON de RedAyuda. ¿Posible bloqueo de Cloudflare?");
         }
         
         if (!payload.ok || !payload.data) {
-            throw new Error("Formato de API inválido.");
+            return { success: false, error: "Formato de API inválido. Es posible que hayan cambiado su estructura." };
         }
         
         const data = payload.data;
