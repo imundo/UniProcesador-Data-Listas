@@ -87,43 +87,97 @@ export async function GET(req) {
                     }
 
                     try {
-                        const url = `https://www.dateas.com/es/consulta_venezuela?name=&cedula=${cleanCedula}`;
-                        const res = await fetch(url, {
+                        const baseUrl = 'https://www.sistemaspnp.com/cedula/';
+                        const postUrl = 'https://www.sistemaspnp.com/cedula/resultado.php';
+
+                        // 1. Fase GET (obtener captcha y cookies)
+                        const getRes = await fetch(baseUrl, {
                             headers: {
                                 'accept': 'text/html',
-                                'user-agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+                                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
                             }
                         });
 
-                        if (res.ok) {
-                            const html = await res.text();
-                            const cleanHtml = html.replace(/\s+/g, ' ');
-                            const match = cleanHtml.match(/<td data-label="Nombre">\s*<a[^>]*>([^<]+)<\/a>/i);
-                            
-                            if (match && match[1]) {
-                                const vFullName = match[1].trim();
-                                const matchLevel = getMatchLevel(record.nombre, record.apellido, vFullName);
+                        if (!getRes.ok) {
+                            if (getRes.status === 429) {
+                                console.log("[CNE Validation PNP] Límite de peticiones excedido (429).");
+                                return NextResponse.json({
+                                    status: 'rate_limit',
+                                    message: 'Límite excedido. El frontend debe pausar un momento.'
+                                });
+                            }
+                            throw new Error(`GET failed with status ${getRes.status}`);
+                        }
+
+                        const getHtml = await getRes.text();
+                        const cookies = getRes.headers.get('set-cookie') || '';
+                        
+                        // 2. Fase Resolución de CAPTCHA
+                        const captchaMatch = getHtml.match(/CAPTCHA: ¿Cuánto es (\d+) \+ (\d+)\?/);
+                        if (!captchaMatch) {
+                            throw new Error("No se encontró el CAPTCHA en la página.");
+                        }
+                        const answer = parseInt(captchaMatch[1], 10) + parseInt(captchaMatch[2], 10);
+
+                        // 3. Fase POST
+                        const formData = new URLSearchParams();
+                        formData.append('nacionalidad', 'V');
+                        formData.append('cedula', cleanCedula);
+                        formData.append('captcha', answer);
+                        formData.append('jeje', '');
+
+                        const postRes = await fetch(postUrl, {
+                            method: 'POST',
+                            headers: {
+                                'accept': 'text/html',
+                                'content-type': 'application/x-www-form-urlencoded',
+                                'cookie': cookies,
+                                'referer': baseUrl,
+                                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+                            },
+                            body: formData.toString()
+                        });
+
+                        if (!postRes.ok) {
+                            throw new Error(`POST failed with status ${postRes.status}`);
+                        }
+
+                        const postHtml = await postRes.text();
+                        const cleanHtml = postHtml.replace(/\s+/g, ' ');
+
+                        // 4. Fase Extracción
+                        if (cleanHtml.includes('RECORD_NOT_FOUND')) {
+                            db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
+                            console.log(`[CNE Validation PNP] ❌ No se encontró la cédula ${cleanCedula}`);
+                        } else {
+                            // Extraer Nombres, Primer Apellido, Segundo Apellido
+                            const matchNombres = cleanHtml.match(/<strong>Nombres:<\/strong>\s*([^<]+)/i);
+                            const matchApellido1 = cleanHtml.match(/<strong>Primer Apellido:<\/strong>\s*([^<]+)/i);
+                            const matchApellido2 = cleanHtml.match(/<strong>Segundo Apellido:<\/strong>\s*([^<]+)/i);
+
+                            if (matchNombres) {
+                                const nombres = matchNombres[1].trim();
+                                const ap1 = matchApellido1 ? matchApellido1[1].trim() : '';
+                                const ap2 = matchApellido2 ? matchApellido2[1].trim() : '';
+                                
+                                const pnpFullName = `${nombres} ${ap1} ${ap2}`.replace(/\s+/g, ' ').trim();
+                                
+                                const matchLevel = getMatchLevel(record.nombre, record.apellido, pnpFullName);
                                 
                                 if (matchLevel === 1 || matchLevel === 2) {
                                     db.prepare(`UPDATE ${record.table} SET cne_validado = ? WHERE id = ?`).run(matchLevel, record.id);
-                                    console.log(`[CNE Validation Dateas] ${matchLevel === 1 ? '✅ Exacto' : '⚠️ Parcial'} (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
+                                    console.log(`[CNE Validation PNP] ${matchLevel === 1 ? '✅ Exacto' : '⚠️ Parcial'} (${record.table}): ${record.nombre} ${record.apellido} (${cleanCedula})`);
                                 } else {
                                     db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
-                                    console.log(`[CNE Validation Dateas] ❌ Rechazado (No coincide): ${record.nombre} vs ${vFullName}`);
+                                    console.log(`[CNE Validation PNP] ❌ Rechazado (No coincide): ${record.nombre} vs ${pnpFullName}`);
                                 }
                             } else {
-                                db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
-                                console.log(`[CNE Validation Dateas] ❌ No se encontró la cédula ${cleanCedula} en Dateas`);
+                                // Caso donde la página cargó pero no encontró el tag exacto (ej. error 500 oculto)
+                                console.log(`[CNE Validation PNP] ⚠️ HTML inesperado para ${cleanCedula}`);
                             }
-                        } else if (res.status === 429) {
-                            console.log("[CNE Validation Dateas] Límite de peticiones excedido (429).");
-                            return NextResponse.json({
-                                status: 'rate_limit',
-                                message: 'Límite excedido. El frontend debe pausar un momento.'
-                            });
                         }
                     } catch (err) {
-                        console.error("[CNE Validation Dateas] Error en petición:", err.message);
+                        console.error("[CNE Validation PNP] Error en petición:", err.message);
                     }
 
                     // Pausa de 1.5s entre peticiones del mismo lote
