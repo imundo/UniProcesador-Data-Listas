@@ -26,6 +26,14 @@ export default function AdminDashboard() {
     const [cneValidating, setCneValidating] = useState(false);
     const [cneMsg, setCneMsg] = useState('');
     const cneLoopRef = useRef(false);
+    
+    // Reverse CNE Stats
+    const [revCneStats, setRevCneStats] = useState({ total_procesados: 0, total_resueltos: 0, total_homonimos: 0 });
+    const [revCneValidating, setRevCneValidating] = useState(false);
+    const [revCneMsg, setRevCneMsg] = useState('');
+    const revCneLoopRef = useRef(false);
+    const [homonimosModalOpen, setHomonimosModalOpen] = useState(false);
+    const [homonimosData, setHomonimosData] = useState([]);
 
     // Función de Login simulada + Set de estado
     const handleLogin = (e) => {
@@ -79,6 +87,17 @@ export default function AdminDashboard() {
                 if (resCne.ok) {
                     const dataCne = await resCne.json();
                     setCneStats({ validados: dataCne.total_validados || 0, rechazados: dataCne.total_rechazados || 0, procesados: dataCne.total_procesados || 0 });
+                }
+                const resRevCne = await fetch('/api/admin/reverse-cne?run=false', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resRevCne.ok) {
+                    const dataRevCne = await resRevCne.json();
+                    setRevCneStats({ 
+                        total_procesados: dataRevCne.total_procesados || 0, 
+                        total_resueltos: dataRevCne.total_resueltos || 0, 
+                        total_homonimos: dataRevCne.total_homonimos || 0 
+                    });
                 }
             } catch (err) {
                 console.error("Error fetching stats", err);
@@ -333,6 +352,40 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
+                <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 md:p-8 mb-12">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-white">Búsqueda Inversa CNE (Nombre → Cédula)</h2>
+                        <div className="flex items-center gap-4">
+                            <span className="text-emerald-400 font-medium text-sm">{revCneMsg}</span>
+                            <button 
+                                onClick={handleRunRevCneValidation}
+                                className={`text-white font-bold py-2 px-6 rounded-xl transition-colors flex items-center ${revCneValidating ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600 hover:bg-purple-500'}`}
+                            >
+                                {revCneValidating ? 'Detener Búsqueda' : 'Ejecutar Búsqueda Inversa'}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-purple-950/20 backdrop-blur-md border border-purple-900/50 p-6 rounded-2xl flex flex-col items-center">
+                            <span className="text-purple-500 uppercase tracking-widest text-xs font-bold mb-2">Total Procesados</span>
+                            <span className="text-4xl font-black text-purple-100">{revCneStats.total_procesados || 0}</span>
+                        </div>
+                        <div className="bg-emerald-950/20 backdrop-blur-md border border-emerald-900/50 p-6 rounded-2xl flex flex-col items-center">
+                            <span className="text-emerald-500 uppercase tracking-widest text-xs font-bold mb-2">Resueltos Exactos</span>
+                            <span className="text-4xl font-black text-emerald-100">{revCneStats.total_resueltos || 0}</span>
+                        </div>
+                        <div 
+                            className="bg-yellow-950/20 hover:bg-yellow-950/40 transition-colors backdrop-blur-md border border-yellow-900/50 p-6 rounded-2xl flex flex-col items-center relative group cursor-pointer"
+                            onClick={handleOpenHomonimos}
+                        >
+                            <span className="text-yellow-500 uppercase tracking-widest text-xs font-bold mb-2">Homónimos Pendientes</span>
+                            <span className="text-4xl font-black text-yellow-100">{revCneStats.total_homonimos || 0}</span>
+                            <span className="text-yellow-500/50 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click para resolver manualmente</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 md:p-8">
                     <h2 className="text-2xl font-bold mb-4 text-white">Inyectar Términos a la Cola</h2>
                     <p className="text-neutral-400 mb-6">Pega aquí una lista de nombres (separados por saltos de línea o comas), o directamente el contenido de tu archivo JSON de nombres.</p>
@@ -466,6 +519,72 @@ export default function AdminDashboard() {
                                 Siguiente →
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Modal de Homónimos */}
+            {homonimosModalOpen && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl">
+                        <button 
+                            onClick={() => setHomonimosModalOpen(false)}
+                            className="absolute top-6 right-6 text-neutral-400 hover:text-white transition-colors"
+                        >
+                            ✕ Cerrar
+                        </button>
+                        
+                        <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
+                            <span className="bg-yellow-500/20 text-yellow-500 p-2 rounded-lg">⚠️</span>
+                            Resolución de Homónimos
+                        </h3>
+
+                        {homonimosData.length === 0 ? (
+                            <div className="text-center py-12 text-neutral-400">
+                                No hay homónimos pendientes por resolver.
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {homonimosData.map(h => (
+                                    <div key={`${h.table}-${h.id}`} className="bg-neutral-950 border border-neutral-800 rounded-xl p-4">
+                                        <div className="mb-3 flex justify-between items-start">
+                                            <div>
+                                                <h4 className="text-lg font-bold text-white">{h.nombre} {h.apellido}</h4>
+                                                <div className="text-sm text-neutral-400 mt-1">Centro: {h.centro || 'N/A'} <span className="mx-2">|</span> Origen: {h.table === 'pacientes' ? 'Local' : 'Externo'}</div>
+                                            </div>
+                                            <span className="bg-yellow-900/30 text-yellow-500 text-xs px-2 py-1 rounded-full border border-yellow-900/50">
+                                                {h.opciones.length} opciones
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                                            {h.opciones.map((op, idx) => (
+                                                <div 
+                                                    key={idx} 
+                                                    className="bg-neutral-900 border border-neutral-800 hover:border-blue-500/50 hover:bg-blue-950/20 transition-all rounded-lg p-3 cursor-pointer group flex items-center justify-between"
+                                                    onClick={() => handleResolveHomonimo(h.id, h.table, op.cedula)}
+                                                >
+                                                    <div>
+                                                        <div className="text-white font-medium">{op.nombre}</div>
+                                                        <div className="text-blue-400 font-mono text-sm mt-1">{op.cedula}</div>
+                                                    </div>
+                                                    <div className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        Asignar →
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="mt-4 flex justify-end">
+                                             <button 
+                                                onClick={() => handleResolveHomonimo(h.id, h.table, '')} // Asignar vacío si ninguna cuadra, para pasarlo a fallido/not found? Mejor lo dejamos así por ahora, que elija uno o lo ignore.
+                                                className="text-neutral-500 hover:text-red-400 text-xs transition-colors"
+                                             >
+                                                Ninguno coincide (Ignorar)
+                                             </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
