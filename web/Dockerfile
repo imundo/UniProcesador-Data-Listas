@@ -1,13 +1,17 @@
 FROM node:20-slim
 
-# Instalar ffmpeg y herramientas de compilación nativas para better-sqlite3
-RUN apt-get update && apt-get install -y ffmpeg python3 make g++ && rm -rf /var/lib/apt/lists/*
+# Instalar ffmpeg, chromium y herramientas de compilación nativas
+RUN apt-get update && apt-get install -y ffmpeg python3 make g++ chromium && rm -rf /var/lib/apt/lists/*
 
 # Configurar directorio de trabajo
 WORKDIR /app
 
 # Copiar dependencias
 COPY package*.json ./
+
+# Omitir descarga de chromium de puppeteer (usaremos el nativo instalado arriba)
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Instalar usando npm install (evita el error de npm ci de desincronización)
 RUN npm install
