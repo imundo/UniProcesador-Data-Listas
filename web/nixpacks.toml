@@ -1,0 +1,10 @@
+[providers]
+  node = {}
+
+[phases.setup]
+  nixPkgs = ["...", "unzip", "chromium"]
+
+[variables]
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+  PUPPETEER_SKIP_DOWNLOAD = "true"
+  PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium"
