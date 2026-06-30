@@ -4,6 +4,14 @@ import { runCrossMatch } from '@/app/api/crossmatch/route';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
+    return handleSync();
+}
+
+export async function GET(req) {
+    return handleSync();
+}
+
+async function handleSync() {
     try {
         // 1. Ejecutar el scraper de RedAyuda (que extrae data de /api/data)
         const syncResult = await syncRedAyuda();
