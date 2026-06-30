@@ -18,6 +18,10 @@ export default function AdminDashboard() {
     const [cmStats, setCmStats] = useState({ status: 'idle', progress: 0, total: 0, matchesFound: 0, percentage: 0 });
     const [syncMsg, setSyncMsg] = useState('');
     
+    // RedAyuda Sync Stats
+    const [redAyudaSyncing, setRedAyudaSyncing] = useState(false);
+    const [redAyudaMsg, setRedAyudaMsg] = useState('');
+    
     // CNE Stats
     const [cneStats, setCneStats] = useState({ validados: 0, rechazados: 0, procesados: 0 });
     const [cneModalOpen, setCneModalOpen] = useState(false);
@@ -124,6 +128,28 @@ export default function AdminDashboard() {
             }
         } catch(e) {
             setSyncMsg('Error de conexión');
+        }
+    };
+
+    const handleRedAyudaSync = async () => {
+        try {
+            setRedAyudaSyncing(true);
+            setRedAyudaMsg('Extrayendo datos (Puppeteer Stealth)...');
+            const token = sessionStorage.getItem('adminToken');
+            const res = await fetch('/api/admin/sync-redayuda', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setRedAyudaMsg(`✅ Éxito! Insertados: ${data.sync?.inserted}, Actualizados: ${data.sync?.updated}`);
+            } else {
+                setRedAyudaMsg('❌ Error: ' + (data.error || 'Desconocido'));
+            }
+        } catch(e) {
+            setRedAyudaMsg('❌ Error de conexión');
+        } finally {
+            setRedAyudaSyncing(false);
         }
     };
 
@@ -571,6 +597,33 @@ export default function AdminDashboard() {
                         >
                             {cmStats.status === 'running' ? 'Procesando...' : 'Forzar Limpieza y Cruce'}
                         </button>
+                    </div>
+                </div>
+
+                <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 md:p-8 mt-8">
+                    <h2 className="text-2xl font-bold mb-4 text-white">Sincronización de Orígenes Externos</h2>
+                    <p className="text-neutral-400 mb-6">Extrae los datos más recientes de plataformas aliadas mediante web scraping indetectable.</p>
+                    
+                    <div className="flex flex-col md:flex-row items-center justify-between bg-neutral-950 p-4 border border-neutral-800 rounded-2xl">
+                        <div className="mb-4 md:mb-0">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+                                RedAyudaVenezuela.com
+                            </h3>
+                            <p className="text-neutral-500 text-sm mt-1">Descarga toda la base de datos pública y la unifica localmente.</p>
+                        </div>
+                        <div className="flex items-center gap-4 flex-col md:flex-row w-full md:w-auto">
+                            <span className={`font-medium text-sm text-center ${redAyudaMsg.includes('Error') ? 'text-red-400' : 'text-emerald-400'}`}>
+                                {redAyudaMsg}
+                            </span>
+                            <button 
+                                onClick={handleRedAyudaSync}
+                                disabled={redAyudaSyncing}
+                                className="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-900/50 hover:border-red-500/50 hover:text-white disabled:opacity-50 font-bold py-3 px-8 rounded-xl transition-colors w-full md:w-auto"
+                            >
+                                {redAyudaSyncing ? 'Extrayendo...' : 'Sincronizar Ahora'}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
