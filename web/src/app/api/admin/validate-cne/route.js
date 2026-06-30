@@ -169,8 +169,38 @@ export async function GET(req) {
                                     console.log(`[CNE Validation PNP] ❌ Rechazado (No coincide): ${record.nombre} vs ${pnpFullName}`);
                                 }
                             } else {
-                                console.log(`[CNE Validation PNP] ⚠️ HTML inesperado para ${cleanCedula}. Snippet: ${cleanHtml.substring(0, 150)}`);
-                                db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
+                                console.log(`[CNE Validation] PNP falló para ${cleanCedula}, intentando Dateas Proxy...`);
+                                
+                                const targetUrl = encodeURIComponent(`https://www.dateas.com/es/consulta_venezuela?name=&cedula=${cleanCedula}`);
+                                const url = `https://api.allorigins.win/raw?url=${targetUrl}`;
+                                
+                                const dateasRes = await fetch(url, {
+                                    headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+                                });
+                                
+                                if (dateasRes.ok) {
+                                    const dateasHtml = await dateasRes.text();
+                                    const cleanDateasHtml = dateasHtml.replace(/\s+/g, ' ');
+                                    const matches = [...cleanDateasHtml.matchAll(/<td data-label="Nombre">\s*<a[^>]*>([^<]+)<\/a>\s*<\/td>\s*<td data-label="Cédula">\s*<a[^>]*>([^<]+)<\/a>\s*<\/td>/gi)];
+                                    
+                                    if (matches.length > 0) {
+                                        const dateasName = matches[0][1].trim();
+                                        const matchLevel = getMatchLevel(record.nombre, record.apellido, dateasName);
+                                        if (matchLevel === 1 || matchLevel === 2) {
+                                            db.prepare(`UPDATE ${record.table} SET cne_validado = ? WHERE id = ?`).run(matchLevel, record.id);
+                                            console.log(`[CNE Validation] ${matchLevel === 1 ? '✅ Exacto' : '⚠️ Parcial'} (Dateas Fallback): ${record.nombre} ${record.apellido} (${cleanCedula})`);
+                                        } else {
+                                            db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
+                                            console.log(`[CNE Validation] ❌ Rechazado (Dateas Fallback): ${record.nombre} vs ${dateasName}`);
+                                        }
+                                    } else {
+                                        db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
+                                        console.log(`[CNE Validation] ❌ No encontrado (Dateas Fallback) ${cleanCedula}`);
+                                    }
+                                } else {
+                                    console.log(`[CNE Validation] ⚠️ Error en Dateas Fallback (${dateasRes.status}) para ${cleanCedula}`);
+                                    db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
+                                }
                             }
                         }
                     } catch (err) {
