@@ -68,25 +68,22 @@ export async function GET(req) {
                     });
                 }
 
-                let rateLimited = false;
-
-                const promises = allUnverified.map(async (record, index) => {
-                    // Escalonar peticiones (200ms de diferencia) para no golpear Dateas en el mismo milisegundo
-                    await new Promise(r => setTimeout(r, index * 200));
-
+                let processedCount = 0;
+                for (const record of allUnverified) {
+                    processedCount++;
                     const cleanCedula = record.cedula.replace(/[^0-9]/g, '');
                     
                     if (cleanCedula.length < 5) {
                         db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
                         console.log(`[CNE Validation Dateas] ⏩ Omitido (Cédula inválida): ${record.cedula}`);
-                        return;
+                        continue;
                     }
                     
                     const numCedula = parseInt(cleanCedula, 10);
                     if (numCedula > 22000000) {
                         db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
                         console.log(`[CNE Validation Dateas] ⏩ Omitido (> 22M): ${cleanCedula}`);
-                        return;
+                        continue;
                     }
 
                     try {
@@ -120,20 +117,19 @@ export async function GET(req) {
                             }
                         } else if (res.status === 429) {
                             console.log("[CNE Validation Dateas] Límite de peticiones excedido (429).");
-                            rateLimited = true;
+                            return NextResponse.json({
+                                status: 'rate_limit',
+                                message: 'Límite excedido. El frontend debe pausar un momento.'
+                            });
                         }
                     } catch (err) {
                         console.error("[CNE Validation Dateas] Error en petición:", err.message);
                     }
-                });
 
-                await Promise.allSettled(promises);
-
-                if (rateLimited) {
-                    return NextResponse.json({
-                        status: 'rate_limit',
-                        message: 'Límite excedido. El frontend debe pausar un momento.'
-                    });
+                    // Pausa de 1.5s entre peticiones del mismo lote
+                    if (processedCount < allUnverified.length) {
+                        await new Promise(r => setTimeout(r, 1500));
+                    }
                 }
                 
                 return NextResponse.json({

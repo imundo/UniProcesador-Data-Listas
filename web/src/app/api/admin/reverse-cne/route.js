@@ -40,11 +40,10 @@ export async function GET(request) {
                     });
                 }
 
-                let rateLimited = false;
+                let processedCount = 0;
 
-                const promises = allUnverified.map(async (record, index) => {
-                    await new Promise(r => setTimeout(r, index * 200));
-
+                for (const record of allUnverified) {
+                    processedCount++;
                     const cleanName = encodeURIComponent(`${record.nombre} ${record.apellido}`.trim());
                     
                     try {
@@ -91,20 +90,18 @@ export async function GET(request) {
                             }
                         } else if (res.status === 429) {
                             console.log("[Reverse CNE] Límite de peticiones excedido (429).");
-                            rateLimited = true;
+                            return NextResponse.json({
+                                status: 'rate_limit',
+                                message: 'Límite excedido. El frontend debe pausar un momento.'
+                            });
                         }
                     } catch (err) {
                         console.error("[Reverse CNE] Error en petición:", err.message);
                     }
-                });
 
-                await Promise.allSettled(promises);
-
-                if (rateLimited) {
-                    return NextResponse.json({
-                        status: 'rate_limit',
-                        message: 'Límite excedido. El frontend debe pausar un momento.'
-                    });
+                    if (processedCount < allUnverified.length) {
+                        await new Promise(r => setTimeout(r, 1500));
+                    }
                 }
                 
                 return NextResponse.json({
