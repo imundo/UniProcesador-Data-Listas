@@ -169,7 +169,10 @@ export async function GET(req) {
                                     console.log(`[CNE Validation PNP] ❌ Rechazado (No coincide): ${record.nombre} vs ${pnpFullName}`);
                                 }
                             } else {
-                                console.log(`[CNE Validation] PNP falló para ${cleanCedula}, intentando Dateas Proxy...`);
+                                const alertMatch = cleanHtml.match(/<div class='alert[^>]*>(.*?)<\/div>/i);
+                                const errorSnippet = alertMatch ? alertMatch[1] : cleanHtml.substring(1000, 1200);
+                                console.log(`[CNE Validation] PNP falló para ${cleanCedula}. Razón: ${errorSnippet}`);
+                                console.log(`[CNE Validation] Intentando Dateas Proxy...`);
                                 
                                 const targetUrl = encodeURIComponent(`https://www.dateas.com/es/consulta_venezuela?name=&cedula=${cleanCedula}`);
                                 const url = `https://api.allorigins.win/raw?url=${targetUrl}`;

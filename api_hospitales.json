@@ -1,0 +1,6 @@
+[
+  {
+    "url": "https://redayudavenezuela.com/api/data",
+    "text": "{\"ok\":true,\"data\":[{\"id\":\"fa3e94cd-2be1-4285-afd4-58a992d4b336\",\"kind\":\"hospital\",\"category\":\"ingresado\",\"title\":\"MarabIto Espinia Joseani\",\"description\":\"32 años\",\"city\":null,\"state\":null,\"area\":null,\"lat\":null,\"lng\":null,\"contact\":null,\"status\":\"activo\",\"meta\":{\"fuente\":\"@JessicaAmesti\"},\"created_at\":\"2026-06-29T23:55:30.485598+00:00\",\"photo_url\":null,\"source\":\"Hoja maestra hospitales (Google Sheets)\",\"ext_id\":\"hospsheet-ff295b7709dbeec376cfed87d5383574\",\"photos\":[]},{\"id\":\"50ea2e6c-a637-47df-9418-579428335b99\",\"kind\":\"hospital\",\"category\":\"ingresado\",\"title\":\"Abello Wilmani\",\"description\":\"REVISAR marca fallecido · 36 años\",\"city\":null,\"state\":null,\"area\":null,\"lat\":null,\"lng\":null,\"contact\":null,\"status\":\"activo\",\"meta\":{\"fuente\":\"@JessicaAmesti\"},\"created_at\":\"2026-06-29T23:55:30.485598+00:00\",\"photo_url\":null,\"source\":\"Hoja maestra hospitales (Google Sheets)\",\"ext_id\":\"hospsheet-76d39a94cdc6fdd2195616bbc28511dc\",\"photos\":[]},{\"id\":\"467fa698-d8ea-4a3f-a261-7b462a8b58c9\",\"kind\":\"ho"
+  }
+]

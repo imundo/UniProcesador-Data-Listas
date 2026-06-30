@@ -91,6 +91,7 @@ function getDb() {
         estado TEXT,
         origen TEXT,
         fuente_url TEXT,
+        metadata TEXT,
         creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(nombre, apellido, cedula, origen)
       );
@@ -139,7 +140,13 @@ function getDb() {
         if (!hasOrigenNombre) {
             db.exec("ALTER TABLE historial_estados ADD COLUMN origen_nombre TEXT");
             db.exec("ALTER TABLE historial_estados ADD COLUMN origen_url TEXT");
+        }
+        const regExtInfo = db.pragma("table_info(registros_externos)");
+        if (!regExtInfo.some(col => col.name === 'metadata')) {
+            db.exec("ALTER TABLE registros_externos ADD COLUMN metadata TEXT");
+        }
             
+        if (!hasOrigenNombre) {
             // Recrear triggers
             db.exec("DROP TRIGGER IF EXISTS tr_registros_externos_estado");
             db.exec("DROP TRIGGER IF EXISTS tr_pacientes_estado");

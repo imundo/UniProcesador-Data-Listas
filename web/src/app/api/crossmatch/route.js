@@ -105,7 +105,7 @@ let crossMatchJobState = {
 const ONE_HOUR_MS = 1 * 60 * 60 * 1000;
 let schedulerStarted = false;
 
-async function runCrossMatch() {
+export async function runCrossMatch() {
     if (crossMatchJobState.status === 'running') {
         console.log('[CrossMatch] Already running, skipping...');
         return;

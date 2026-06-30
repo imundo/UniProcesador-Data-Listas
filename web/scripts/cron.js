@@ -17,4 +17,27 @@ cron.schedule('0 3 * * *', () => {
     });
 });
 
-console.log("[CRON] Planificador inicializado correctamente. Sincronización de registros externos configurada a las 3:00 AM.");
+// Tarea 2: Sincronizar RedAyudaVenezuela cada 4 horas
+cron.schedule('0 */4 * * *', () => {
+    console.log("[CRON] Ejecutando sincronización de RedAyudaVenezuela...");
+    const http = require('http');
+    
+    // Llamamos al localhost ya que este script corre junto a Next.js (npm run dev/start)
+    const req = http.request({
+        hostname: 'localhost',
+        port: process.env.PORT || 8080,
+        path: '/api/admin/sync-redayuda',
+        method: 'POST'
+    }, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => console.log("[CRON] RedAyuda sincronizado exitosamente."));
+    });
+    
+    req.on('error', (err) => {
+        console.error("[CRON] Error sincronizando RedAyuda:", err.message);
+    });
+    req.end();
+});
+
+console.log("[CRON] Planificador inicializado correctamente. Tareas de RedAyuda configuradas.");
