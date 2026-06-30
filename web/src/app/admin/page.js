@@ -247,6 +247,104 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleRunRevCneValidation = async () => {
+        if (revCneValidating) {
+            revCneLoopRef.current = false;
+            setRevCneValidating(false);
+            setRevCneMsg('Validación inversa detenida.');
+            return;
+        }
+
+        revCneLoopRef.current = true;
+        setRevCneValidating(true);
+        setRevCneMsg('Ejecutando proceso inverso por lotes...');
+        const token = sessionStorage.getItem('adminToken');
+
+        const processNextBatch = async () => {
+            if (!revCneLoopRef.current) return;
+            try {
+                const res = await fetch('/api/admin/reverse-cne?run=true', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.status === 'rate_limit') {
+                    setRevCneMsg('Límite de peticiones Dateas (429), pausando 60s...');
+                    setTimeout(processNextBatch, 60000);
+                    return;
+                }
+                
+                if (data.finished) {
+                    revCneLoopRef.current = false;
+                    setRevCneValidating(false);
+                    setRevCneMsg('¡No hay más registros pendientes!');
+                    return;
+                }
+                
+                setRevCneMsg(data.message || 'Procesando lote...');
+                
+                const resCne = await fetch('/api/admin/reverse-cne?run=false', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resCne.ok) {
+                    const dataCne = await resCne.json();
+                    setRevCneStats({ 
+                        total_procesados: dataCne.total_procesados || 0, 
+                        total_resueltos: dataCne.total_resueltos || 0, 
+                        total_homonimos: dataCne.total_homonimos || 0 
+                    });
+                }
+
+                if (revCneLoopRef.current) {
+                    setTimeout(processNextBatch, 1000);
+                }
+            } catch (err) {
+                setRevCneMsg('Error: ' + err.message);
+                revCneLoopRef.current = false;
+                setRevCneValidating(false);
+            }
+        };
+
+        processNextBatch();
+    };
+
+    const handleOpenHomonimos = async () => {
+        setHomonimosModalOpen(true);
+        const token = sessionStorage.getItem('adminToken');
+        try {
+            const res = await fetch('/api/admin/homonyms', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setHomonimosData(data.homonimos || []);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleResolveHomonimo = async (id, table, cedula) => {
+        const token = sessionStorage.getItem('adminToken');
+        try {
+            const res = await fetch('/api/admin/homonyms', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id, table, cedula })
+            });
+            if (res.ok) {
+                setHomonimosData(prev => prev.filter(h => h.id !== id || h.table !== table));
+            } else {
+                alert('Error al resolver homónimo');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const handleOpenCneModal = async () => {
         setCneModalOpen(true);
         await loadCnePage(1);
