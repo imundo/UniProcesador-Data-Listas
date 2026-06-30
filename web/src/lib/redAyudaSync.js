@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import db from './db.js';
-import Fuse from 'fuse.js';
+
 
 puppeteer.use(StealthPlugin());
 
