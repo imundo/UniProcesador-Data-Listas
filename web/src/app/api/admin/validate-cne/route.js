@@ -81,13 +81,6 @@ export async function GET(req) {
                         console.log(`[CNE Validation Dateas] ⏩ Omitido (Cédula inválida): ${record.cedula}`);
                         return;
                     }
-                    
-                    const numCedula = parseInt(cleanCedula, 10);
-                    if (numCedula > 22000000) {
-                        db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
-                        console.log(`[CNE Validation Dateas] ⏩ Omitido (> 22M): ${cleanCedula}`);
-                        return;
-                    }
 
                     try {
                         const baseUrl = 'https://www.sistemaspnp.com/cedula/';
@@ -121,8 +114,11 @@ export async function GET(req) {
                         const answer = parseInt(captchaMatch[1], 10) + parseInt(captchaMatch[2], 10);
 
                         // 3. Fase POST
+                        const isExtranjero = record.cedula.trim().toUpperCase().startsWith('E');
+                        const nacionalidad = isExtranjero ? 'E' : 'V';
+
                         const formData = new URLSearchParams();
-                        formData.append('nacionalidad', 'V');
+                        formData.append('nacionalidad', nacionalidad);
                         formData.append('cedula', cleanCedula);
                         formData.append('captcha', answer);
                         formData.append('jeje', '');
