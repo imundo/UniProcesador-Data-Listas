@@ -70,16 +70,13 @@ export async function GET(req) {
 
                 let rateLimited = false;
 
-                const promises = allUnverified.map(async (record, index) => {
-                    // Pequeño escalonamiento (200ms) para no ahogar al servidor de PNP
-                    await new Promise(r => setTimeout(r, index * 200));
-                    
+                for (const record of allUnverified) {
                     const cleanCedula = record.cedula.replace(/[^0-9]/g, '');
                     
                     if (cleanCedula.length < 5) {
                         db.prepare(`UPDATE ${record.table} SET cne_validado = 4 WHERE id = ?`).run(record.id);
                         console.log(`[CNE Validation Dateas] ⏩ Omitido (Cédula inválida): ${record.cedula}`);
-                        return;
+                        continue;
                     }
 
                     try {
@@ -90,7 +87,7 @@ export async function GET(req) {
                         const getRes = await fetch(baseUrl, {
                             headers: {
                                 'accept': 'text/html',
-                                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+                                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                             }
                         });
 
@@ -98,7 +95,7 @@ export async function GET(req) {
                             if (getRes.status === 429) {
                                 console.log("[CNE Validation PNP] Límite de peticiones excedido (429).");
                                 rateLimited = true;
-                                return;
+                                break;
                             }
                             throw new Error(`GET failed with status ${getRes.status}`);
                         }
@@ -130,7 +127,7 @@ export async function GET(req) {
                                 'content-type': 'application/x-www-form-urlencoded',
                                 'cookie': cookies,
                                 'referer': baseUrl,
-                                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+                                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                             },
                             body: formData.toString()
                         });
@@ -146,6 +143,9 @@ export async function GET(req) {
                         if (cleanHtml.includes('RECORD_NOT_FOUND')) {
                             db.prepare(`UPDATE ${record.table} SET cne_validado = 3 WHERE id = ?`).run(record.id);
                             console.log(`[CNE Validation PNP] ❌ No se encontró la cédula ${cleanCedula}`);
+                        } else if (cleanHtml.includes('CAPTCHA incorrecto')) {
+                            console.log(`[CNE Validation PNP] ⚠️ CAPTCHA incorrecto o sesión inválida para ${cleanCedula}`);
+                            // No actualizamos estado para que reintente luego
                         } else {
                             // Extraer Nombres, Primer Apellido, Segundo Apellido
                             const matchNombres = cleanHtml.match(/<strong>Nombres:<\/strong>\s*([^<]+)/i);
@@ -169,16 +169,16 @@ export async function GET(req) {
                                     console.log(`[CNE Validation PNP] ❌ Rechazado (No coincide): ${record.nombre} vs ${pnpFullName}`);
                                 }
                             } else {
-                                // Caso donde la página cargó pero no encontró el tag exacto (ej. error 500 oculto)
                                 console.log(`[CNE Validation PNP] ⚠️ HTML inesperado para ${cleanCedula}`);
                             }
                         }
                     } catch (err) {
                         console.error("[CNE Validation PNP] Error en petición:", err.message);
                     }
-                });
-                
-                await Promise.allSettled(promises);
+                    
+                    // Pausa entre peticiones secuenciales
+                    await new Promise(r => setTimeout(r, 800));
+                }
 
                 if (rateLimited) {
                     return NextResponse.json({
