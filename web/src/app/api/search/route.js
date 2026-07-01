@@ -624,8 +624,14 @@ export async function performSearch(term) {
                     existing.metadata = { ...(existing.metadata || {}), ...p.metadata };
                 }
                 
-                // Priorizar estados que no sean genéricos o vacíos
-                if (!existing.estado || (existing.estado.toLowerCase().trim() === 'active' && p.estado && p.estado.toLowerCase().trim() !== 'active')) {
+                // Priorizar estados que aporten valor real sobre los genéricos locales
+                const genericStates = ['active', 'válido', 'valido', 'incompleto', 'pendiente', ''];
+                const extState = (existing.estado || '').toLowerCase().trim();
+                const newpState = (p.estado || '').toLowerCase().trim();
+
+                if (!existing.estado || 
+                    (genericStates.includes(extState) && p.estado && !genericStates.includes(newpState)) ||
+                    (newpState === 'rescatado' || newpState === 'encontrado' || newpState === 'localizado' || newpState === 'reencontrado')) {
                     existing.estado = p.estado;
                 }
                 

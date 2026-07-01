@@ -173,6 +173,12 @@ export default function BuscarPage() {
                       VERIFICADO POR {sourcesArray.length} FUENTES
                     </div>
                   )}
+
+                  {person.last_reencuentro_sync && (
+                    <div className="w-full md:w-auto text-center md:text-right bg-blue-950/30 text-blue-400 border border-blue-900/50 px-3 py-1.5 rounded-lg text-[10px] font-mono mt-1">
+                      SINC. REENCUENTRO: {new Date(person.last_reencuentro_sync + 'Z').toLocaleString('es-VE')}
+                    </div>
+                  )}
                 </div>
               </div>
 

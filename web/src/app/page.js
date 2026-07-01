@@ -913,6 +913,13 @@ export default function Home() {
                         </p>
                       )}
 
+                      {person.last_reencuentro_sync && (
+                        <p className="text-blue-400 font-mono text-[10px] mt-1.5 opacity-80 uppercase flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                          SINC: {new Date(person.last_reencuentro_sync + 'Z').toLocaleString('es-VE')}
+                        </p>
+                      )}
+
                       <div className="mt-3 flex flex-wrap gap-2 items-center">
                         <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mr-1">Encontrado en:</span>
                         {sourcesArray.map((src, i) => {
