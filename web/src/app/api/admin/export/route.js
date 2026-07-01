@@ -1,11 +1,8 @@
 import db from '@/lib/db';
-import { headers } from 'next/headers';
-
 export const dynamic = 'force-dynamic';
 
 export async function GET(req) {
-    const headersList = headers();
-    const authHeader = headersList.get('authorization');
+    const authHeader = req.headers.get('authorization');
 
     // Extract Bearer token or check URL params if testing from browser
     const url = new URL(req.url);

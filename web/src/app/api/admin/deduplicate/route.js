@@ -1,11 +1,8 @@
 import db from '@/lib/db';
-import { headers } from 'next/headers';
-
 export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
-    const headersList = headers();
-    const authHeader = headersList.get('authorization');
+    const authHeader = req.headers.get('authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== 'Amazonas=90') {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
