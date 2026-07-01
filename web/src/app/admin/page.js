@@ -131,6 +131,38 @@ export default function AdminDashboard() {
         }
     };
 
+    const [isDeduplicating, setIsDeduplicating] = useState(false);
+    const [deduplicateMsg, setDeduplicateMsg] = useState('');
+
+    const handleDeduplicate = async () => {
+        if (!confirm('¿Seguro que deseas eliminar los duplicados exactos (Nombre, Apellido, Cédula)? Esta acción es irreversible.')) return;
+        try {
+            setIsDeduplicating(true);
+            setDeduplicateMsg('Limpiando base de datos...');
+            const token = sessionStorage.getItem('adminToken');
+            const res = await fetch('/api/admin/deduplicate', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDeduplicateMsg(`✅ ${data.message}`);
+                fetchStats(token);
+            } else {
+                setDeduplicateMsg('❌ Error: ' + (data.error || 'Desconocido'));
+            }
+        } catch(e) {
+            setDeduplicateMsg('❌ Error de conexión');
+        } finally {
+            setIsDeduplicating(false);
+        }
+    };
+
+    const handleExport = () => {
+        const token = sessionStorage.getItem('adminToken');
+        window.open(`/api/admin/export?token=${token}`, '_blank');
+    };
+
     const handleRedAyudaSync = async () => {
         try {
             setRedAyudaSyncing(true);
@@ -533,6 +565,39 @@ export default function AdminDashboard() {
                             <span className="text-yellow-500 uppercase tracking-widest text-xs font-bold mb-2">Homónimos Pendientes</span>
                             <span className="text-4xl font-black text-yellow-100">{revCneStats.total_homonimos || 0}</span>
                             <span className="text-yellow-500/50 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click para resolver manualmente</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 md:p-8 mb-12">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-white">Optimización de Base de Datos</h2>
+                        <div className="flex items-center gap-4">
+                            <span className="text-emerald-400 font-medium text-sm">{deduplicateMsg}</span>
+                            <button 
+                                onClick={handleDeduplicate}
+                                disabled={isDeduplicating}
+                                className={`text-white font-bold py-2 px-6 rounded-xl transition-colors flex items-center ${isDeduplicating ? 'bg-neutral-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500'}`}
+                            >
+                                {isDeduplicating ? 'Desduplicando...' : 'Desduplicar Exactos (Cédulas)'}
+                            </button>
+                            <button 
+                                onClick={handleExport}
+                                className="text-white font-bold py-2 px-6 rounded-xl transition-colors flex items-center bg-blue-600 hover:bg-blue-500"
+                            >
+                                Empaquetar y Descargar JSON
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-neutral-950/20 backdrop-blur-md border border-neutral-800 p-6 rounded-2xl">
+                            <h3 className="text-white font-bold mb-2 flex items-center gap-2">🧹 Desduplicación SQL</h3>
+                            <p className="text-neutral-400 text-sm">Ejecuta una limpieza a nivel de motor de Base de Datos que unifica y elimina registros repetidos que compartan exactamente la misma Cédula.</p>
+                        </div>
+                        <div className="bg-neutral-950/20 backdrop-blur-md border border-neutral-800 p-6 rounded-2xl">
+                            <h3 className="text-white font-bold mb-2 flex items-center gap-2">📦 Empaquetado de Datos</h3>
+                            <p className="text-neutral-400 text-sm">Descarga toda la base de datos local limpia y validada en un archivo JSON estructurado para su uso en otras herramientas.</p>
                         </div>
                     </div>
                 </div>
