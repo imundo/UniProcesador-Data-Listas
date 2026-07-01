@@ -147,7 +147,6 @@ export default function AdminDashboard() {
             const data = await res.json();
             if (data.success) {
                 setDeduplicateMsg(`✅ ${data.message}`);
-                fetchStats(token);
             } else {
                 setDeduplicateMsg('❌ Error: ' + (data.error || 'Desconocido'));
             }
