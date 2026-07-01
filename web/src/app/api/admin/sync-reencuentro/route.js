@@ -96,7 +96,7 @@ async function runReencuentroSync() {
                             db.prepare(`
                                 INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo, origen_nombre, origen_url)
                                 VALUES (?, 'local', ?, ?, ?, ?, 'Reencuentro.help', NULL)
-                            `).run(pac.id, \`\${pac.nombre} \${pac.apellido}\`.trim(), pac.cedula, pac.estatus, newStatus);
+                            `).run(pac.id, `${pac.nombre} ${pac.apellido}`.trim(), pac.cedula, pac.estatus, newStatus);
                         })();
                         
                         syncStats.totalActualizados++;
