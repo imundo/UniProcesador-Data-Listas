@@ -10,11 +10,11 @@ export async function GET(req) {
 
     try {
         const history = db.prepare(`
-            SELECT h.fecha_cambio, h.estado_anterior, h.nuevo_estado, p.nombre, p.apellido, p.cedula
+            SELECT h.fecha AS fecha_cambio, h.estado_anterior, h.estado_nuevo AS nuevo_estado, p.nombre, p.apellido, p.cedula
             FROM historial_estados h
-            JOIN pacientes p ON h.paciente_id = p.id
-            WHERE h.origen = 'Reencuentro.help'
-            ORDER BY h.fecha_cambio DESC
+            JOIN pacientes p ON h.registro_id = p.id AND h.tipo_registro = 'local'
+            WHERE h.origen_nombre = 'Reencuentro.help'
+            ORDER BY h.fecha DESC
             LIMIT 20
         `).all();
 

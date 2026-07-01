@@ -92,11 +92,11 @@ async function runReencuentroSync() {
                                 WHERE id = ?
                             `).run(newStatus, pac.id);
                             
-                            // Insertar en historial
+                            // Insertar en historial (Nota: tipo_registro es 'local' porque actualizamos la BD de pacientes locales)
                             db.prepare(`
-                                INSERT INTO historial_estados (paciente_id, estado_anterior, nuevo_estado, origen)
-                                VALUES (?, ?, ?, ?)
-                            `).run(pac.id, pac.estatus, newStatus, 'Reencuentro.help');
+                                INSERT INTO historial_estados (registro_id, tipo_registro, nombre_completo, cedula, estado_anterior, estado_nuevo, origen_nombre, origen_url)
+                                VALUES (?, 'local', ?, ?, ?, ?, 'Reencuentro.help', NULL)
+                            `).run(pac.id, \`\${pac.nombre} \${pac.apellido}\`.trim(), pac.cedula, pac.estatus, newStatus);
                         })();
                         
                         syncStats.totalActualizados++;
