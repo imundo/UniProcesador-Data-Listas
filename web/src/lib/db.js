@@ -188,6 +188,10 @@ function getDb() {
         if (!hasCNEValidadoPacientes) {
             db.exec("ALTER TABLE pacientes ADD COLUMN cne_validado BOOLEAN DEFAULT 0");
         }
+        const hasReencuentroSync = tableInfo.some(col => col.name === 'last_reencuentro_sync');
+        if (!hasReencuentroSync) {
+            db.exec("ALTER TABLE pacientes ADD COLUMN last_reencuentro_sync DATETIME");
+        }
     } catch(e) {
         console.error("Migration error pacientes:", e);
     }

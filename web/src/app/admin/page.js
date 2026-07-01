@@ -39,6 +39,12 @@ export default function AdminDashboard() {
     const [homonimosModalOpen, setHomonimosModalOpen] = useState(false);
     const [homonimosData, setHomonimosData] = useState([]);
 
+    // Reencuentro Stats
+    const [reencuentroSyncing, setReencuentroSyncing] = useState(false);
+    const [reencuentroMsg, setReencuentroMsg] = useState('');
+    const [reencuentroStats, setReencuentroStats] = useState({ totalProcesados: 0, totalActualizados: 0, totalErrores: 0, ultimoProcesado: null });
+    const [reencuentroUpdates, setReencuentroUpdates] = useState([]);
+
     // Función de Login simulada + Set de estado
     const handleLogin = (e) => {
         e.preventDefault();
@@ -103,6 +109,25 @@ export default function AdminDashboard() {
                         total_homonimos: dataRevCne.total_homonimos || 0 
                     });
                 }
+
+                // Poll Reencuentro Sync status
+                const resReencuentro = await fetch('/api/admin/sync-reencuentro', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resReencuentro.ok) {
+                    const dataReen = await resReencuentro.json();
+                    setReencuentroSyncing(dataReen.isSyncing);
+                    setReencuentroStats(dataReen.stats || { totalProcesados: 0, totalActualizados: 0, totalErrores: 0, ultimoProcesado: null });
+                }
+
+                // Poll Reencuentro recent updates
+                const resUpdates = await fetch('/api/admin/reencuentro-updates', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resUpdates.ok) {
+                    const dataUpdates = await resUpdates.json();
+                    setReencuentroUpdates(dataUpdates.updates || []);
+                }
             } catch (err) {
                 console.error("Error fetching stats", err);
             }
@@ -128,6 +153,26 @@ export default function AdminDashboard() {
             }
         } catch(e) {
             setSyncMsg('Error de conexión');
+        }
+    };
+
+    const handleToggleReencuentroSync = async () => {
+        try {
+            setReencuentroMsg('Contactando...');
+            const token = sessionStorage.getItem('adminToken');
+            const url = reencuentroSyncing ? '/api/admin/sync-reencuentro?stop=true' : '/api/admin/sync-reencuentro?start=true';
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setReencuentroMsg(`✅ ${data.message}`);
+                setReencuentroSyncing(data.isSyncing || !reencuentroSyncing);
+            } else {
+                setReencuentroMsg('❌ Error: ' + (data.error || 'Desconocido'));
+            }
+        } catch(e) {
+            setReencuentroMsg('❌ Error de conexión');
         }
     };
 
@@ -566,6 +611,61 @@ export default function AdminDashboard() {
                             <span className="text-yellow-500/50 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click para resolver manualmente</span>
                         </div>
                     </div>
+                </div>
+
+                <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 md:p-8 mb-12">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-white flex items-center gap-2">🔄 Sincronizador Reencuentro.help</h2>
+                        <div className="flex items-center gap-4">
+                            <span className="text-emerald-400 font-medium text-sm">{reencuentroMsg}</span>
+                            <button 
+                                onClick={handleToggleReencuentroSync}
+                                className={`text-white font-bold py-2 px-6 rounded-xl transition-colors flex items-center ${reencuentroSyncing ? 'bg-red-600 hover:bg-red-500' : 'bg-cyan-600 hover:bg-cyan-500'}`}
+                            >
+                                {reencuentroSyncing ? 'Detener Sincronización' : 'Iniciar Sincronización Masiva'}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <div className="bg-cyan-950/20 backdrop-blur-md border border-cyan-900/50 p-6 rounded-2xl flex flex-col items-center">
+                            <span className="text-cyan-500 uppercase tracking-widest text-xs font-bold mb-2">Total Procesados</span>
+                            <span className="text-4xl font-black text-cyan-100">{reencuentroStats.totalProcesados || 0}</span>
+                        </div>
+                        <div className="bg-emerald-950/20 backdrop-blur-md border border-emerald-900/50 p-6 rounded-2xl flex flex-col items-center">
+                            <span className="text-emerald-500 uppercase tracking-widest text-xs font-bold mb-2">Estados Actualizados</span>
+                            <span className="text-4xl font-black text-emerald-100">{reencuentroStats.totalActualizados || 0}</span>
+                        </div>
+                        <div className="bg-red-950/20 backdrop-blur-md border border-red-900/50 p-6 rounded-2xl flex flex-col items-center">
+                            <span className="text-red-500 uppercase tracking-widest text-xs font-bold mb-2">Errores / Rate Limits</span>
+                            <span className="text-4xl font-black text-red-100">{reencuentroStats.totalErrores || 0}</span>
+                        </div>
+                        <div className="bg-neutral-950/40 backdrop-blur-md border border-neutral-800 p-6 rounded-2xl flex flex-col justify-center items-center">
+                            <span className="text-neutral-500 uppercase tracking-widest text-xs font-bold mb-2">Último Consultado</span>
+                            <span className="text-sm font-medium text-neutral-300 text-center truncate w-full">{reencuentroStats.ultimoProcesado || 'Ninguno'}</span>
+                        </div>
+                    </div>
+
+                    {reencuentroUpdates.length > 0 && (
+                        <div className="mt-8">
+                            <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4">Actualizados Recientemente</h3>
+                            <div className="bg-neutral-950/50 rounded-xl border border-neutral-800 overflow-hidden">
+                                {reencuentroUpdates.map((u, i) => (
+                                    <div key={i} className="flex justify-between items-center p-4 border-b border-neutral-800/50 hover:bg-neutral-900/50 transition-colors last:border-0">
+                                        <div>
+                                            <div className="text-white font-bold">{u.nombre} {u.apellido}</div>
+                                            <div className="text-xs text-neutral-500">C.I: {u.cedula || 'N/A'} • {new Date(u.fecha_cambio).toLocaleString()}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-mono bg-neutral-800 text-neutral-400 px-2 py-1 rounded">{u.estado_anterior}</span>
+                                            <span className="text-neutral-600">→</span>
+                                            <span className="text-xs font-bold font-mono bg-emerald-900/40 text-emerald-400 px-2 py-1 rounded border border-emerald-800/50">{u.nuevo_estado}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 rounded-3xl p-6 md:p-8 mb-12">
